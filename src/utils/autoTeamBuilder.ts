@@ -314,8 +314,25 @@ function scoreHitter(hitter: HitterWithStats, strategy: AutoBuildStrategy): numb
   // Base fantasy points
   score += hitter.fantasyPoints * 0.3;
 
-  // Speed component (SB, triples)
-  const speedScore = (hitter.stolenBases * 3 + hitter.triples * 2) / (hitter.games || 1);
+  // Speed component (SB, triples, STL rating, RUN rating)
+  let speedScore = (hitter.stolenBases * 3 + hitter.triples * 2) / (hitter.games || 1);
+  
+  // Add STL rating bonus: AA=6, A=5, B=4, C=3, D=2, E=1
+  if (hitter.stealRating) {
+    const stlMap: Record<string, number> = { 'AA': 6, 'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1 };
+    const stlValue = stlMap[hitter.stealRating.toUpperCase()] || 0;
+    speedScore += stlValue * 2; // Significant weight for steal rating
+  }
+  
+  // Add RUN rating bonus: Extract first number (1-17 best, 1-8 worst)
+  if (hitter.runRating) {
+    const runMatch = hitter.runRating.match(/(\d+)-/);
+    if (runMatch) {
+      const runValue = parseInt(runMatch[1]);
+      speedScore += runValue * 0.5; // Weight for run rating
+    }
+  }
+  
   score += speedScore * (strategy.speedWeight / 100) * 50;
 
   // Power component (HR, doubles)

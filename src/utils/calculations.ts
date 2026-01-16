@@ -45,6 +45,25 @@ export function calculateHitterStats(
     defensivePoints = rangeBonus + errorPenalty;
   }
 
+  // Calculate speed rating bonus
+  // STL rating: AA=6, A=5, B=4, C=3, D=2, E=1
+  // RUN rating: Extract first number from format "1-17" (higher is better, 17 best, 8 worst)
+  let speedRatingBonus = 0;
+  if (hitter.stealRating) {
+    const stlMap: Record<string, number> = { 'AA': 6, 'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1 };
+    const stlValue = stlMap[hitter.stealRating.toUpperCase()] || 0;
+    speedRatingBonus += stlValue * (weights.stolenBase || 0) * 0.5; // Weight STL rating
+  }
+  if (hitter.runRating) {
+    const runMatch = hitter.runRating.match(/(\d+)-/);
+    if (runMatch) {
+      const runValue = parseInt(runMatch[1]);
+      // Normalize run rating: 17 is best (1-17), 8 is worst (1-8)
+      // Higher first number = better speed
+      speedRatingBonus += runValue * (weights.stolenBase || 0) * 0.3; // Weight RUN rating
+    }
+  }
+
   const fantasyPoints =
     singles * weights.single +
     hitter.doubles * weights.double +
@@ -56,7 +75,8 @@ export function calculateHitterStats(
     hitter.caughtStealing * weights.caughtStealing +
     outs * weights.outPenalty +
     balanceBonus +
-    defensivePoints;
+    defensivePoints +
+    speedRatingBonus;
 
   const pointsPer600PA =
     hitter.plateAppearances > 0

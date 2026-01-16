@@ -8,6 +8,8 @@ export interface Hitter {
   balance: string;
   fieldingRange: number;
   fieldingError: number;
+  stealRating?: string; // STL column: AA, A, B, C, D, E (AA best, E worst)
+  runRating?: string; // RUN column: 1-17 (best) to 1-8 (worst)
   ab: number;
   h: number;
   doubles: number;
