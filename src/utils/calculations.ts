@@ -51,11 +51,13 @@ export function calculateHitterStats(
   let speedRatingBonus = 0;
   if (hitter.stealRating) {
     const stlMap: Record<string, number> = { 'AA': 6, 'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1 };
-    const stlValue = stlMap[hitter.stealRating.toUpperCase()] || 0;
+    const stlRatingStr = String(hitter.stealRating).toUpperCase();
+    const stlValue = stlMap[stlRatingStr] || 0;
     speedRatingBonus += stlValue * (weights.stolenBase || 0) * 0.5; // Weight STL rating
   }
   if (hitter.runRating) {
-    const runMatch = hitter.runRating.match(/(\d+)-/);
+    const runRatingStr = String(hitter.runRating);
+    const runMatch = runRatingStr.match(/(\d+)-/);
     if (runMatch) {
       const runValue = parseInt(runMatch[1]);
       // Normalize run rating: 17 is best (1-17), 8 is worst (1-8)
