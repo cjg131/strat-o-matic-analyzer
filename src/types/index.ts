@@ -91,7 +91,6 @@ export interface HitterScoringWeights {
 }
 
 export interface PitcherScoringWeights {
-  perInningPitched: number;
   strikeout: number;
   walkAllowed: number;
   hitAllowed: number;
@@ -137,7 +136,6 @@ export const DEFAULT_SCORING_WEIGHTS: ScoringWeights = {
     fieldingErrorPenalty: 0,
   },
   pitcher: {
-    perInningPitched: 3,
     strikeout: 1,
     walkAllowed: -1,
     hitAllowed: -1,

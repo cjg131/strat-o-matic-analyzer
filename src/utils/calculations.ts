@@ -102,7 +102,6 @@ export function calculatePitcherStats(
   weights: PitcherScoringWeights
 ): PitcherWithStats {
   const fantasyPoints =
-    pitcher.inningsPitched * weights.perInningPitched +
     pitcher.strikeouts * weights.strikeout +
     pitcher.walks * weights.walkAllowed +
     pitcher.hitsAllowed * weights.hitAllowed +
