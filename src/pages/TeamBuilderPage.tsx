@@ -40,12 +40,15 @@ export function TeamBuilderPage() {
     const end = p.endurance?.toUpperCase() || '';
     const canRelieverole = end.includes('R') || end.includes('C');
     const canStartRole = end.includes('S');
-    return canRelieverole && !canStartRole;
+    const isPure = canRelieverole && !canStartRole;
+    console.log(`Pitcher ${p.name}: endurance="${end}", canRelieve=${canRelieverole}, canStart=${canStartRole}, isPure=${isPure}`);
+    return isPure;
   });
   
   // Debug pure relievers
   if (team.pitchers.length > 0) {
     console.log('All pitchers:', team.pitchers.map(p => ({name: p.name, endurance: p.endurance})));
+    console.log('Pure relievers count:', pureRelievers.length);
     console.log('Pure relievers:', pureRelievers.map(p => ({name: p.name, endurance: p.endurance})));
   }
 
