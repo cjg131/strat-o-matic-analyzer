@@ -163,6 +163,22 @@ function selectOptimalTeam(
 
   // Ensure minimum pitchers with required roles
   // Priority 1: Pure relievers (most restrictive requirement)
+  console.log('Starting pure reliever selection. Target:', strategy.targetPureRelievers);
+  
+  // First, check what pure relievers are available
+  const availablePureRelievers = sortedPitchers.filter(sp => {
+    const pitcher = sp.player as PitcherWithStats;
+    const endurance = pitcher.endurance?.toUpperCase() || '';
+    const hasStarterRole = endurance.includes('S');
+    const hasRelieverRole = endurance.includes('R') || endurance.includes('C');
+    return hasRelieverRole && !hasStarterRole;
+  });
+  console.log('Available pure relievers:', availablePureRelievers.length, availablePureRelievers.slice(0, 5).map(sp => ({
+    name: (sp.player as PitcherWithStats).name,
+    endurance: (sp.player as PitcherWithStats).endurance,
+    salary: (sp.player as PitcherWithStats).salary
+  })));
+  
   while (pureRelieverCount < strategy.targetPureRelievers && selectedPitchers.length < strategy.targetPitchers) {
     let added = false;
     for (const sp of sortedPitchers) {
@@ -174,6 +190,7 @@ function selectOptimalTeam(
       const isPureReliever = hasRelieverRole && !hasStarterRole;
 
       if (isPureReliever && totalSpent + pitcher.salary <= salaryCap * 1.1) {
+        console.log('Adding pure reliever:', pitcher.name, 'endurance:', pitcher.endurance, 'salary:', pitcher.salary);
         selectedPitchers.push(sp);
         totalSpent += pitcher.salary;
         pureRelieverCount++;
@@ -182,7 +199,10 @@ function selectOptimalTeam(
         break;
       }
     }
-    if (!added) break; // No more pure relievers available within budget
+    if (!added) {
+      console.log('Could not add more pure relievers. Current count:', pureRelieverCount);
+      break;
+    }
   }
 
   // Priority 2: Who can start
