@@ -42,6 +42,12 @@ export function TeamBuilderPage() {
     const canStartRole = end.includes('S');
     return canRelieverole && !canStartRole;
   });
+  
+  // Debug pure relievers
+  if (team.pitchers.length > 0) {
+    console.log('All pitchers:', team.pitchers.map(p => ({name: p.name, endurance: p.endurance})));
+    console.log('Pure relievers:', pureRelievers.map(p => ({name: p.name, endurance: p.endurance})));
+  }
 
   const catchers = team.hitters.filter((h) => {
     const positions = h.positions?.toUpperCase().split('/').map(p => p.trim()) || [];
