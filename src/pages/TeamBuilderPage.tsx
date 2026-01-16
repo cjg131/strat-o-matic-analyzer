@@ -43,7 +43,10 @@ export function TeamBuilderPage() {
     return canRelieverole && !canStartRole;
   });
 
-  const catchers = team.hitters.filter((h) => h.positions?.toUpperCase().includes('C'));
+  const catchers = team.hitters.filter((h) => {
+    const positions = h.positions?.toUpperCase().split('/').map(p => p.trim()) || [];
+    return positions.some(pos => pos.startsWith('C-'));
+  });
   const positionCoverage = checkPositionCoverage(team.hitters);
 
   const handleSaveName = () => {
