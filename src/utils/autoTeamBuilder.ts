@@ -162,26 +162,69 @@ function selectOptimalTeam(
   }
 
   // Ensure minimum pitchers with required roles
-  for (const sp of sortedPitchers) {
-    const pitcher = sp.player as PitcherWithStats;
-    const endurance = pitcher.endurance?.toUpperCase() || '';
-    const hasStarterRole = endurance.includes('S');
-    const hasRelieverRole = endurance.includes('R') || endurance.includes('C');
-    const isPureReliever = hasRelieverRole && !hasStarterRole;
+  // Priority 1: Pure relievers (most restrictive requirement)
+  while (pureRelieverCount < strategy.targetPureRelievers && selectedPitchers.length < strategy.targetPitchers) {
+    let added = false;
+    for (const sp of sortedPitchers) {
+      if (selectedPitchers.includes(sp)) continue;
+      const pitcher = sp.player as PitcherWithStats;
+      const endurance = pitcher.endurance?.toUpperCase() || '';
+      const hasStarterRole = endurance.includes('S');
+      const hasRelieverRole = endurance.includes('R') || endurance.includes('C');
+      const isPureReliever = hasRelieverRole && !hasStarterRole;
 
-    const needsStarter = canStartCount < strategy.targetCanStart && hasStarterRole;
-    const needsReliever = canRelieveCount < strategy.targetCanRelieve && hasRelieverRole;
-    const needsPureReliever = pureRelieverCount < strategy.targetPureRelievers && isPureReliever;
-
-    if ((needsStarter || needsReliever || needsPureReliever) && selectedPitchers.length < strategy.targetPitchers) {
-      if (totalSpent + pitcher.salary <= salaryCap * 1.05) { // Allow 5% overage for requirements
+      if (isPureReliever && totalSpent + pitcher.salary <= salaryCap * 1.1) {
         selectedPitchers.push(sp);
         totalSpent += pitcher.salary;
-        if (hasStarterRole) canStartCount++;
-        if (hasRelieverRole) canRelieveCount++;
-        if (isPureReliever) pureRelieverCount++;
+        pureRelieverCount++;
+        canRelieveCount++;
+        added = true;
+        break;
       }
     }
+    if (!added) break; // No more pure relievers available within budget
+  }
+
+  // Priority 2: Who can start
+  while (canStartCount < strategy.targetCanStart && selectedPitchers.length < strategy.targetPitchers) {
+    let added = false;
+    for (const sp of sortedPitchers) {
+      if (selectedPitchers.includes(sp)) continue;
+      const pitcher = sp.player as PitcherWithStats;
+      const endurance = pitcher.endurance?.toUpperCase() || '';
+      const hasStarterRole = endurance.includes('S');
+      const hasRelieverRole = endurance.includes('R') || endurance.includes('C');
+
+      if (hasStarterRole && totalSpent + pitcher.salary <= salaryCap * 1.1) {
+        selectedPitchers.push(sp);
+        totalSpent += pitcher.salary;
+        canStartCount++;
+        if (hasRelieverRole) canRelieveCount++;
+        added = true;
+        break;
+      }
+    }
+    if (!added) break;
+  }
+
+  // Priority 3: Who can relieve
+  while (canRelieveCount < strategy.targetCanRelieve && selectedPitchers.length < strategy.targetPitchers) {
+    let added = false;
+    for (const sp of sortedPitchers) {
+      if (selectedPitchers.includes(sp)) continue;
+      const pitcher = sp.player as PitcherWithStats;
+      const endurance = pitcher.endurance?.toUpperCase() || '';
+      const hasRelieverRole = endurance.includes('R') || endurance.includes('C');
+
+      if (hasRelieverRole && totalSpent + pitcher.salary <= salaryCap * 1.1) {
+        selectedPitchers.push(sp);
+        totalSpent += pitcher.salary;
+        canRelieveCount++;
+        added = true;
+        break;
+      }
+    }
+    if (!added) break;
   }
 
   // Phase 2: Fill remaining slots with best available players
