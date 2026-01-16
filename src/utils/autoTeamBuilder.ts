@@ -94,9 +94,22 @@ function selectOptimalTeam(
   const selectedPitchers: ScoredPlayer[] = [];
   let totalSpent = 0;
 
-  // Sort by value per dollar for optimal selection
-  const sortedHitters = [...scoredHitters].sort((a, b) => b.valuePerDollar - a.valuePerDollar);
-  const sortedPitchers = [...scoredPitchers].sort((a, b) => b.valuePerDollar - a.valuePerDollar);
+  // Sort by hybrid score: 60% raw score + 40% value per dollar (normalized)
+  const maxHitterScore = Math.max(...scoredHitters.map(h => h.score));
+  const maxHitterValue = Math.max(...scoredHitters.map(h => h.valuePerDollar));
+  const sortedHitters = [...scoredHitters].sort((a, b) => {
+    const aHybrid = (a.score / maxHitterScore) * 0.6 + (a.valuePerDollar / maxHitterValue) * 0.4;
+    const bHybrid = (b.score / maxHitterScore) * 0.6 + (b.valuePerDollar / maxHitterValue) * 0.4;
+    return bHybrid - aHybrid;
+  });
+  
+  const maxPitcherScore = Math.max(...scoredPitchers.map(p => p.score));
+  const maxPitcherValue = Math.max(...scoredPitchers.map(p => p.valuePerDollar));
+  const sortedPitchers = [...scoredPitchers].sort((a, b) => {
+    const aHybrid = (a.score / maxPitcherScore) * 0.6 + (a.valuePerDollar / maxPitcherValue) * 0.4;
+    const bHybrid = (b.score / maxPitcherScore) * 0.6 + (b.valuePerDollar / maxPitcherValue) * 0.4;
+    return bHybrid - aHybrid;
+  });
 
   // Track requirements
   let canStartCount = 0;
@@ -171,11 +184,11 @@ function selectOptimalTeam(
     }
   }
 
-  // Phase 2: Fill remaining slots with best value players (pitchers and hitters combined)
+  // Phase 2: Fill remaining slots with best available players
   const allRemaining = [
     ...sortedHitters.filter(h => !selectedHitters.includes(h)),
     ...sortedPitchers.filter(p => !selectedPitchers.includes(p))
-  ].sort((a, b) => b.valuePerDollar - a.valuePerDollar);
+  ].sort((a, b) => b.score - a.score); // Sort by raw score for filling
 
   for (const player of allRemaining) {
     const salary = (player.player as any).salary || 0;
@@ -191,6 +204,60 @@ function selectOptimalTeam(
       if (selectedHitters.length < strategy.targetHitters) {
         selectedHitters.push(player);
         totalSpent += salary;
+      }
+    }
+  }
+
+  // Phase 3: Upgrade players with remaining budget
+  // Try to replace lower-scored players with higher-scored ones if budget allows
+  const budgetRemaining = salaryCap - totalSpent;
+  
+  if (budgetRemaining > 10000) { // If we have significant budget left
+    // Sort current team by score (lowest first for replacement candidates)
+    const sortedCurrentHitters = [...selectedHitters].sort((a, b) => a.score - b.score);
+    const sortedCurrentPitchers = [...selectedPitchers].sort((a, b) => a.score - b.score);
+    
+    // Try to upgrade hitters
+    for (let i = 0; i < sortedCurrentHitters.length; i++) {
+      const currentPlayer = sortedCurrentHitters[i];
+      const currentSalary = (currentPlayer.player as any).salary || 0;
+      const availableBudget = budgetRemaining + currentSalary;
+      
+      // Find better hitter within budget
+      for (const betterPlayer of sortedHitters) {
+        if (selectedHitters.includes(betterPlayer)) continue;
+        if (betterPlayer.score <= currentPlayer.score) continue;
+        
+        const newSalary = (betterPlayer.player as any).salary || 0;
+        if (newSalary <= availableBudget) {
+          // Replace the player
+          const index = selectedHitters.indexOf(currentPlayer);
+          selectedHitters[index] = betterPlayer;
+          totalSpent = totalSpent - currentSalary + newSalary;
+          break;
+        }
+      }
+    }
+    
+    // Try to upgrade pitchers
+    for (let i = 0; i < sortedCurrentPitchers.length; i++) {
+      const currentPlayer = sortedCurrentPitchers[i];
+      const currentSalary = (currentPlayer.player as any).salary || 0;
+      const availableBudget = (salaryCap - totalSpent) + currentSalary;
+      
+      // Find better pitcher within budget
+      for (const betterPlayer of sortedPitchers) {
+        if (selectedPitchers.includes(betterPlayer)) continue;
+        if (betterPlayer.score <= currentPlayer.score) continue;
+        
+        const newSalary = (betterPlayer.player as any).salary || 0;
+        if (newSalary <= availableBudget) {
+          // Replace the player
+          const index = selectedPitchers.indexOf(currentPlayer);
+          selectedPitchers[index] = betterPlayer;
+          totalSpent = totalSpent - currentSalary + newSalary;
+          break;
+        }
       }
     }
   }
