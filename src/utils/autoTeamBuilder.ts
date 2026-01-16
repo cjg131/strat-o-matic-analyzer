@@ -169,11 +169,12 @@ function selectBestPitchers(
   const selected: ScoredPlayer[] = [];
   let spent = 0;
 
-  const canStart: ScoredPlayer[] = [];
-  const canRelieve: ScoredPlayer[] = [];
-  const pureRelievers: ScoredPlayer[] = [];
+  // Track requirements
+  let canStartCount = 0;
+  let canRelieveCount = 0;
+  let pureRelieverCount = 0;
 
-  // First pass: ensure minimum requirements
+  // First pass: ensure minimum requirements with flexible budget
   for (const sp of sorted) {
     const pitcher = sp.player as PitcherWithStats;
     const endurance = pitcher.endurance?.toUpperCase() || '';
@@ -181,44 +182,35 @@ function selectBestPitchers(
     const hasRelieverRole = endurance.includes('R') || endurance.includes('C');
     const isPureReliever = hasRelieverRole && !hasStarterRole;
 
-    if (spent + pitcher.salary > budget) continue;
+    // Check if we need this pitcher for requirements
+    const needsStarter = canStartCount < strategy.targetCanStart && hasStarterRole;
+    const needsReliever = canRelieveCount < strategy.targetCanRelieve && hasRelieverRole;
+    const needsPureReliever = pureRelieverCount < strategy.targetPureRelievers && isPureReliever;
+    
+    // If we need this pitcher type and haven't hit target, be more flexible with budget
+    const isRequired = needsStarter || needsReliever || needsPureReliever;
+    const canAfford = spent + pitcher.salary <= budget * 1.2; // Allow 20% overage for requirements
+    
+    if (!canAfford && !isRequired) continue;
     if (selected.length >= strategy.targetPitchers) break;
 
-    // Ensure minimum who can start
-    if (hasStarterRole && canStart.length < strategy.targetCanStart) {
+    if (isRequired || selected.length < strategy.targetPitchers) {
       selected.push(sp);
-      canStart.push(sp);
-      if (hasRelieverRole) canRelieve.push(sp);
       spent += pitcher.salary;
-      continue;
-    }
-
-    // Ensure minimum who can relieve
-    if (hasRelieverRole && canRelieve.length < strategy.targetCanRelieve) {
-      selected.push(sp);
-      canRelieve.push(sp);
-      if (hasStarterRole) canStart.push(sp);
-      if (isPureReliever) pureRelievers.push(sp);
-      spent += pitcher.salary;
-      continue;
-    }
-
-    // Ensure minimum pure relievers
-    if (isPureReliever && pureRelievers.length < strategy.targetPureRelievers) {
-      selected.push(sp);
-      pureRelievers.push(sp);
-      canRelieve.push(sp);
-      spent += pitcher.salary;
-      continue;
+      
+      if (hasStarterRole) canStartCount++;
+      if (hasRelieverRole) canRelieveCount++;
+      if (isPureReliever) pureRelieverCount++;
     }
   }
 
-  // Fill remaining slots with best available
+  // Second pass: fill remaining slots if under target
   for (const sp of sorted) {
     if (selected.includes(sp)) continue;
+    if (selected.length >= strategy.targetPitchers) break;
+    
     const pitcher = sp.player as PitcherWithStats;
     if (spent + pitcher.salary > budget) continue;
-    if (selected.length >= strategy.targetPitchers) break;
     
     selected.push(sp);
     spent += pitcher.salary;

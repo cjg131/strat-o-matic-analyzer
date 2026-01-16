@@ -175,5 +175,5 @@ export interface TeamRoster {
   pitchers: Pitcher[];
   totalSalary: number;
   ballpark?: Ballpark;
-  ballparkStrategy: 'balanced' | 'offense' | 'defense';
+  ballparkStrategy: 'balanced' | 'offense' | 'defense' | 'speedDefense';
 }

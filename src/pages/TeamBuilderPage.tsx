@@ -191,7 +191,7 @@ export function TeamBuilderPage() {
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Strategy
           </label>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <button
               onClick={() => setBallparkStrategy('offense')}
               className={`px-4 py-3 rounded-md border-2 transition-colors ${
@@ -225,13 +225,29 @@ export function TeamBuilderPage() {
               <div className="font-semibold">Heavy Defense</div>
               <div className="text-xs mt-1">Low HR, Low Singles</div>
             </button>
+            <button
+              onClick={() => setBallparkStrategy('speedDefense')}
+              className={`px-4 py-3 rounded-md border-2 transition-colors ${
+                team.ballparkStrategy === 'speedDefense'
+                  ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
+                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+              }`}
+            >
+              <div className="font-semibold">Speed/Defense</div>
+              <div className="text-xs mt-1">High Singles, Low HR</div>
+            </button>
           </div>
         </div>
 
         {ballparks.length > 0 && (
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Choose Ballpark {team.ballparkStrategy === 'offense' ? '(Offense)' : team.ballparkStrategy === 'defense' ? '(Defense)' : '(Balanced)'}
+              Choose Ballpark {
+                team.ballparkStrategy === 'offense' ? '(Offense)' : 
+                team.ballparkStrategy === 'defense' ? '(Defense)' : 
+                team.ballparkStrategy === 'speedDefense' ? '(Speed/Defense)' :
+                '(Balanced)'
+              }
             </label>
             <select
               value={team.ballpark?.id || ''}
@@ -251,6 +267,10 @@ export function TeamBuilderPage() {
                   } else if (team.ballparkStrategy === 'defense') {
                     const aScore = ((42 - a.singlesLeft - a.singlesRight) + (42 - a.homeRunsLeft - a.homeRunsRight) * 3) / 8;
                     const bScore = ((42 - b.singlesLeft - b.singlesRight) + (42 - b.homeRunsLeft - b.homeRunsRight) * 3) / 8;
+                    return bScore - aScore;
+                  } else if (team.ballparkStrategy === 'speedDefense') {
+                    const aScore = ((a.singlesLeft + a.singlesRight) / 2) + (((42 - a.homeRunsLeft - a.homeRunsRight) * 3) / 2);
+                    const bScore = ((b.singlesLeft + b.singlesRight) / 2) + (((42 - b.homeRunsLeft - b.homeRunsRight) * 3) / 2);
                     return bScore - aScore;
                   }
                   return a.name.localeCompare(b.name);
