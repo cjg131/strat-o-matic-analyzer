@@ -13,6 +13,38 @@ interface PitchersTableProps {
 type SortField = keyof PitcherWithStats;
 type SortDirection = 'asc' | 'desc';
 
+// Helper function to compare endurance ratings
+// Returns: positive if a > b, 0 if equal, negative if a < b
+function compareEndurance(a: string, b: string): number {
+  if (!a || !b) return 0;
+  
+  // Extract type (S, R, C) and number
+  const parseEndurance = (end: string) => {
+    const match = end.match(/^([SRC])(\d+)(\+)?$/i);
+    if (!match) return { type: '', num: 0, plus: false };
+    return {
+      type: match[1].toUpperCase(),
+      num: parseInt(match[2]),
+      plus: !!match[3]
+    };
+  };
+  
+  const endA = parseEndurance(a);
+  const endB = parseEndurance(b);
+  
+  // Different types can't be compared (S vs R vs C)
+  if (endA.type !== endB.type) return 0;
+  
+  // Compare numbers (higher is better: S9 > S8 > S7)
+  if (endA.num !== endB.num) return endA.num - endB.num;
+  
+  // If numbers equal, + is better than no +
+  if (endA.plus && !endB.plus) return 1;
+  if (!endA.plus && endB.plus) return -1;
+  
+  return 0;
+}
+
 export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: PitchersTableProps) {
   const [sortField, setSortField] = useState<SortField>('fantasyPoints');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -75,7 +107,7 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: Pitch
     if (enduranceFilter !== 'all') {
       filtered = filtered.filter((p) => {
         const endurance = p.endurance?.toUpperCase() || '';
-        return endurance === enduranceFilter;
+        return compareEndurance(endurance, enduranceFilter) >= 0;
       });
     }
 
@@ -151,7 +183,7 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: Pitch
         >
           <option value="all">All Endurance</option>
           {uniqueEndurances.map(endurance => (
-            <option key={endurance} value={endurance}>{endurance}</option>
+            <option key={endurance} value={endurance}>{endurance} or better</option>
           ))}
         </select>
       </div>
