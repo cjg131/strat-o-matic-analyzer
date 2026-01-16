@@ -77,7 +77,16 @@ export function importHittersFromFile(file: File): Promise<ImportResult<Hitter>>
               balance: String(normalizedRow.aa || normalizedRow.balance || normalizedRow.bal || 'E').toUpperCase(),
               fieldingRange,
               fieldingError,
-              stealRating: normalizedRow.stl ? String(normalizedRow.stl) : normalizedRow.stealrating ? String(normalizedRow.stealrating) : normalizedRow.steal ? String(normalizedRow.steal) : undefined,
+              stealRating: (() => {
+                // Try different column names
+                const stlValue = normalizedRow.stl || normalizedRow.stealrating || normalizedRow.steal || normalizedRow.scsstealing || normalizedRow.stealing;
+                if (!stlValue) return undefined;
+                
+                const stlStr = String(stlValue);
+                // Extract letter rating from parentheses like "(B)" or "(AA)"
+                const match = stlStr.match(/\(([A-E]+)\)/);
+                return match ? match[1] : stlStr;
+              })(),
               runRating: normalizedRow.run ? String(normalizedRow.run) : normalizedRow.runrating ? String(normalizedRow.runrating) : normalizedRow.running ? String(normalizedRow.running) : undefined,
               ab,
               h: parseInt(normalizedRow.h || normalizedRow.hits || '0') || 0,
