@@ -1,13 +1,22 @@
 import { useState } from 'react';
-import { Users, Trash2, DollarSign, AlertCircle } from 'lucide-react';
+import { Users, Trash2, DollarSign, AlertCircle, Zap } from 'lucide-react';
 import { useTeam } from '../hooks/useTeam';
+import { useHitters } from '../hooks/useHitters';
+import { usePitchers } from '../hooks/usePitchers';
+import { useScoringWeights } from '../hooks/useScoringWeights';
 import { DEFAULT_ROSTER_REQUIREMENTS } from '../types';
-import { formatCurrency } from '../utils/calculations';
+import { formatCurrency, calculateHitterStats, calculatePitcherStats } from '../utils/calculations';
+import { autoSelectTeam, AutoBuildStrategy } from '../utils/autoTeamBuilder';
+import { AutoBuildModal } from '../components/AutoBuildModal';
 
 export function TeamBuilderPage() {
-  const { team, removeHitter, removePitcher, updateTeamName, clearTeam } = useTeam();
+  const { team, removeHitter, removePitcher, updateTeamName, clearTeam, addHitter, addPitcher } = useTeam();
+  const { hitters } = useHitters();
+  const { pitchers } = usePitchers();
+  const { weights } = useScoringWeights();
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState(team.name);
+  const [showAutoBuild, setShowAutoBuild] = useState(false);
 
   const requirements = DEFAULT_ROSTER_REQUIREMENTS;
   const totalPlayers = team.hitters.length + team.pitchers.length;
@@ -45,8 +54,31 @@ export function TeamBuilderPage() {
     );
   };
 
+  const handleAutoBuild = (strategy: AutoBuildStrategy) => {
+    const hittersWithStats = hitters.map((h) => calculateHitterStats(h, weights.hitter));
+    const pitchersWithStats = pitchers.map((p) => calculatePitcherStats(p, weights.pitcher));
+
+    const { selectedHitters, selectedPitchers } = autoSelectTeam(
+      hittersWithStats,
+      pitchersWithStats,
+      strategy,
+      requirements.salaryCap
+    );
+
+    clearTeam();
+    selectedHitters.forEach((h) => addHitter(h));
+    selectedPitchers.forEach((p) => addPitcher(p));
+  };
+
   return (
     <div className="space-y-6">
+      {showAutoBuild && (
+        <AutoBuildModal
+          onClose={() => setShowAutoBuild(false)}
+          onBuild={handleAutoBuild}
+        />
+      )}
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Users className="h-8 w-8 text-primary-600 dark:text-primary-400" />
@@ -71,13 +103,22 @@ export function TeamBuilderPage() {
             </h1>
           )}
         </div>
-        <button
-          onClick={clearTeam}
-          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center gap-2"
-        >
-          <Trash2 className="h-4 w-4" />
-          Clear Team
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowAutoBuild(true)}
+            className="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 flex items-center gap-2"
+          >
+            <Zap className="h-4 w-4" />
+            Auto Build
+          </button>
+          <button
+            onClick={clearTeam}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center gap-2"
+          >
+            <Trash2 className="h-4 w-4" />
+            Clear Team
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
