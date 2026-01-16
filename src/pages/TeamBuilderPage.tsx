@@ -45,6 +45,13 @@ export function TeamBuilderPage() {
 
   const catchers = team.hitters.filter((h) => h.positions?.toUpperCase().includes('C'));
   const positionCoverage = checkPositionCoverage(team.hitters);
+  
+  // Debug: Check if positions data exists
+  if (team.hitters.length > 0) {
+    console.log('Sample hitter:', team.hitters[0]);
+    console.log('Hitters with positions:', team.hitters.filter(h => h.positions).length);
+    console.log('Position coverage:', positionCoverage);
+  }
 
   const handleSaveName = () => {
     updateTeamName(tempName);
