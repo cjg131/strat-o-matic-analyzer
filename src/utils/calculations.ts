@@ -98,12 +98,15 @@ export function calculatePitcherStats(
   const pointsPerDollar =
     pitcher.salary > 0 ? (fantasyPoints / (pitcher.salary / 1000)) * 100 : 0;
 
+  const singles = pitcher.hitsAllowed - pitcher.homeRunsAllowed;
+
   return {
     ...pitcher,
     fantasyPoints,
     pointsPerIP,
     pointsPerStart,
     pointsPerDollar,
+    singles,
   };
 }
 

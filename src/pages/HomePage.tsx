@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Settings, Users, TrendingUp, Activity } from 'lucide-react';
+import { Settings, Users, TrendingUp } from 'lucide-react';
 
 export function HomePage() {
   return (

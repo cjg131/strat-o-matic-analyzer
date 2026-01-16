@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { Plus, Upload, Download, Trash2, ArrowUpDown } from 'lucide-react';
+import { Upload, Download, Trash2, ArrowUpDown } from 'lucide-react';
 import { useBallparks } from '../hooks/useBallparks';
 import { importBallparksFromFile, exportBallparksToExcel } from '../utils/importData';
 import type { Ballpark } from '../types';
@@ -13,7 +13,7 @@ type BallparkWithRatings = Ballpark & {
 type SortField = keyof BallparkWithRatings;
 
 export function BallparksPage() {
-  const { ballparks, addMultipleBallparks, updateBallpark, deleteBallpark, clearAllBallparks } = useBallparks();
+  const { ballparks, addMultipleBallparks, deleteBallpark, clearAllBallparks } = useBallparks();
   const [importing, setImporting] = useState(false);
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
