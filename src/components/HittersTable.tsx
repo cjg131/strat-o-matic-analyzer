@@ -171,9 +171,9 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+          <thead className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 sticky top-0 z-20">
             <tr>
               <th className="px-3 py-2 text-left sticky left-0 bg-gray-50 dark:bg-gray-800 z-10"><SortButton field="name" label="Name" /></th>
               <th className="px-3 py-2 text-left"><SortButton field="season" label="Season" /></th>

@@ -126,11 +126,11 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: Pitch
         </select>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+          <thead className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 sticky top-0 z-20">
             <tr>
-              <th className="px-3 py-2 text-left"><SortButton field="name" label="Name" /></th>
+              <th className="px-3 py-2 text-left sticky left-0 bg-gray-50 dark:bg-gray-800 z-30"><SortButton field="name" label="Name" /></th>
               <th className="px-3 py-2 text-left"><SortButton field="season" label="Season" /></th>
               <th className="px-3 py-2 text-left"><SortButton field="team" label="Team" /></th>
               <th className="px-3 py-2 text-right"><SortButton field="salary" label="Salary" /></th>
@@ -160,7 +160,7 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: Pitch
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {filteredAndSortedPitchers.map((pitcher) => (
               <tr key={pitcher.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                <td className="px-3 py-2 text-gray-900 dark:text-white font-medium">{pitcher.name}</td>
+                <td className="px-3 py-2 text-gray-900 dark:text-white font-medium sticky left-0 bg-white dark:bg-gray-900 z-10">{pitcher.name}</td>
                 <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{pitcher.season}</td>
                 <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{pitcher.team || '-'}</td>
                 <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300 font-mono whitespace-nowrap">{formatCurrency(pitcher.salary)}</td>
