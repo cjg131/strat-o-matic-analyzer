@@ -314,26 +314,29 @@ function scoreHitter(hitter: HitterWithStats, strategy: AutoBuildStrategy): numb
   // Base fantasy points
   score += hitter.fantasyPoints * 0.3;
 
-  // Speed component (SB, triples, STL rating, RUN rating)
-  let speedScore = (hitter.stolenBases * 3 + hitter.triples * 2) / (hitter.games || 1);
+  // Speed component - STL and RUN ratings are PRIMARY indicators, SB/triples are secondary
+  let speedScore = 0;
   
-  // Add STL rating bonus: AA=6, A=5, B=4, C=3, D=2, E=1
+  // STL rating is PRIMARY speed indicator: AAA=7, AA=6, A=5, B=4, C=3, D=2, E=1
   if (hitter.stealRating) {
-    const stlMap: Record<string, number> = { 'AA': 6, 'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1 };
+    const stlMap: Record<string, number> = { 'AAA': 7, 'AA': 6, 'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1 };
     const stlRatingStr = String(hitter.stealRating).toUpperCase();
     const stlValue = stlMap[stlRatingStr] || 0;
-    speedScore += stlValue * 2; // Significant weight for steal rating
+    speedScore += stlValue * 10; // PRIMARY speed indicator - heavily weighted
   }
   
-  // Add RUN rating bonus: Extract first number (1-17 best, 1-8 worst)
+  // RUN rating is PRIMARY speed indicator: Extract first number (1-17 best, 1-8 worst)
   if (hitter.runRating) {
     const runRatingStr = String(hitter.runRating);
     const runMatch = runRatingStr.match(/(\d+)-/);
     if (runMatch) {
       const runValue = parseInt(runMatch[1]);
-      speedScore += runValue * 0.5; // Weight for run rating
+      speedScore += runValue * 3; // PRIMARY speed indicator - heavily weighted
     }
   }
+  
+  // Actual SB/triples are secondary indicators (much lower weight)
+  speedScore += (hitter.stolenBases * 0.5 + hitter.triples * 0.3) / (hitter.games || 1);
   
   score += speedScore * (strategy.speedWeight / 100) * 50;
 
