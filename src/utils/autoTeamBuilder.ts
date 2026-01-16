@@ -251,6 +251,22 @@ function selectOptimalTeam(
     }
   }
 
+  // Debug logging
+  console.log('Auto-builder results:', {
+    selectedHitters: selectedHitters.length,
+    selectedPitchers: selectedPitchers.length,
+    canStartCount,
+    canRelieveCount,
+    pureRelieverCount,
+    catcherCount: selectedHitters.filter(sh => {
+      const hitter = sh.player as HitterWithStats;
+      return hitter.positions?.toUpperCase().includes('C');
+    }).length,
+    totalSpent,
+    salaryCap,
+    budgetUsed: ((totalSpent / salaryCap) * 100).toFixed(1) + '%'
+  });
+
   // Phase 3: Upgrade players with remaining budget
   // Try to replace lower-scored players with higher-scored ones if budget allows
   const budgetRemaining = salaryCap - totalSpent;
