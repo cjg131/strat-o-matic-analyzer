@@ -11,6 +11,7 @@ export function useTeam() {
       hitters: [],
       pitchers: [],
       totalSalary: 0,
+      ballparkStrategy: 'balanced',
     };
   });
 
@@ -77,7 +78,16 @@ export function useTeam() {
       hitters: [],
       pitchers: [],
       totalSalary: 0,
+      ballparkStrategy: 'balanced',
     });
+  };
+
+  const setBallpark = (ballpark: TeamRoster['ballpark']) => {
+    setTeam((prev) => ({ ...prev, ballpark }));
+  };
+
+  const setBallparkStrategy = (strategy: TeamRoster['ballparkStrategy']) => {
+    setTeam((prev) => ({ ...prev, ballparkStrategy: strategy }));
   };
 
   return {
@@ -88,6 +98,8 @@ export function useTeam() {
     removePitcher,
     updateTeamName,
     clearTeam,
+    setBallpark,
+    setBallparkStrategy,
   };
 }
 

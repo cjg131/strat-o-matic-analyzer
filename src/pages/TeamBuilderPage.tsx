@@ -4,16 +4,18 @@ import { useTeam } from '../hooks/useTeam';
 import { useHitters } from '../hooks/useHitters';
 import { usePitchers } from '../hooks/usePitchers';
 import { useScoringWeights } from '../hooks/useScoringWeights';
+import { useBallparks } from '../hooks/useBallparks';
 import { DEFAULT_ROSTER_REQUIREMENTS } from '../types';
 import { formatCurrency, calculateHitterStats, calculatePitcherStats } from '../utils/calculations';
 import { autoSelectTeam, AutoBuildStrategy } from '../utils/autoTeamBuilder';
 import { AutoBuildModal } from '../components/AutoBuildModal';
 
 export function TeamBuilderPage() {
-  const { team, removeHitter, removePitcher, updateTeamName, clearTeam, addHitter, addPitcher } = useTeam();
+  const { team, removeHitter, removePitcher, updateTeamName, clearTeam, addHitter, addPitcher, setBallpark, setBallparkStrategy } = useTeam();
   const { hitters } = useHitters();
   const { pitchers } = usePitchers();
   const { weights } = useScoringWeights();
+  const { ballparks } = useBallparks();
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState(team.name);
   const [showAutoBuild, setShowAutoBuild] = useState(false);
@@ -181,6 +183,93 @@ export function TeamBuilderPage() {
           </div>
         </div>
       )}
+
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Ballpark Selection</h3>
+        
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Strategy
+          </label>
+          <div className="grid grid-cols-3 gap-3">
+            <button
+              onClick={() => setBallparkStrategy('offense')}
+              className={`px-4 py-3 rounded-md border-2 transition-colors ${
+                team.ballparkStrategy === 'offense'
+                  ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
+                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+              }`}
+            >
+              <div className="font-semibold">Heavy Offense</div>
+              <div className="text-xs mt-1">High HR, High Singles</div>
+            </button>
+            <button
+              onClick={() => setBallparkStrategy('balanced')}
+              className={`px-4 py-3 rounded-md border-2 transition-colors ${
+                team.ballparkStrategy === 'balanced'
+                  ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
+                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+              }`}
+            >
+              <div className="font-semibold">Balanced</div>
+              <div className="text-xs mt-1">Neutral Park</div>
+            </button>
+            <button
+              onClick={() => setBallparkStrategy('defense')}
+              className={`px-4 py-3 rounded-md border-2 transition-colors ${
+                team.ballparkStrategy === 'defense'
+                  ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
+                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+              }`}
+            >
+              <div className="font-semibold">Heavy Defense</div>
+              <div className="text-xs mt-1">Low HR, Low Singles</div>
+            </button>
+          </div>
+        </div>
+
+        {ballparks.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Choose Ballpark {team.ballparkStrategy === 'offense' ? '(Offense)' : team.ballparkStrategy === 'defense' ? '(Defense)' : '(Balanced)'}
+            </label>
+            <select
+              value={team.ballpark?.id || ''}
+              onChange={(e) => {
+                const selected = ballparks.find((b) => b.id === e.target.value);
+                setBallpark(selected);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            >
+              <option value="">Select a ballpark...</option>
+              {ballparks
+                .sort((a, b) => {
+                  if (team.ballparkStrategy === 'offense') {
+                    const aScore = (a.singlesLeft + a.singlesRight + a.homeRunsLeft * 3 + a.homeRunsRight * 3) / 8;
+                    const bScore = (b.singlesLeft + b.singlesRight + b.homeRunsLeft * 3 + b.homeRunsRight * 3) / 8;
+                    return bScore - aScore;
+                  } else if (team.ballparkStrategy === 'defense') {
+                    const aScore = ((42 - a.singlesLeft - a.singlesRight) + (42 - a.homeRunsLeft - a.homeRunsRight) * 3) / 8;
+                    const bScore = ((42 - b.singlesLeft - b.singlesRight) + (42 - b.homeRunsLeft - b.homeRunsRight) * 3) / 8;
+                    return bScore - aScore;
+                  }
+                  return a.name.localeCompare(b.name);
+                })
+                .map((ballpark) => (
+                  <option key={ballpark.id} value={ballpark.id}>
+                    {ballpark.name} {ballpark.team ? `(${ballpark.team})` : ''}
+                  </option>
+                ))}
+            </select>
+            {team.ballpark && (
+              <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                <p>Singles: L{team.ballpark.singlesLeft} / R{team.ballpark.singlesRight}</p>
+                <p>Home Runs: L{team.ballpark.homeRunsLeft} / R{team.ballpark.homeRunsRight}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
