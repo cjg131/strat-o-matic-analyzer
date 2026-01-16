@@ -55,7 +55,9 @@ export function AutoBuildModal({ onClose, onBuild }: AutoBuildModalProps) {
         hitterBudgetPercent: 40,
         pitcherBudgetPercent: 60,
         targetPitchers: 12,
-        targetStarters: 7,
+        targetCanStart: 7,
+        targetCanRelieve: 5,
+        targetPureRelievers: 4,
       },
     },
   };
@@ -169,7 +171,7 @@ export function AutoBuildModal({ onClose, onBuild }: AutoBuildModalProps) {
 
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Roster Size</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Total Pitchers (10-12)
@@ -185,19 +187,6 @@ export function AutoBuildModal({ onClose, onBuild }: AutoBuildModalProps) {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Starters (5+)
-                </label>
-                <input
-                  type="number"
-                  min="5"
-                  max={strategy.targetPitchers}
-                  value={strategy.targetStarters}
-                  onChange={(e) => updateStrategy('targetStarters', parseInt(e.target.value) || 5)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Total Hitters (13-17)
                 </label>
                 <input
@@ -206,6 +195,45 @@ export function AutoBuildModal({ onClose, onBuild }: AutoBuildModalProps) {
                   max="17"
                   value={strategy.targetHitters}
                   onChange={(e) => updateStrategy('targetHitters', parseInt(e.target.value) || 13)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Who can start (5+)
+                </label>
+                <input
+                  type="number"
+                  min="5"
+                  max={strategy.targetPitchers}
+                  value={strategy.targetCanStart}
+                  onChange={(e) => updateStrategy('targetCanStart', parseInt(e.target.value) || 5)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Who can relieve (4+)
+                </label>
+                <input
+                  type="number"
+                  min="4"
+                  max={strategy.targetPitchers}
+                  value={strategy.targetCanRelieve}
+                  onChange={(e) => updateStrategy('targetCanRelieve', parseInt(e.target.value) || 4)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Pure relievers (4+)
+                </label>
+                <input
+                  type="number"
+                  min="4"
+                  max={strategy.targetPitchers}
+                  value={strategy.targetPureRelievers}
+                  onChange={(e) => updateStrategy('targetPureRelievers', parseInt(e.target.value) || 4)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>

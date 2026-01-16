@@ -23,14 +23,21 @@ export function TeamBuilderPage() {
   const salaryRemaining = requirements.salaryCap - team.totalSalary;
   const isOverCap = team.totalSalary > requirements.salaryCap;
 
-  const starters = team.pitchers.filter((p) => p.endurance?.toUpperCase().startsWith('S'));
-  const relievers = team.pitchers.filter((p) => {
+  // Pitchers who CAN start (have S in endurance)
+  const canStart = team.pitchers.filter((p) => p.endurance?.toUpperCase().includes('S'));
+  
+  // Pitchers who CAN relieve (have R or C in endurance)
+  const canRelieve = team.pitchers.filter((p) => {
     const end = p.endurance?.toUpperCase();
-    return end?.startsWith('R') || end?.startsWith('C');
+    return end?.includes('R') || end?.includes('C');
   });
+  
+  // Pure relievers - can relieve but CANNOT start
   const pureRelievers = team.pitchers.filter((p) => {
-    const end = p.endurance?.toUpperCase();
-    return end?.startsWith('R') && !end?.startsWith('S');
+    const end = p.endurance?.toUpperCase() || '';
+    const canRelieverole = end.includes('R') || end.includes('C');
+    const canStartRole = end.includes('S');
+    return canRelieverole && !canStartRole;
   });
 
   const catchers = team.hitters.filter((h) => h.positions?.toUpperCase().includes('C'));
@@ -44,8 +51,8 @@ export function TeamBuilderPage() {
     return (
       team.pitchers.length >= requirements.minPitchers &&
       team.pitchers.length <= requirements.maxPitchers &&
-      starters.length >= requirements.minStarters &&
-      relievers.length >= requirements.minRelievers &&
+      canStart.length >= requirements.minCanStart &&
+      canRelieve.length >= requirements.minCanRelieve &&
       pureRelievers.length >= requirements.minPureRelievers &&
       team.hitters.length >= requirements.minHitters &&
       team.hitters.length <= requirements.maxHitters &&
@@ -144,9 +151,9 @@ export function TeamBuilderPage() {
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{team.pitchers.length}</p>
           <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1 mt-2">
             <p>Required: {requirements.minPitchers}-{requirements.maxPitchers}</p>
-            <p>Starters: {starters.length} (need {requirements.minStarters})</p>
-            <p>Relievers: {relievers.length} (need {requirements.minRelievers})</p>
-            <p>Pure Relievers: {pureRelievers.length} (need {requirements.minPureRelievers})</p>
+            <p>Who can start: {canStart.length} (need {requirements.minCanStart})</p>
+            <p>Who can relieve: {canRelieve.length} (need {requirements.minCanRelieve})</p>
+            <p>Pure relievers: {pureRelievers.length} (need {requirements.minPureRelievers})</p>
           </div>
         </div>
 

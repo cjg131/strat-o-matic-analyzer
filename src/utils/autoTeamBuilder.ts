@@ -19,7 +19,9 @@ export interface AutoBuildStrategy {
   
   // Roster composition
   targetPitchers: number; // 10-12
-  targetStarters: number; // 5+
+  targetCanStart: number; // At least 5 who can start
+  targetCanRelieve: number; // At least 4 who can relieve
+  targetPureRelievers: number; // At least 4 pure relievers
   targetHitters: number; // 13-17
 }
 
@@ -35,7 +37,9 @@ export const DEFAULT_STRATEGY: AutoBuildStrategy = {
   hitterBudgetPercent: 55,
   pitcherBudgetPercent: 45,
   targetPitchers: 11,
-  targetStarters: 6,
+  targetCanStart: 6,
+  targetCanRelieve: 5,
+  targetPureRelievers: 4,
   targetHitters: 15,
 };
 
@@ -165,27 +169,47 @@ function selectBestPitchers(
   const selected: ScoredPlayer[] = [];
   let spent = 0;
 
-  const starters: ScoredPlayer[] = [];
-  const relievers: ScoredPlayer[] = [];
+  const canStart: ScoredPlayer[] = [];
+  const canRelieve: ScoredPlayer[] = [];
+  const pureRelievers: ScoredPlayer[] = [];
 
+  // First pass: ensure minimum requirements
   for (const sp of sorted) {
     const pitcher = sp.player as PitcherWithStats;
     const endurance = pitcher.endurance?.toUpperCase() || '';
-    const isStarter = endurance.startsWith('S');
-    const isReliever = endurance.startsWith('R') || endurance.startsWith('C');
+    const hasStarterRole = endurance.includes('S');
+    const hasRelieverRole = endurance.includes('R') || endurance.includes('C');
+    const isPureReliever = hasRelieverRole && !hasStarterRole;
 
     if (spent + pitcher.salary > budget) continue;
     if (selected.length >= strategy.targetPitchers) break;
 
-    // Ensure minimum starters
-    if (isStarter && starters.length < strategy.targetStarters) {
+    // Ensure minimum who can start
+    if (hasStarterRole && canStart.length < strategy.targetCanStart) {
       selected.push(sp);
-      starters.push(sp);
+      canStart.push(sp);
+      if (hasRelieverRole) canRelieve.push(sp);
       spent += pitcher.salary;
-    } else if (isReliever && selected.length < strategy.targetPitchers) {
+      continue;
+    }
+
+    // Ensure minimum who can relieve
+    if (hasRelieverRole && canRelieve.length < strategy.targetCanRelieve) {
       selected.push(sp);
-      relievers.push(sp);
+      canRelieve.push(sp);
+      if (hasStarterRole) canStart.push(sp);
+      if (isPureReliever) pureRelievers.push(sp);
       spent += pitcher.salary;
+      continue;
+    }
+
+    // Ensure minimum pure relievers
+    if (isPureReliever && pureRelievers.length < strategy.targetPureRelievers) {
+      selected.push(sp);
+      pureRelievers.push(sp);
+      canRelieve.push(sp);
+      spent += pitcher.salary;
+      continue;
     }
   }
 

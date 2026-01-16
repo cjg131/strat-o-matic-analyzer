@@ -147,9 +147,9 @@ export const DEFAULT_SCORING_WEIGHTS: ScoringWeights = {
 export interface RosterRequirements {
   minPitchers: number;
   maxPitchers: number;
-  minStarters: number;
-  minRelievers: number;
-  minPureRelievers: number;
+  minCanStart: number; // Pitchers who CAN start (have S endurance)
+  minCanRelieve: number; // Pitchers who CAN relieve (have R or C endurance)
+  minPureRelievers: number; // Pitchers who can relieve but CANNOT start
   minHitters: number;
   maxHitters: number;
   minCatchers: number;
@@ -159,9 +159,9 @@ export interface RosterRequirements {
 export const DEFAULT_ROSTER_REQUIREMENTS: RosterRequirements = {
   minPitchers: 10,
   maxPitchers: 12,
-  minStarters: 5,
-  minRelievers: 4,
-  minPureRelievers: 4,
+  minCanStart: 5, // At least 5 who can start
+  minCanRelieve: 4, // At least 4 who can relieve
+  minPureRelievers: 4, // At least 4 pure relievers (can relieve but cannot start)
   minHitters: 13,
   maxHitters: 17,
   minCatchers: 2,
