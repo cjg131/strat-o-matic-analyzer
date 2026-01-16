@@ -181,6 +181,8 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
               <th className="px-3 py-2 text-left"><SortButton field="positions" label="Pos" /></th>
               <th className="px-3 py-2 text-right"><SortButton field="salary" label="Salary" /></th>
               <th className="px-3 py-2 text-center"><SortButton field="balance" label="Bal" /></th>
+              <th className="px-3 py-2 text-center"><SortButton field="stealRating" label="STL" /></th>
+              <th className="px-3 py-2 text-center"><SortButton field="runRating" label="RUN" /></th>
               <th className="px-3 py-2 text-right"><SortButton field="fieldingRange" label="F" /></th>
               <th className="px-3 py-2 text-right"><SortButton field="games" label="G" /></th>
               <th className="px-3 py-2 text-right"><SortButton field="plateAppearances" label="PA" /></th>
@@ -210,6 +212,8 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
                 <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{hitter.positions || '-'}</td>
                 <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300 font-mono whitespace-nowrap">{formatCurrency(hitter.salary)}</td>
                 <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300 font-semibold">{hitter.balance || 'E'}</td>
+                <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300 font-semibold">{hitter.stealRating || '-'}</td>
+                <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300 font-semibold">{hitter.runRating || '-'}</td>
                 <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300">
                   {hitter.fieldingRange ? `${hitter.fieldingRange}(${hitter.fieldingError >= 0 ? '+' : ''}${hitter.fieldingError})` : '-'}
                 </td>
