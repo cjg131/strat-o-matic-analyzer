@@ -19,6 +19,18 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: Pitch
   const [searchTerm, setSearchTerm] = useState('');
   const [pitcherType, setPitcherType] = useState<'all' | 'starter' | 'reliever'>('all');
   const [throwingArm, setThrowingArm] = useState<'all' | 'L' | 'R'>('all');
+  const [enduranceFilter, setEnduranceFilter] = useState<string>('all');
+
+  // Extract unique endurance values
+  const uniqueEndurances = useMemo(() => {
+    const endurances = new Set<string>();
+    pitchers.forEach(p => {
+      if (p.endurance) {
+        endurances.add(p.endurance.toUpperCase());
+      }
+    });
+    return Array.from(endurances).sort();
+  }, [pitchers]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -60,6 +72,13 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: Pitch
       });
     }
 
+    if (enduranceFilter !== 'all') {
+      filtered = filtered.filter((p) => {
+        const endurance = p.endurance?.toUpperCase() || '';
+        return endurance === enduranceFilter;
+      });
+    }
+
     return [...filtered].sort((a, b) => {
       const aVal = a[sortField];
       const bVal = b[sortField];
@@ -74,7 +93,7 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: Pitch
         ? aStr.localeCompare(bStr)
         : bStr.localeCompare(aStr);
     });
-  }, [pitchers, sortField, sortDirection, searchTerm, pitcherType, throwingArm]);
+  }, [pitchers, sortField, sortDirection, searchTerm, pitcherType, throwingArm, enduranceFilter]);
 
   const SortButton = ({ field, label }: { field: SortField; label: string }) => (
     <button
@@ -123,6 +142,17 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: Pitch
           <option value="all">All Arms</option>
           <option value="L">Left-Handed</option>
           <option value="R">Right-Handed</option>
+        </select>
+
+        <select
+          value={enduranceFilter}
+          onChange={(e) => setEnduranceFilter(e.target.value)}
+          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+        >
+          <option value="all">All Endurance</option>
+          {uniqueEndurances.map(endurance => (
+            <option key={endurance} value={endurance}>{endurance}</option>
+          ))}
         </select>
       </div>
 
