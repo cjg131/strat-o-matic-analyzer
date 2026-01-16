@@ -153,6 +153,7 @@ export interface RosterRequirements {
   minHitters: number;
   maxHitters: number;
   minCatchers: number;
+  requireAllPositions: boolean; // Must have at least 1 player at each of 9 positions
   salaryCap: number;
 }
 
@@ -164,7 +165,8 @@ export const DEFAULT_ROSTER_REQUIREMENTS: RosterRequirements = {
   minPureRelievers: 4, // At least 4 pure relievers (can relieve but cannot start)
   minHitters: 13,
   maxHitters: 17,
-  minCatchers: 2,
+  minCatchers: 2, // At least 2 catchers (1 at C position + 1 extra)
+  requireAllPositions: true, // Must have C, 1B, 2B, 3B, SS, LF, CF, RF, DH
   salaryCap: 80000000,
 };
 

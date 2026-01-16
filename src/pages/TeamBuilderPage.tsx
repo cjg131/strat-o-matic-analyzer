@@ -9,6 +9,7 @@ import { DEFAULT_ROSTER_REQUIREMENTS } from '../types';
 import { formatCurrency, calculateHitterStats, calculatePitcherStats } from '../utils/calculations';
 import { autoSelectTeam, AutoBuildStrategy } from '../utils/autoTeamBuilder';
 import { AutoBuildModal } from '../components/AutoBuildModal';
+import { checkPositionCoverage } from '../utils/positionUtils';
 
 export function TeamBuilderPage() {
   const { team, removeHitter, removePitcher, updateTeamName, clearTeam, addHitter, addPitcher, setBallpark, setBallparkStrategy } = useTeam();
@@ -43,6 +44,7 @@ export function TeamBuilderPage() {
   });
 
   const catchers = team.hitters.filter((h) => h.positions?.toUpperCase().includes('C'));
+  const positionCoverage = checkPositionCoverage(team.hitters);
 
   const handleSaveName = () => {
     updateTeamName(tempName);
@@ -59,6 +61,7 @@ export function TeamBuilderPage() {
       team.hitters.length >= requirements.minHitters &&
       team.hitters.length <= requirements.maxHitters &&
       catchers.length >= requirements.minCatchers &&
+      (!requirements.requireAllPositions || positionCoverage.allCovered) &&
       !isOverCap
     );
   };
@@ -165,6 +168,7 @@ export function TeamBuilderPage() {
           <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1 mt-2">
             <p>Required: {requirements.minHitters}-{requirements.maxHitters}</p>
             <p>Catchers: {catchers.length} (need {requirements.minCatchers})</p>
+            <p>Positions: {positionCoverage.covered.length}/9 {!positionCoverage.allCovered && `(missing: ${positionCoverage.missing.join(', ')})`}</p>
             <p>Total Players: {totalPlayers} (need 24-28)</p>
           </div>
         </div>

@@ -102,17 +102,48 @@ function selectOptimalTeam(
   let canStartCount = 0;
   let canRelieveCount = 0;
   let pureRelieverCount = 0;
-  let catcherCount = 0;
+  const coveredPositions = new Set<string>();
+  const REQUIRED_POSITIONS = ['C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'DH'];
 
   // Phase 1: Fill minimum requirements with best value players
-  // Ensure minimum catchers
-  for (const sh of sortedHitters) {
+  // First, ensure all 9 positions are covered
+  for (const requiredPos of REQUIRED_POSITIONS) {
+    if (coveredPositions.has(requiredPos)) continue;
+    
+    for (const sh of sortedHitters) {
+      if (selectedHitters.includes(sh)) continue;
+      const hitter = sh.player as HitterWithStats;
+      const positions = hitter.positions?.toUpperCase().split(/[\s,/]+/).filter(p => p.length > 0) || [];
+      
+      if (positions.includes(requiredPos)) {
+        if (totalSpent + hitter.salary <= salaryCap * 1.05) { // Allow 5% overage for requirements
+          selectedHitters.push(sh);
+          totalSpent += hitter.salary;
+          positions.forEach(pos => coveredPositions.add(pos));
+          break;
+        }
+      }
+    }
+  }
+
+  // Ensure we have at least 2 catchers total
+  const catcherCount = selectedHitters.filter(sh => {
     const hitter = sh.player as HitterWithStats;
-    if (hitter.positions?.toUpperCase().includes('C') && catcherCount < 2) {
-      if (totalSpent + hitter.salary <= salaryCap) {
-        selectedHitters.push(sh);
-        catcherCount++;
-        totalSpent += hitter.salary;
+    return hitter.positions?.toUpperCase().includes('C');
+  }).length;
+
+  if (catcherCount < 2) {
+    for (const sh of sortedHitters) {
+      if (selectedHitters.includes(sh)) continue;
+      const hitter = sh.player as HitterWithStats;
+      if (hitter.positions?.toUpperCase().includes('C')) {
+        if (totalSpent + hitter.salary <= salaryCap * 1.05) {
+          selectedHitters.push(sh);
+          totalSpent += hitter.salary;
+          if (selectedHitters.filter(s => (s.player as HitterWithStats).positions?.toUpperCase().includes('C')).length >= 2) {
+            break;
+          }
+        }
       }
     }
   }
