@@ -201,6 +201,16 @@ export function PitchersPage() {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Pitcher Scoring Weights</h3>
         
+        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">Fantasy Points Calculation Formula:</h4>
+          <p className="text-sm text-blue-800 dark:text-blue-200 font-mono">
+            FP = (IP × Per IP Weight) + (K × K Weight) + (BB × BB Weight) + (H × H Weight) + (HR × HR Weight) + (ER × ER Weight)
+          </p>
+          <p className="text-xs text-blue-700 dark:text-blue-300 mt-2">
+            Current: FP = (IP × {weights.pitcher.perInningPitched}) + (K × {weights.pitcher.strikeout}) + (BB × {weights.pitcher.walkAllowed}) + (H × {weights.pitcher.hitAllowed}) + (HR × {weights.pitcher.homeRunAllowed}) + (ER × {weights.pitcher.earnedRun})
+          </p>
+        </div>
+
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Quick Preset Strategy
