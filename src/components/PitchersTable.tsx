@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ArrowUpDown, Edit2, Trash2 } from 'lucide-react';
+import { ArrowUpDown, Edit2, Trash2, UserPlus } from 'lucide-react';
 import type { PitcherWithStats } from '../types';
 import { formatNumber, formatCurrency } from '../utils/calculations';
 
@@ -7,12 +7,13 @@ interface PitchersTableProps {
   pitchers: PitcherWithStats[];
   onEdit: (pitcher: PitcherWithStats) => void;
   onDelete: (id: string) => void;
+  onAddToTeam?: (pitcher: PitcherWithStats) => void;
 }
 
 type SortField = keyof PitcherWithStats;
 type SortDirection = 'asc' | 'desc';
 
-export function PitchersTable({ pitchers, onEdit, onDelete }: PitchersTableProps) {
+export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: PitchersTableProps) {
   const [sortField, setSortField] = useState<SortField>('fantasyPoints');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [searchTerm, setSearchTerm] = useState('');
@@ -195,6 +196,15 @@ export function PitchersTable({ pitchers, onEdit, onDelete }: PitchersTableProps
                 </td>
                 <td className="px-3 py-2">
                   <div className="flex items-center justify-center gap-2">
+                    {onAddToTeam && (
+                      <button
+                        onClick={() => onAddToTeam(pitcher)}
+                        className="p-1 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
+                        title="Add to Team"
+                      >
+                        <UserPlus className="h-4 w-4" />
+                      </button>
+                    )}
                     <button
                       onClick={() => onEdit(pitcher)}
                       className="p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"

@@ -1,4 +1,4 @@
-import type { Hitter, Pitcher, ScoringWeights } from '../types';
+import type { Hitter, Pitcher, ScoringWeights, Ballpark, TeamRoster } from '../types';
 import { DEFAULT_SCORING_WEIGHTS } from '../types';
 
 const STORAGE_KEYS = {
@@ -104,4 +104,13 @@ export function saveBallparks(ballparks: any[]): void {
   } catch (error) {
     console.error('Error saving ballparks:', error);
   }
+}
+
+export function loadTeam(): TeamRoster | null {
+  const data = localStorage.getItem('strat-o-matic-team');
+  return data ? JSON.parse(data) : null;
+}
+
+export function saveTeam(team: TeamRoster): void {
+  localStorage.setItem('strat-o-matic-team', JSON.stringify(team));
 }

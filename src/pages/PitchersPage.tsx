@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { Plus, Upload, Download, Trash2 } from 'lucide-react';
 import { usePitchers } from '../hooks/usePitchers';
 import { useScoringWeights } from '../hooks/useScoringWeights';
+import { useTeam } from '../hooks/useTeam';
 import { PitchersTable } from '../components/PitchersTable';
 import { PitcherForm } from '../components/PitcherForm';
 import { calculatePitcherStats } from '../utils/calculations';
@@ -30,6 +31,7 @@ const PITCHER_PRESETS: Record<string, { name: string; weights: PitcherScoringWei
 export function PitchersPage() {
   const { pitchers, addPitcher, updatePitcher, deletePitcher } = usePitchers();
   const { weights, updateWeights } = useScoringWeights();
+  const { addPitcher: addPitcherToTeam } = useTeam();
   const [showForm, setShowForm] = useState(false);
   const [editingPitcher, setEditingPitcher] = useState<Pitcher | undefined>();
   const [importing, setImporting] = useState(false);
@@ -281,6 +283,7 @@ export function PitchersPage() {
           pitchers={pitchersWithStats}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onAddToTeam={addPitcherToTeam}
         />
       </div>
     </div>

@@ -143,3 +143,35 @@ export const DEFAULT_SCORING_WEIGHTS: ScoringWeights = {
     earnedRun: -2,
   },
 };
+
+export interface RosterRequirements {
+  minPitchers: number;
+  maxPitchers: number;
+  minStarters: number;
+  minRelievers: number;
+  minPureRelievers: number;
+  minHitters: number;
+  maxHitters: number;
+  minCatchers: number;
+  salaryCap: number;
+}
+
+export const DEFAULT_ROSTER_REQUIREMENTS: RosterRequirements = {
+  minPitchers: 10,
+  maxPitchers: 12,
+  minStarters: 5,
+  minRelievers: 4,
+  minPureRelievers: 4,
+  minHitters: 13,
+  maxHitters: 17,
+  minCatchers: 2,
+  salaryCap: 80000000,
+};
+
+export interface TeamRoster {
+  id: string;
+  name: string;
+  hitters: Hitter[];
+  pitchers: Pitcher[];
+  totalSalary: number;
+}

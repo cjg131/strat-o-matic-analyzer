@@ -5,6 +5,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { HittersPage } from './pages/HittersPage';
 import { PitchersPage } from './pages/PitchersPage';
 import { BallparksPage } from './pages/BallparksPage';
+import { TeamBuilderPage } from './pages/TeamBuilderPage';
 
 function Navigation() {
   const location = useLocation();
@@ -74,6 +75,16 @@ function Navigation() {
             >
               Ballparks
             </Link>
+            <Link
+              to="/team"
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                isActive('/team')
+                  ? 'bg-primary-600 text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              Team Builder
+            </Link>
           </div>
         </div>
       </div>
@@ -94,6 +105,7 @@ function App() {
             <Route path="/hitters" element={<HittersPage />} />
             <Route path="/pitchers" element={<PitchersPage />} />
             <Route path="/ballparks" element={<BallparksPage />} />
+            <Route path="/team" element={<TeamBuilderPage />} />
           </Routes>
         </main>
 

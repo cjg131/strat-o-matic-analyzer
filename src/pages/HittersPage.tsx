@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { Plus, Upload, Download, Trash2 } from 'lucide-react';
 import { useHitters } from '../hooks/useHitters';
 import { useScoringWeights } from '../hooks/useScoringWeights';
+import { useTeam } from '../hooks/useTeam';
 import { HittersTable } from '../components/HittersTable';
 import { HitterForm } from '../components/HitterForm';
 import { calculateHitterStats } from '../utils/calculations';
@@ -42,6 +43,7 @@ const HITTER_PRESETS: Record<string, { name: string; weights: HitterScoringWeigh
 export function HittersPage() {
   const { hitters, addHitter, updateHitter, deleteHitter } = useHitters();
   const { weights, updateWeights } = useScoringWeights();
+  const { addHitter: addHitterToTeam } = useTeam();
   const [showForm, setShowForm] = useState(false);
   const [editingHitter, setEditingHitter] = useState<Hitter | undefined>();
   const [importing, setImporting] = useState(false);
@@ -343,6 +345,7 @@ export function HittersPage() {
           hitters={hittersWithStats}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onAddToTeam={addHitterToTeam}
         />
       </div>
     </div>
