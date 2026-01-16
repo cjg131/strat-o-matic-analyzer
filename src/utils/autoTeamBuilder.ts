@@ -55,40 +55,116 @@ export function autoSelectTeam(
   strategy: AutoBuildStrategy,
   salaryCap: number
 ): { selectedHitters: Hitter[]; selectedPitchers: Pitcher[] } {
-  const hitterBudget = (salaryCap * strategy.hitterBudgetPercent) / 100;
-  const pitcherBudget = (salaryCap * strategy.pitcherBudgetPercent) / 100;
-
-  // Score all players
+  // Score all players with value per dollar consideration
   const scoredHitters = hitters.map((h) => ({
     player: h,
     score: scoreHitter(h, strategy),
+    valuePerDollar: scoreHitter(h, strategy) / (h.salary || 1),
     isPitcher: false,
   }));
 
   const scoredPitchers = pitchers.map((p) => ({
     player: p,
     score: scorePitcher(p, strategy),
+    valuePerDollar: scorePitcher(p, strategy) / (p.salary || 1),
     isPitcher: true,
   }));
 
-  // Select best pitchers within budget
-  const selectedPitchers = selectBestPitchers(
+  // Use flexible budget allocation to maximize team value
+  const { selectedHitters, selectedPitchers } = selectOptimalTeam(
+    scoredHitters,
     scoredPitchers,
     strategy,
-    pitcherBudget
-  );
-
-  // Select best hitters within budget
-  const selectedHitters = selectBestHitters(
-    scoredHitters,
-    strategy,
-    hitterBudget
+    salaryCap
   );
 
   return {
     selectedHitters: selectedHitters.map((sh) => sh.player as Hitter),
     selectedPitchers: selectedPitchers.map((sp) => sp.player as Pitcher),
   };
+}
+
+function selectOptimalTeam(
+  scoredHitters: (ScoredPlayer & { valuePerDollar: number })[],
+  scoredPitchers: (ScoredPlayer & { valuePerDollar: number })[],
+  strategy: AutoBuildStrategy,
+  salaryCap: number
+): { selectedHitters: ScoredPlayer[]; selectedPitchers: ScoredPlayer[] } {
+  const selectedHitters: ScoredPlayer[] = [];
+  const selectedPitchers: ScoredPlayer[] = [];
+  let totalSpent = 0;
+
+  // Sort by value per dollar for optimal selection
+  const sortedHitters = [...scoredHitters].sort((a, b) => b.valuePerDollar - a.valuePerDollar);
+  const sortedPitchers = [...scoredPitchers].sort((a, b) => b.valuePerDollar - a.valuePerDollar);
+
+  // Track requirements
+  let canStartCount = 0;
+  let canRelieveCount = 0;
+  let pureRelieverCount = 0;
+  let catcherCount = 0;
+
+  // Phase 1: Fill minimum requirements with best value players
+  // Ensure minimum catchers
+  for (const sh of sortedHitters) {
+    const hitter = sh.player as HitterWithStats;
+    if (hitter.positions?.toUpperCase().includes('C') && catcherCount < 2) {
+      if (totalSpent + hitter.salary <= salaryCap) {
+        selectedHitters.push(sh);
+        catcherCount++;
+        totalSpent += hitter.salary;
+      }
+    }
+  }
+
+  // Ensure minimum pitchers with required roles
+  for (const sp of sortedPitchers) {
+    const pitcher = sp.player as PitcherWithStats;
+    const endurance = pitcher.endurance?.toUpperCase() || '';
+    const hasStarterRole = endurance.includes('S');
+    const hasRelieverRole = endurance.includes('R') || endurance.includes('C');
+    const isPureReliever = hasRelieverRole && !hasStarterRole;
+
+    const needsStarter = canStartCount < strategy.targetCanStart && hasStarterRole;
+    const needsReliever = canRelieveCount < strategy.targetCanRelieve && hasRelieverRole;
+    const needsPureReliever = pureRelieverCount < strategy.targetPureRelievers && isPureReliever;
+
+    if ((needsStarter || needsReliever || needsPureReliever) && selectedPitchers.length < strategy.targetPitchers) {
+      if (totalSpent + pitcher.salary <= salaryCap * 1.05) { // Allow 5% overage for requirements
+        selectedPitchers.push(sp);
+        totalSpent += pitcher.salary;
+        if (hasStarterRole) canStartCount++;
+        if (hasRelieverRole) canRelieveCount++;
+        if (isPureReliever) pureRelieverCount++;
+      }
+    }
+  }
+
+  // Phase 2: Fill remaining slots with best value players (pitchers and hitters combined)
+  const allRemaining = [
+    ...sortedHitters.filter(h => !selectedHitters.includes(h)),
+    ...sortedPitchers.filter(p => !selectedPitchers.includes(p))
+  ].sort((a, b) => b.valuePerDollar - a.valuePerDollar);
+
+  for (const player of allRemaining) {
+    const salary = (player.player as any).salary || 0;
+    
+    if (totalSpent + salary > salaryCap) continue;
+
+    if (player.isPitcher) {
+      if (selectedPitchers.length < strategy.targetPitchers) {
+        selectedPitchers.push(player);
+        totalSpent += salary;
+      }
+    } else {
+      if (selectedHitters.length < strategy.targetHitters) {
+        selectedHitters.push(player);
+        totalSpent += salary;
+      }
+    }
+  }
+
+  return { selectedHitters, selectedPitchers };
 }
 
 function scoreHitter(hitter: HitterWithStats, strategy: AutoBuildStrategy): number {
@@ -158,100 +234,4 @@ function scorePitcher(pitcher: PitcherWithStats, strategy: AutoBuildStrategy): n
   score += pitcher.pointsPerDollar * 2;
 
   return score;
-}
-
-function selectBestPitchers(
-  scoredPitchers: ScoredPlayer[],
-  strategy: AutoBuildStrategy,
-  budget: number
-): ScoredPlayer[] {
-  const sorted = [...scoredPitchers].sort((a, b) => b.score - a.score);
-  const selected: ScoredPlayer[] = [];
-  let spent = 0;
-
-  // Track requirements
-  let canStartCount = 0;
-  let canRelieveCount = 0;
-  let pureRelieverCount = 0;
-
-  // First pass: ensure minimum requirements with flexible budget
-  for (const sp of sorted) {
-    const pitcher = sp.player as PitcherWithStats;
-    const endurance = pitcher.endurance?.toUpperCase() || '';
-    const hasStarterRole = endurance.includes('S');
-    const hasRelieverRole = endurance.includes('R') || endurance.includes('C');
-    const isPureReliever = hasRelieverRole && !hasStarterRole;
-
-    // Check if we need this pitcher for requirements
-    const needsStarter = canStartCount < strategy.targetCanStart && hasStarterRole;
-    const needsReliever = canRelieveCount < strategy.targetCanRelieve && hasRelieverRole;
-    const needsPureReliever = pureRelieverCount < strategy.targetPureRelievers && isPureReliever;
-    
-    // If we need this pitcher type and haven't hit target, be more flexible with budget
-    const isRequired = needsStarter || needsReliever || needsPureReliever;
-    const canAfford = spent + pitcher.salary <= budget * 1.2; // Allow 20% overage for requirements
-    
-    if (!canAfford && !isRequired) continue;
-    if (selected.length >= strategy.targetPitchers) break;
-
-    if (isRequired || selected.length < strategy.targetPitchers) {
-      selected.push(sp);
-      spent += pitcher.salary;
-      
-      if (hasStarterRole) canStartCount++;
-      if (hasRelieverRole) canRelieveCount++;
-      if (isPureReliever) pureRelieverCount++;
-    }
-  }
-
-  // Second pass: fill remaining slots if under target
-  for (const sp of sorted) {
-    if (selected.includes(sp)) continue;
-    if (selected.length >= strategy.targetPitchers) break;
-    
-    const pitcher = sp.player as PitcherWithStats;
-    if (spent + pitcher.salary > budget) continue;
-    
-    selected.push(sp);
-    spent += pitcher.salary;
-  }
-
-  return selected;
-}
-
-function selectBestHitters(
-  scoredHitters: ScoredPlayer[],
-  strategy: AutoBuildStrategy,
-  budget: number
-): ScoredPlayer[] {
-  const sorted = [...scoredHitters].sort((a, b) => b.score - a.score);
-  const selected: ScoredPlayer[] = [];
-  let spent = 0;
-
-  const catchers: ScoredPlayer[] = [];
-
-  // First, ensure we get 2 catchers
-  for (const sh of sorted) {
-    const hitter = sh.player as HitterWithStats;
-    if (hitter.positions?.toUpperCase().includes('C') && catchers.length < 2) {
-      if (spent + hitter.salary <= budget) {
-        selected.push(sh);
-        catchers.push(sh);
-        spent += hitter.salary;
-      }
-    }
-  }
-
-  // Fill remaining slots with best available
-  for (const sh of sorted) {
-    if (selected.includes(sh)) continue;
-    const hitter = sh.player as HitterWithStats;
-    if (spent + hitter.salary > budget) continue;
-    if (selected.length >= strategy.targetHitters) break;
-    
-    selected.push(sh);
-    spent += hitter.salary;
-  }
-
-  return selected;
 }
