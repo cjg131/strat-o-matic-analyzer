@@ -1,4 +1,4 @@
-import type { Hitter, Pitcher, ScoringWeights, Ballpark, TeamRoster } from '../types';
+import type { Hitter, Pitcher, ScoringWeights, TeamRoster } from '../types';
 import { DEFAULT_SCORING_WEIGHTS } from '../types';
 
 const STORAGE_KEYS = {
