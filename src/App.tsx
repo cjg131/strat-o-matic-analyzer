@@ -1,16 +1,28 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Activity } from 'lucide-react';
+import { Activity, LogOut } from 'lucide-react';
 import { HomePage } from './pages/HomePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { HittersPage } from './pages/HittersPage';
 import { PitchersPage } from './pages/PitchersPage';
 import { BallparksPage } from './pages/BallparksPage';
 import { TeamBuilderPage } from './pages/TeamBuilderPage';
+import { Login } from './components/Login';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 function Navigation() {
   const location = useLocation();
+  const { currentUser, logout } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
+
+  async function handleLogout() {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Failed to log out', error);
+    }
+  }
 
   return (
     <nav className="bg-white dark:bg-gray-800 shadow-lg">
@@ -85,6 +97,20 @@ function Navigation() {
             >
               Team Builder
             </Link>
+            {currentUser && (
+              <>
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  {currentUser.email}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -95,28 +121,31 @@ function Navigation() {
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-        <Navigation />
-        
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/hitters" element={<HittersPage />} />
-            <Route path="/pitchers" element={<PitchersPage />} />
-            <Route path="/ballparks" element={<BallparksPage />} />
-            <Route path="/team" element={<TeamBuilderPage />} />
-          </Routes>
-        </main>
+      <AuthProvider>
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+          <Navigation />
+          
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+              <Route path="/hitters" element={<ProtectedRoute><HittersPage /></ProtectedRoute>} />
+              <Route path="/pitchers" element={<ProtectedRoute><PitchersPage /></ProtectedRoute>} />
+              <Route path="/ballparks" element={<ProtectedRoute><BallparksPage /></ProtectedRoute>} />
+              <Route path="/team" element={<ProtectedRoute><TeamBuilderPage /></ProtectedRoute>} />
+            </Routes>
+          </main>
 
-        <footer className="bg-white dark:bg-gray-800 shadow-lg mt-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <p className="text-center text-gray-600 dark:text-gray-300">
-              Strat-O-Matic Player Evaluator
-            </p>
-          </div>
-        </footer>
-      </div>
+          <footer className="bg-white dark:bg-gray-800 shadow-lg mt-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <p className="text-center text-gray-600 dark:text-gray-300">
+                Strat-O-Matic Player Evaluator
+              </p>
+            </div>
+          </footer>
+        </div>
+      </AuthProvider>
     </Router>
   );
 }
