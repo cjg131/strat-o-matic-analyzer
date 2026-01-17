@@ -83,9 +83,10 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
   
   const ResizeHandle = ({ columnKey }: { columnKey: string }) => (
     <div
-      className="absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-blue-500 active:bg-blue-600"
+      className="absolute right-0 top-0 h-full w-2 cursor-col-resize hover:bg-blue-500 active:bg-blue-600 bg-gray-300 dark:bg-gray-600 opacity-50 hover:opacity-100"
       onMouseDown={(e) => handleResizeStart(e, columnKey)}
       onClick={(e) => e.stopPropagation()}
+      style={{ zIndex: 40 }}
     />
   );
 
