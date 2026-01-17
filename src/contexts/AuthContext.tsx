@@ -7,6 +7,7 @@ import {
   onAuthStateChanged,
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
+import { migrateLocalStorageToFirestore } from '../utils/migration';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -47,8 +48,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
+      
+      // Migrate localStorage data to Firestore on first login
+      if (user) {
+        try {
+          await migrateLocalStorageToFirestore(user.uid);
+        } catch (error) {
+          console.error('Migration failed:', error);
+        }
+      }
+      
       setLoading(false);
     });
 

@@ -1,26 +1,48 @@
 import { useState, useEffect } from 'react';
 import type { Pitcher } from '../types';
-import { loadPitchers, savePitchers } from '../utils/storage';
+import { useAuth } from '../contexts/AuthContext';
+import { 
+  subscribeToPitchers, 
+  savePitcher, 
+  deletePitcher as deletePitcherFromFirestore,
+  clearAllPitchers as clearAllPitchersFromFirestore 
+} from '../services/firestore';
 
 export function usePitchers() {
-  const [pitchers, setPitchers] = useState<Pitcher[]>(loadPitchers());
+  const { currentUser } = useAuth();
+  const [pitchers, setPitchers] = useState<Pitcher[]>([]);
 
   useEffect(() => {
-    savePitchers(pitchers);
-  }, [pitchers]);
+    if (!currentUser) {
+      setPitchers([]);
+      return;
+    }
 
-  const addPitcher = (pitcher: Pitcher) => {
-    setPitchers((prev) => [...prev, pitcher]);
+    const unsubscribe = subscribeToPitchers(currentUser.uid, (updatedPitchers) => {
+      setPitchers(updatedPitchers);
+    });
+
+    return unsubscribe;
+  }, [currentUser]);
+
+  const addPitcher = async (pitcher: Pitcher) => {
+    if (!currentUser) return;
+    await savePitcher(currentUser.uid, pitcher);
   };
 
-  const updatePitcher = (id: string, updatedPitcher: Pitcher) => {
-    setPitchers((prev) =>
-      prev.map((pitcher) => (pitcher.id === id ? updatedPitcher : pitcher))
-    );
+  const updatePitcher = async (id: string, updatedPitcher: Pitcher) => {
+    if (!currentUser) return;
+    await savePitcher(currentUser.uid, updatedPitcher);
   };
 
-  const deletePitcher = (id: string) => {
-    setPitchers((prev) => prev.filter((pitcher) => pitcher.id !== id));
+  const deletePitcher = async (id: string) => {
+    if (!currentUser) return;
+    await deletePitcherFromFirestore(currentUser.uid, id);
+  };
+
+  const clearAllPitchers = async () => {
+    if (!currentUser) return;
+    await clearAllPitchersFromFirestore(currentUser.uid);
   };
 
   return {
@@ -28,5 +50,6 @@ export function usePitchers() {
     addPitcher,
     updatePitcher,
     deletePitcher,
+    clearAllPitchers,
   };
 }

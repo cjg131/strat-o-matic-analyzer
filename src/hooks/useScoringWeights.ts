@@ -1,22 +1,42 @@
 import { useState, useEffect } from 'react';
 import type { ScoringWeights } from '../types';
-import { loadScoringWeights, saveScoringWeights, resetScoringWeights } from '../utils/storage';
+import { useAuth } from '../contexts/AuthContext';
 import { DEFAULT_SCORING_WEIGHTS } from '../types';
+import { 
+  subscribeToScoringWeights, 
+  saveScoringWeights as saveScoringWeightsToFirestore 
+} from '../services/firestore';
 
 export function useScoringWeights() {
-  const [weights, setWeights] = useState<ScoringWeights>(loadScoringWeights());
+  const { currentUser } = useAuth();
+  const [weights, setWeights] = useState<ScoringWeights>(DEFAULT_SCORING_WEIGHTS);
 
   useEffect(() => {
-    saveScoringWeights(weights);
-  }, [weights]);
+    if (!currentUser) {
+      setWeights(DEFAULT_SCORING_WEIGHTS);
+      return;
+    }
 
-  const updateWeights = (newWeights: ScoringWeights) => {
-    setWeights(newWeights);
+    const unsubscribe = subscribeToScoringWeights(currentUser.uid, (updatedWeights) => {
+      if (updatedWeights) {
+        setWeights(updatedWeights);
+      } else {
+        // Initialize with defaults if no weights exist
+        saveScoringWeightsToFirestore(currentUser.uid, DEFAULT_SCORING_WEIGHTS);
+      }
+    });
+
+    return unsubscribe;
+  }, [currentUser]);
+
+  const updateWeights = async (newWeights: ScoringWeights) => {
+    if (!currentUser) return;
+    await saveScoringWeightsToFirestore(currentUser.uid, newWeights);
   };
 
-  const resetToDefaults = () => {
-    resetScoringWeights();
-    setWeights(DEFAULT_SCORING_WEIGHTS);
+  const resetToDefaults = async () => {
+    if (!currentUser) return;
+    await saveScoringWeightsToFirestore(currentUser.uid, DEFAULT_SCORING_WEIGHTS);
   };
 
   return {

@@ -1,43 +1,74 @@
 import { useState, useEffect } from 'react';
 import type { Hitter, Pitcher, TeamRoster } from '../types';
-import { loadTeams, saveTeams, loadCurrentTeamId, saveCurrentTeamId } from '../utils/storage';
+import { useAuth } from '../contexts/AuthContext';
+import { 
+  subscribeToTeams, 
+  saveTeams as saveTeamsToFirestore,
+  subscribeToCurrentTeamId,
+  saveCurrentTeamId as saveCurrentTeamIdToFirestore
+} from '../services/firestore';
 
 export function useTeam() {
-  const [teams, setTeams] = useState<TeamRoster[]>(() => {
-    const saved = loadTeams();
-    if (saved.length === 0) {
-      // Create default team if none exist
-      return [{
-        id: crypto.randomUUID(),
-        name: 'My Team',
-        hitters: [],
-        pitchers: [],
-        totalSalary: 0,
-        ballparkStrategy: 'balanced',
-      }];
-    }
-    return saved;
-  });
-
-  const [currentTeamId, setCurrentTeamId] = useState<string>(() => {
-    const savedId = loadCurrentTeamId();
-    return savedId || teams[0]?.id || '';
-  });
-
-  const team = teams.find(t => t.id === currentTeamId) || teams[0];
+  const { currentUser } = useAuth();
+  const [teams, setTeams] = useState<TeamRoster[]>([]);
+  const [currentTeamId, setCurrentTeamId] = useState<string>('');
 
   useEffect(() => {
-    saveTeams(teams);
-  }, [teams]);
+    if (!currentUser) {
+      setTeams([]);
+      return;
+    }
+
+    const unsubscribe = subscribeToTeams(currentUser.uid, (updatedTeams) => {
+      if (updatedTeams.length === 0) {
+        const defaultTeam: TeamRoster = {
+          id: crypto.randomUUID(),
+          name: 'My Team',
+          hitters: [],
+          pitchers: [],
+          totalSalary: 0,
+          ballparkStrategy: 'balanced',
+        };
+        saveTeamsToFirestore(currentUser.uid, [defaultTeam]);
+      } else {
+        setTeams(updatedTeams);
+      }
+    });
+
+    return unsubscribe;
+  }, [currentUser]);
 
   useEffect(() => {
-    if (currentTeamId) {
-      saveCurrentTeamId(currentTeamId);
+    if (!currentUser) {
+      setCurrentTeamId('');
+      return;
     }
-  }, [currentTeamId]);
 
-  const updateCurrentTeam = (updater: (team: TeamRoster) => TeamRoster) => {
-    setTeams(prev => prev.map(t => t.id === currentTeamId ? updater(t) : t));
+    const unsubscribe = subscribeToCurrentTeamId(currentUser.uid, (teamId) => {
+      if (teamId) {
+        setCurrentTeamId(teamId);
+      } else if (teams.length > 0) {
+        setCurrentTeamId(teams[0].id);
+        saveCurrentTeamIdToFirestore(currentUser.uid, teams[0].id);
+      }
+    });
+
+    return unsubscribe;
+  }, [currentUser, teams]);
+
+  const team = teams.find(t => t.id === currentTeamId) || teams[0] || {
+    id: '',
+    name: 'My Team',
+    hitters: [],
+    pitchers: [],
+    totalSalary: 0,
+    ballparkStrategy: 'balanced' as const,
+  };
+
+  const updateCurrentTeam = async (updater: (team: TeamRoster) => TeamRoster) => {
+    if (!currentUser) return;
+    const updatedTeams = teams.map(t => t.id === currentTeamId ? updater(t) : t);
+    await saveTeamsToFirestore(currentUser.uid, updatedTeams);
   };
 
   const addHitter = (hitter: Hitter) => {
@@ -111,7 +142,8 @@ export function useTeam() {
     updateCurrentTeam((prev) => ({ ...prev, ballparkStrategy: strategy }));
   };
 
-  const createNewTeam = (name: string = 'New Team') => {
+  const createNewTeam = async (name: string = 'New Team') => {
+    if (!currentUser) return;
     const newTeam: TeamRoster = {
       id: crypto.randomUUID(),
       name,
@@ -120,29 +152,30 @@ export function useTeam() {
       totalSalary: 0,
       ballparkStrategy: 'balanced',
     };
-    setTeams(prev => [...prev, newTeam]);
-    setCurrentTeamId(newTeam.id);
+    await saveTeamsToFirestore(currentUser.uid, [...teams, newTeam]);
+    await saveCurrentTeamIdToFirestore(currentUser.uid, newTeam.id);
   };
 
-  const switchTeam = (teamId: string) => {
-    setCurrentTeamId(teamId);
+  const switchTeam = async (teamId: string) => {
+    if (!currentUser) return;
+    await saveCurrentTeamIdToFirestore(currentUser.uid, teamId);
   };
 
-  const deleteTeam = (teamId: string) => {
+  const deleteTeam = async (teamId: string) => {
+    if (!currentUser) return;
     if (teams.length <= 1) {
       alert('Cannot delete the last team. You must have at least one team.');
       return;
     }
-    setTeams(prev => {
-      const filtered = prev.filter(t => t.id !== teamId);
-      if (currentTeamId === teamId) {
-        setCurrentTeamId(filtered[0].id);
-      }
-      return filtered;
-    });
+    const filtered = teams.filter(t => t.id !== teamId);
+    await saveTeamsToFirestore(currentUser.uid, filtered);
+    if (currentTeamId === teamId) {
+      await saveCurrentTeamIdToFirestore(currentUser.uid, filtered[0].id);
+    }
   };
 
-  const duplicateTeam = (teamId: string) => {
+  const duplicateTeam = async (teamId: string) => {
+    if (!currentUser) return;
     const teamToDuplicate = teams.find(t => t.id === teamId);
     if (!teamToDuplicate) return;
     
@@ -151,8 +184,8 @@ export function useTeam() {
       id: crypto.randomUUID(),
       name: `${teamToDuplicate.name} (Copy)`,
     };
-    setTeams(prev => [...prev, duplicated]);
-    setCurrentTeamId(duplicated.id);
+    await saveTeamsToFirestore(currentUser.uid, [...teams, duplicated]);
+    await saveCurrentTeamIdToFirestore(currentUser.uid, duplicated.id);
   };
 
   return {

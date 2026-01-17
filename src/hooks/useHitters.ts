@@ -1,26 +1,48 @@
 import { useState, useEffect } from 'react';
 import type { Hitter } from '../types';
-import { loadHitters, saveHitters } from '../utils/storage';
+import { useAuth } from '../contexts/AuthContext';
+import { 
+  subscribeToHitters, 
+  saveHitter, 
+  deleteHitter as deleteHitterFromFirestore,
+  clearAllHitters as clearAllHittersFromFirestore 
+} from '../services/firestore';
 
 export function useHitters() {
-  const [hitters, setHitters] = useState<Hitter[]>(loadHitters());
+  const { currentUser } = useAuth();
+  const [hitters, setHitters] = useState<Hitter[]>([]);
 
   useEffect(() => {
-    saveHitters(hitters);
-  }, [hitters]);
+    if (!currentUser) {
+      setHitters([]);
+      return;
+    }
 
-  const addHitter = (hitter: Hitter) => {
-    setHitters((prev) => [...prev, hitter]);
+    const unsubscribe = subscribeToHitters(currentUser.uid, (updatedHitters) => {
+      setHitters(updatedHitters);
+    });
+
+    return unsubscribe;
+  }, [currentUser]);
+
+  const addHitter = async (hitter: Hitter) => {
+    if (!currentUser) return;
+    await saveHitter(currentUser.uid, hitter);
   };
 
-  const updateHitter = (id: string, updatedHitter: Hitter) => {
-    setHitters((prev) =>
-      prev.map((hitter) => (hitter.id === id ? updatedHitter : hitter))
-    );
+  const updateHitter = async (id: string, updatedHitter: Hitter) => {
+    if (!currentUser) return;
+    await saveHitter(currentUser.uid, updatedHitter);
   };
 
-  const deleteHitter = (id: string) => {
-    setHitters((prev) => prev.filter((hitter) => hitter.id !== id));
+  const deleteHitter = async (id: string) => {
+    if (!currentUser) return;
+    await deleteHitterFromFirestore(currentUser.uid, id);
+  };
+
+  const clearAllHitters = async () => {
+    if (!currentUser) return;
+    await clearAllHittersFromFirestore(currentUser.uid);
   };
 
   return {
@@ -28,5 +50,6 @@ export function useHitters() {
     addHitter,
     updateHitter,
     deleteHitter,
+    clearAllHitters,
   };
 }
