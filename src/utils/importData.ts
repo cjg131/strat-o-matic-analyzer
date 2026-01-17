@@ -19,12 +19,30 @@ function parseFieldingString(fieldingStr: string): { positions: string; defensiv
     return { positions: '', defensivePositions: [] };
   }
 
-  // Split by "/" to get individual position entries
-  // Example: "lf-2(-1)e7 / lf-2e7 / 1b-4e25"
-  const entries = fieldingStr.split('/').map(s => s.trim());
+  // Split by "/" or "," to get individual position entries
+  // Example: "lf-2(-1)e7 / lf-2e7 / 1b-4e25" or "1B, 2B" or "SS"
+  const entries = fieldingStr.split(/[\/,]/).map(s => s.trim());
 
   entries.forEach(entry => {
     if (!entry) return;
+
+    // Check if this is a full defensive stat string (has a dash) or just a position
+    const hasDash = entry.includes('-');
+    
+    if (!hasDash) {
+      // Simple position string like "1B", "SS", "CF"
+      const position = entry.toLowerCase();
+      positionList.push(position);
+      // Add to defensive positions with default values
+      defensivePositions.push({
+        position,
+        range: 0,
+        arm: undefined,
+        error: 0,
+        throwingRating: undefined
+      });
+      return;
+    }
 
     // Match pattern: position-range(arm)error or position-range(arm)errorT-X(pb-Y)
     // Examples: "lf-2(-1)e7", "c-3(-3)e2,T-6(pb-6)", "1b-4e25", "cf-2(-3)e5"
