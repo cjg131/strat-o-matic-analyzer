@@ -199,6 +199,9 @@ export function TeamBuilderPage() {
           <p className="text-xs text-gray-500 dark:text-gray-500">
             Cap: {formatCurrency(requirements.salaryCap)}
           </p>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+            Total Players: {totalPlayers} (need 23-29)
+          </p>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3">
@@ -219,7 +222,6 @@ export function TeamBuilderPage() {
             <p>Required: {requirements.minHitters}-{requirements.maxHitters}</p>
             <p>Catchers: {catchers.length} (need {requirements.minCatchers})</p>
             <p>Positions: {positionCoverage.covered.length}/9 {!positionCoverage.allCovered && `(missing: ${positionCoverage.missing.join(', ')})`}</p>
-            <p>Total Players: {totalPlayers} (need 24-28)</p>
           </div>
         </div>
       </div>
