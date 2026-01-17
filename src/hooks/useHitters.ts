@@ -30,7 +30,7 @@ export function useHitters() {
     await saveHitter(currentUser.uid, hitter);
   };
 
-  const updateHitter = async (id: string, updatedHitter: Hitter) => {
+  const updateHitter = async (_id: string, updatedHitter: Hitter) => {
     if (!currentUser) return;
     await saveHitter(currentUser.uid, updatedHitter);
   };

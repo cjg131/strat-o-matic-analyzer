@@ -30,7 +30,7 @@ export function usePitchers() {
     await savePitcher(currentUser.uid, pitcher);
   };
 
-  const updatePitcher = async (id: string, updatedPitcher: Pitcher) => {
+  const updatePitcher = async (_id: string, updatedPitcher: Pitcher) => {
     if (!currentUser) return;
     await savePitcher(currentUser.uid, updatedPitcher);
   };
