@@ -155,7 +155,7 @@ export function importHittersFromFile(file: File): Promise<ImportResult<Hitter>>
             const hitter: Hitter = {
               id: crypto.randomUUID(),
               name: String(name),
-              season: String(normalizedRow.season || normalizedRow.year || new Date().getFullYear()),
+              season: String(normalizedRow.yr || normalizedRow.year || normalizedRow.season || ''),
               team: normalizedRow.team || normalizedRow.tm || '',
               positions,
               defensivePositions,
@@ -267,7 +267,7 @@ export function importPitchersFromFile(file: File): Promise<ImportResult<Pitcher
             const pitcher: Pitcher = {
               id: crypto.randomUUID(),
               name: String(name),
-              season: String(normalizedRow.season || normalizedRow.year || new Date().getFullYear()),
+              season: String(normalizedRow.yr || normalizedRow.year || normalizedRow.season || ''),
               team: normalizedRow.team || normalizedRow.tm || '',
               salary: parseFloat(normalizedRow.salary || normalizedRow.sal || normalizedRow.price || '0') || 0,
               inningsPitched: parseFloat(normalizedRow.inningspitched || normalizedRow.ip || '0') || 0,

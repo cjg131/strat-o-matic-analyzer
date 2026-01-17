@@ -473,7 +473,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
                 <ResizeHandle columnKey="name" />
               </th>
               <th data-column-key="season" style={{ width: getColumnWidth('season') }} className="px-3 py-2 text-left relative border-r border-gray-300 dark:border-gray-600">
-                <SortButton field="season" label="Season" />
+                <SortButton field="season" label="Year" />
                 <ResizeHandle columnKey="season" />
               </th>
               <th data-column-key="team" style={{ width: getColumnWidth('team') }} className="px-3 py-2 text-left relative border-r border-gray-300 dark:border-gray-600">
