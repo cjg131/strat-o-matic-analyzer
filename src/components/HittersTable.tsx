@@ -71,6 +71,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
   
   const handleResizeStart = (e: React.MouseEvent, columnKey: string) => {
     e.preventDefault();
+    e.stopPropagation();
     const th = (e.target as HTMLElement).closest('th');
     if (th) {
       setResizing({
@@ -83,7 +84,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
   
   const ResizeHandle = ({ columnKey }: { columnKey: string }) => (
     <div
-      className="absolute right-0 top-0 h-full w-2 cursor-col-resize hover:bg-blue-500 active:bg-blue-600 bg-gray-300 dark:bg-gray-600 opacity-50 hover:opacity-100"
+      className="absolute right-0 top-0 h-full w-3 cursor-col-resize hover:bg-blue-500 active:bg-blue-600 select-none"
       onMouseDown={(e) => handleResizeStart(e, columnKey)}
       onClick={(e) => e.stopPropagation()}
       style={{ zIndex: 40 }}
@@ -308,7 +309,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
         </div>
       </div>
 
-      <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+      <div className="overflow-x-auto max-h-[600px] overflow-y-auto select-none">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 sticky top-0 z-20">
             <tr>
