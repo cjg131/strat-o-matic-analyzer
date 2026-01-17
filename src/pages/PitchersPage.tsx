@@ -95,7 +95,8 @@ export function PitchersPage() {
       const result = await importPitchersFromFile(file);
       
       if (result.success) {
-        result.data.forEach(pitcher => addPitcher(pitcher));
+        // Use Promise.all to wait for all async addPitcher calls
+        await Promise.all(result.data.map(pitcher => addPitcher(pitcher)));
         alert(`Successfully imported ${result.data.length} pitcher(s)${result.errors.length > 0 ? ` with ${result.errors.length} error(s)` : ''}`);
         if (result.errors.length > 0) {
           console.error('Import errors:', result.errors);

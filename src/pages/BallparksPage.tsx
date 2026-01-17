@@ -82,7 +82,7 @@ export function BallparksPage() {
       const result = await importBallparksFromFile(file);
       
       if (result.success) {
-        addMultipleBallparks(result.data);
+        await addMultipleBallparks(result.data);
         alert(`Successfully imported ${result.data.length} ballparks!`);
       } else {
         alert(`Import completed with errors:\n${result.errors.join('\n')}`);

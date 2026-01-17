@@ -107,7 +107,8 @@ export function HittersPage() {
       const result = await importHittersFromFile(file);
       
       if (result.success) {
-        result.data.forEach(hitter => addHitter(hitter));
+        // Use Promise.all to wait for all async addHitter calls
+        await Promise.all(result.data.map(hitter => addHitter(hitter)));
         alert(`Successfully imported ${result.data.length} hitter(s)${result.errors.length > 0 ? ` with ${result.errors.length} error(s)` : ''}`);
         if (result.errors.length > 0) {
           console.error('Import errors:', result.errors);
