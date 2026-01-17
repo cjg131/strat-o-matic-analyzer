@@ -20,6 +20,8 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
   const [positionFilter, setPositionFilter] = useState('');
   const [minSalary, setMinSalary] = useState<string>('');
   const [maxSalary, setMaxSalary] = useState<string>('');
+  const [stlFilter, setStlFilter] = useState('');
+  const [runFilter, setRunFilter] = useState('');
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -70,6 +72,33 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
       }
     }
 
+    // STL rating filter: Show selected rating and better (AAA > AA > A > B > C > D > E)
+    if (stlFilter && stlFilter !== '') {
+      const stlMap: Record<string, number> = { 'E': 1, 'D': 2, 'C': 3, 'B': 4, 'A': 5, 'AA': 6, 'AAA': 7 };
+      const minStlValue = stlMap[stlFilter] || 0;
+      filtered = filtered.filter((h) => {
+        if (!h.stealRating) return false;
+        const stlRatingStr = String(h.stealRating).toUpperCase();
+        const stlValue = stlMap[stlRatingStr] || 0;
+        return stlValue >= minStlValue;
+      });
+    }
+
+    // RUN rating filter: Show selected number and better (higher number is better)
+    if (runFilter && runFilter !== '') {
+      const minRunValue = parseInt(runFilter);
+      if (!isNaN(minRunValue)) {
+        filtered = filtered.filter((h) => {
+          if (!h.runRating) return false;
+          const runRatingStr = String(h.runRating);
+          const runMatch = runRatingStr.match(/(\d+)-/);
+          if (!runMatch) return false;
+          const runValue = parseInt(runMatch[1]);
+          return runValue >= minRunValue;
+        });
+      }
+    }
+
     return [...filtered].sort((a, b) => {
       const aVal = a[sortField];
       const bVal = b[sortField];
@@ -84,7 +113,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
         ? aStr.localeCompare(bStr)
         : bStr.localeCompare(aStr);
     });
-  }, [hitters, sortField, sortDirection, searchTerm, positionFilter, minSalary, maxSalary]);
+  }, [hitters, sortField, sortDirection, searchTerm, positionFilter, minSalary, maxSalary, stlFilter, runFilter]);
 
   const SortButton = ({ field, label }: { field: SortField; label: string }) => (
     <button
@@ -162,6 +191,55 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
               onClick={() => {
                 setMinSalary('');
                 setMaxSalary('');
+              }}
+              className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+        <div className="flex gap-4 items-center">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+            Speed Ratings:
+          </label>
+          <div className="flex gap-2 items-center">
+            <select
+              value={stlFilter}
+              onChange={(e) => setStlFilter(e.target.value)}
+              className="w-40 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            >
+              <option value="">All STL</option>
+              <option value="AAA">AAA and better</option>
+              <option value="AA">AA and better</option>
+              <option value="A">A and better</option>
+              <option value="B">B and better</option>
+              <option value="C">C and better</option>
+              <option value="D">D and better</option>
+              <option value="E">E and better</option>
+            </select>
+            <select
+              value={runFilter}
+              onChange={(e) => setRunFilter(e.target.value)}
+              className="w-40 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            >
+              <option value="">All RUN</option>
+              <option value="17">1-17 and better</option>
+              <option value="16">1-16 and better</option>
+              <option value="15">1-15 and better</option>
+              <option value="14">1-14 and better</option>
+              <option value="13">1-13 and better</option>
+              <option value="12">1-12 and better</option>
+              <option value="11">1-11 and better</option>
+              <option value="10">1-10 and better</option>
+              <option value="9">1-9 and better</option>
+              <option value="8">1-8 and better</option>
+            </select>
+          </div>
+          {(stlFilter || runFilter) && (
+            <button
+              onClick={() => {
+                setStlFilter('');
+                setRunFilter('');
               }}
               className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
             >
