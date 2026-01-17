@@ -298,6 +298,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
                 <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300 font-semibold">{hitter.runRating || '-'}</td>
                 <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
                   {(() => {
+                    if (!hitter.defensivePositions || hitter.defensivePositions.length === 0) return '-';
                     const positions = positionFilter 
                       ? hitter.defensivePositions.filter(dp => dp.position.toLowerCase() === positionFilter.toLowerCase())
                       : hitter.defensivePositions;
@@ -308,6 +309,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
                 </td>
                 <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
                   {(() => {
+                    if (!hitter.defensivePositions || hitter.defensivePositions.length === 0) return '-';
                     const positions = positionFilter 
                       ? hitter.defensivePositions.filter(dp => dp.position.toLowerCase() === positionFilter.toLowerCase())
                       : hitter.defensivePositions;
@@ -318,6 +320,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
                 </td>
                 <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
                   {(() => {
+                    if (!hitter.defensivePositions || hitter.defensivePositions.length === 0) return '-';
                     const positions = positionFilter 
                       ? hitter.defensivePositions.filter(dp => dp.position.toLowerCase() === positionFilter.toLowerCase())
                       : hitter.defensivePositions;
@@ -328,6 +331,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
                 </td>
                 <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
                   {(() => {
+                    if (!hitter.defensivePositions || hitter.defensivePositions.length === 0) return '-';
                     const positions = positionFilter 
                       ? hitter.defensivePositions.filter(dp => dp.position.toLowerCase() === positionFilter.toLowerCase())
                       : hitter.defensivePositions;
