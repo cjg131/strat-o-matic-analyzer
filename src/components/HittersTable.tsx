@@ -325,7 +325,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
           </div>
         </div>
         <div className="flex gap-2 items-center flex-wrap text-sm">
-          <label className="font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Salary Range:</label>
+          <label className="font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Salary:</label>
           <input
             type="number"
             placeholder="Min"
@@ -341,7 +341,6 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
             onChange={(e) => setMaxSalary(e.target.value)}
             className="w-24 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
-          <label className="font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap ml-2">Speed Ratings:</label>
           <select
             value={stlFilter}
             onChange={(e) => setStlFilter(e.target.value)}
@@ -373,7 +372,6 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
             <option value="9">1-9 and better</option>
             <option value="8">1-8 and better</option>
           </select>
-          <label className="font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap ml-2">Defense:</label>
           <select
             value={rangeFilter}
             onChange={(e) => setRangeFilter(e.target.value)}
