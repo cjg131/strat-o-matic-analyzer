@@ -106,11 +106,37 @@ export function saveBallparks(ballparks: any[]): void {
   }
 }
 
-export function loadTeam(): TeamRoster | null {
-  const data = localStorage.getItem('strat-o-matic-team');
-  return data ? JSON.parse(data) : null;
+export function loadTeams(): TeamRoster[] {
+  try {
+    const data = localStorage.getItem('strat-o-matic-teams');
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    console.error('Error loading teams:', error);
+    return [];
+  }
 }
 
-export function saveTeam(team: TeamRoster): void {
-  localStorage.setItem('strat-o-matic-team', JSON.stringify(team));
+export function saveTeams(teams: TeamRoster[]): void {
+  try {
+    localStorage.setItem('strat-o-matic-teams', JSON.stringify(teams));
+  } catch (error) {
+    console.error('Error saving teams:', error);
+  }
+}
+
+export function loadCurrentTeamId(): string | null {
+  try {
+    return localStorage.getItem('strat-o-matic-current-team-id');
+  } catch (error) {
+    console.error('Error loading current team ID:', error);
+    return null;
+  }
+}
+
+export function saveCurrentTeamId(teamId: string): void {
+  try {
+    localStorage.setItem('strat-o-matic-current-team-id', teamId);
+  } catch (error) {
+    console.error('Error saving current team ID:', error);
+  }
 }
