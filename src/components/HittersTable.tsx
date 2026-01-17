@@ -168,7 +168,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
             </select>
           </div>
         </div>
-        <div className="flex gap-4 items-center">
+        <div className="flex gap-4 items-center flex-wrap">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
             Salary Range:
           </label>
@@ -200,9 +200,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
               Clear
             </button>
           )}
-        </div>
-        <div className="flex gap-4 items-center">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap ml-4">
             Speed Ratings:
           </label>
           <div className="flex gap-2 items-center">
