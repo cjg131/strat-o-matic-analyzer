@@ -16,6 +16,23 @@ const getUserPath = (userId: string, collectionName: string) => {
   return `users/${userId}/${collectionName}`;
 };
 
+// Sanitize data to remove undefined values (Firestore doesn't support undefined)
+const sanitizeData = <T extends Record<string, any>>(data: T): any => {
+  const sanitized: any = { ...data };
+  Object.keys(sanitized).forEach(key => {
+    if (sanitized[key] === undefined) {
+      delete sanitized[key];
+    } else if (sanitized[key] !== null && typeof sanitized[key] === 'object' && !Array.isArray(sanitized[key])) {
+      sanitized[key] = sanitizeData(sanitized[key]);
+    } else if (Array.isArray(sanitized[key])) {
+      sanitized[key] = sanitized[key].map((item: any) => 
+        typeof item === 'object' && item !== null ? sanitizeData(item) : item
+      );
+    }
+  });
+  return sanitized;
+};
+
 // Hitters
 export const subscribeToHitters = (
   userId: string, 
@@ -30,7 +47,7 @@ export const subscribeToHitters = (
 
 export const saveHitter = async (userId: string, hitter: Hitter): Promise<void> => {
   const hitterRef = doc(db, getUserPath(userId, 'hitters'), hitter.id);
-  await setDoc(hitterRef, hitter);
+  await setDoc(hitterRef, sanitizeData(hitter));
 };
 
 export const deleteHitter = async (userId: string, hitterId: string): Promise<void> => {
@@ -42,7 +59,7 @@ export const saveMultipleHitters = async (userId: string, hitters: Hitter[]): Pr
   const batch = writeBatch(db);
   hitters.forEach(hitter => {
     const hitterRef = doc(db, getUserPath(userId, 'hitters'), hitter.id);
-    batch.set(hitterRef, hitter);
+    batch.set(hitterRef, sanitizeData(hitter));
   });
   await batch.commit();
 };
@@ -69,7 +86,7 @@ export const subscribeToPitchers = (
 
 export const savePitcher = async (userId: string, pitcher: Pitcher): Promise<void> => {
   const pitcherRef = doc(db, getUserPath(userId, 'pitchers'), pitcher.id);
-  await setDoc(pitcherRef, pitcher);
+  await setDoc(pitcherRef, sanitizeData(pitcher));
 };
 
 export const deletePitcher = async (userId: string, pitcherId: string): Promise<void> => {
@@ -81,7 +98,7 @@ export const saveMultiplePitchers = async (userId: string, pitchers: Pitcher[]):
   const batch = writeBatch(db);
   pitchers.forEach(pitcher => {
     const pitcherRef = doc(db, getUserPath(userId, 'pitchers'), pitcher.id);
-    batch.set(pitcherRef, pitcher);
+    batch.set(pitcherRef, sanitizeData(pitcher));
   });
   await batch.commit();
 };
@@ -110,7 +127,7 @@ export const saveTeams = async (userId: string, teams: TeamRoster[]): Promise<vo
   const batch = writeBatch(db);
   teams.forEach(team => {
     const teamRef = doc(db, getUserPath(userId, 'teams'), team.id);
-    batch.set(teamRef, team);
+    batch.set(teamRef, sanitizeData(team));
   });
   await batch.commit();
 };
@@ -153,7 +170,7 @@ export const saveMultipleBallparks = async (userId: string, ballparks: Ballpark[
   const batch = writeBatch(db);
   ballparks.forEach(ballpark => {
     const ballparkRef = doc(db, getUserPath(userId, 'ballparks'), ballpark.id);
-    batch.set(ballparkRef, ballpark);
+    batch.set(ballparkRef, sanitizeData(ballpark));
   });
   await batch.commit();
 };
@@ -185,5 +202,5 @@ export const subscribeToScoringWeights = (
 
 export const saveScoringWeights = async (userId: string, weights: ScoringWeights): Promise<void> => {
   const weightsRef = doc(db, getUserPath(userId, 'settings'), 'scoringWeights');
-  await setDoc(weightsRef, weights);
+  await setDoc(weightsRef, sanitizeData(weights));
 };
