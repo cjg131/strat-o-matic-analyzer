@@ -47,8 +47,8 @@ function parseFieldingString(fieldingStr: string): { positions: string; defensiv
     // Match pattern: position-range(arm)error or position-range(arm)errorT-X(pb-Y)
     // Examples: "lf-2(-1)e7", "c-3(-3)e2,T-6(pb-6)", "1b-4e25", "cf-2(-3)e5"
     
-    // Extract position (letters before the dash)
-    const posMatch = entry.match(/^([a-z]+)-/i);
+    // Extract position (letters/numbers before the dash, e.g., "1b", "2b", "ss", "lf")
+    const posMatch = entry.match(/^([a-z0-9]+)-/i);
     if (!posMatch) return;
     
     const position = posMatch[1].toLowerCase();
