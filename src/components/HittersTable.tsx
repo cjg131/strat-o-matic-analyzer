@@ -324,90 +324,56 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
             </select>
           </div>
         </div>
-        <div className="flex gap-4 items-center flex-wrap">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
-            Salary Range:
-          </label>
-          <div className="flex gap-2 items-center">
-            <input
-              type="number"
-              placeholder="Min"
-              value={minSalary}
-              onChange={(e) => setMinSalary(e.target.value)}
-              className="w-32 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            />
-            <span className="text-gray-500 dark:text-gray-400">to</span>
-            <input
-              type="number"
-              placeholder="Max"
-              value={maxSalary}
-              onChange={(e) => setMaxSalary(e.target.value)}
-              className="w-32 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            />
-          </div>
-          {(minSalary || maxSalary) && (
-            <button
-              onClick={() => {
-                setMinSalary('');
-                setMaxSalary('');
-              }}
-              className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-            >
-              Clear
-            </button>
-          )}
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap ml-4">
-            Speed Ratings:
-          </label>
-          <div className="flex gap-2 items-center">
-            <select
-              value={stlFilter}
-              onChange={(e) => setStlFilter(e.target.value)}
-              className="w-40 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            >
-              <option value="">All STL</option>
-              <option value="AAA">AAA and better</option>
-              <option value="AA">AA and better</option>
-              <option value="A">A and better</option>
-              <option value="B">B and better</option>
-              <option value="C">C and better</option>
-              <option value="D">D and better</option>
-              <option value="E">E and better</option>
-            </select>
-            <select
-              value={runFilter}
-              onChange={(e) => setRunFilter(e.target.value)}
-              className="w-40 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            >
-              <option value="">All RUN</option>
-              <option value="17">1-17 and better</option>
-              <option value="16">1-16 and better</option>
-              <option value="15">1-15 and better</option>
-              <option value="14">1-14 and better</option>
-              <option value="13">1-13 and better</option>
-              <option value="12">1-12 and better</option>
-              <option value="11">1-11 and better</option>
-              <option value="10">1-10 and better</option>
-              <option value="9">1-9 and better</option>
-              <option value="8">1-8 and better</option>
-            </select>
-          </div>
-          {(stlFilter || runFilter) && (
-            <button
-              onClick={() => {
-                setStlFilter('');
-                setRunFilter('');
-              }}
-              className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-            >
-              Clear
-            </button>
-          )}
-        </div>
-        <div className="flex gap-3 items-center flex-wrap">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
-            Defense:
-          </label>
+        <div className="flex gap-2 items-center flex-wrap text-sm">
+          <label className="font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Salary Range:</label>
+          <input
+            type="number"
+            placeholder="Min"
+            value={minSalary}
+            onChange={(e) => setMinSalary(e.target.value)}
+            className="w-24 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+          <span className="text-gray-500 dark:text-gray-400 text-xs">to</span>
+          <input
+            type="number"
+            placeholder="Max"
+            value={maxSalary}
+            onChange={(e) => setMaxSalary(e.target.value)}
+            className="w-24 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+          <label className="font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap ml-2">Speed Ratings:</label>
+          <select
+            value={stlFilter}
+            onChange={(e) => setStlFilter(e.target.value)}
+            className="w-32 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+            <option value="">All STL</option>
+            <option value="AAA">AAA and better</option>
+            <option value="AA">AA and better</option>
+            <option value="A">A and better</option>
+            <option value="B">B and better</option>
+            <option value="C">C and better</option>
+            <option value="D">D and better</option>
+            <option value="E">E and better</option>
+          </select>
+          <select
+            value={runFilter}
+            onChange={(e) => setRunFilter(e.target.value)}
+            className="w-32 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+            <option value="">All RUN</option>
+            <option value="17">1-17 and better</option>
+            <option value="16">1-16 and better</option>
+            <option value="15">1-15 and better</option>
+            <option value="14">1-14 and better</option>
+            <option value="13">1-13 and better</option>
+            <option value="12">1-12 and better</option>
+            <option value="11">1-11 and better</option>
+            <option value="10">1-10 and better</option>
+            <option value="9">1-9 and better</option>
+            <option value="8">1-8 and better</option>
+          </select>
+          <label className="font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap ml-2">Defense:</label>
           <select
             value={rangeFilter}
             onChange={(e) => setRangeFilter(e.target.value)}
@@ -463,17 +429,21 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
             <option value="6">T-6 and better</option>
             <option value="7">T-7 and better</option>
           </select>
-          {(rangeFilter || armFilter || errorFilter || tFilter) && (
+          {(minSalary || maxSalary || stlFilter || runFilter || rangeFilter || armFilter || errorFilter || tFilter) && (
             <button
               onClick={() => {
+                setMinSalary('');
+                setMaxSalary('');
+                setStlFilter('');
+                setRunFilter('');
                 setRangeFilter('');
                 setArmFilter('');
                 setErrorFilter('');
                 setTFilter('');
               }}
-              className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+              className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 ml-2"
             >
-              Clear
+              Clear All
             </button>
           )}
         </div>
