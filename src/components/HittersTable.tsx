@@ -22,6 +22,10 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
   const [maxSalary, setMaxSalary] = useState<string>('');
   const [stlFilter, setStlFilter] = useState('');
   const [runFilter, setRunFilter] = useState('');
+  const [rangeFilter, setRangeFilter] = useState('');
+  const [armFilter, setArmFilter] = useState('');
+  const [errorFilter, setErrorFilter] = useState('');
+  const [tFilter, setTFilter] = useState('');
   
   const defaultWidths: Record<string, number> = {
     name: 180,
@@ -194,6 +198,66 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
       }
     }
 
+    // Range filter: 1 is best, 5 is worst - show selected and better (lower numbers)
+    if (rangeFilter && rangeFilter !== '') {
+      const maxRange = parseInt(rangeFilter);
+      if (!isNaN(maxRange)) {
+        filtered = filtered.filter((h) => {
+          if (!h.defensivePositions || h.defensivePositions.length === 0) return false;
+          const positions = positionFilter 
+            ? h.defensivePositions.filter(dp => dp.position.toLowerCase() === positionFilter.toLowerCase())
+            : h.defensivePositions;
+          return positions.some(dp => dp.range <= maxRange);
+        });
+      }
+    }
+
+    // Arm filter: -6 is best, +3 is worst - show selected and better (lower/more negative numbers)
+    if (armFilter && armFilter !== '') {
+      const maxArm = parseInt(armFilter);
+      if (!isNaN(maxArm)) {
+        filtered = filtered.filter((h) => {
+          if (!h.defensivePositions || h.defensivePositions.length === 0) return false;
+          const positions = positionFilter 
+            ? h.defensivePositions.filter(dp => dp.position.toLowerCase() === positionFilter.toLowerCase())
+            : h.defensivePositions;
+          return positions.some(dp => dp.arm !== undefined && dp.arm <= maxArm);
+        });
+      }
+    }
+
+    // Error filter: Lower is better - show selected and better (lower numbers)
+    if (errorFilter && errorFilter !== '') {
+      const maxError = parseInt(errorFilter);
+      if (!isNaN(maxError)) {
+        filtered = filtered.filter((h) => {
+          if (!h.defensivePositions || h.defensivePositions.length === 0) return false;
+          const positions = positionFilter 
+            ? h.defensivePositions.filter(dp => dp.position.toLowerCase() === positionFilter.toLowerCase())
+            : h.defensivePositions;
+          return positions.some(dp => dp.error <= maxError);
+        });
+      }
+    }
+
+    // T (Throwing) filter: For catchers only, lower first number is better
+    if (tFilter && tFilter !== '') {
+      const maxT = parseInt(tFilter);
+      if (!isNaN(maxT)) {
+        filtered = filtered.filter((h) => {
+          if (!h.defensivePositions || h.defensivePositions.length === 0) return false;
+          const catcherPositions = h.defensivePositions.filter(dp => dp.position.toLowerCase() === 'c');
+          return catcherPositions.some(dp => {
+            if (!dp.throwingRating) return false;
+            const tMatch = dp.throwingRating.match(/T-(\d+)/);
+            if (!tMatch) return false;
+            const tValue = parseInt(tMatch[1]);
+            return tValue <= maxT;
+          });
+        });
+      }
+    }
+
     return [...filtered].sort((a, b) => {
       const aVal = a[sortField];
       const bVal = b[sortField];
@@ -208,7 +272,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
         ? aStr.localeCompare(bStr)
         : bStr.localeCompare(aStr);
     });
-  }, [hitters, sortField, sortDirection, searchTerm, positionFilter, minSalary, maxSalary, stlFilter, runFilter]);
+  }, [hitters, searchTerm, positionFilter, minSalary, maxSalary, sortField, sortDirection, stlFilter, runFilter, rangeFilter, armFilter, errorFilter, tFilter]);
 
   const SortButton = ({ field, label }: { field: SortField; label: string }) => (
     <button
@@ -333,6 +397,79 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
               onClick={() => {
                 setStlFilter('');
                 setRunFilter('');
+              }}
+              className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+        <div className="flex gap-3 items-center flex-wrap">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+            Defense:
+          </label>
+          <select
+            value={rangeFilter}
+            onChange={(e) => setRangeFilter(e.target.value)}
+            className="w-32 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+            <option value="">All Range</option>
+            <option value="1">1 and better</option>
+            <option value="2">2 and better</option>
+            <option value="3">3 and better</option>
+            <option value="4">4 and better</option>
+            <option value="5">5 and better</option>
+          </select>
+          <select
+            value={armFilter}
+            onChange={(e) => setArmFilter(e.target.value)}
+            className="w-32 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+            <option value="">All Arm</option>
+            <option value="-6">-6 and better</option>
+            <option value="-5">-5 and better</option>
+            <option value="-4">-4 and better</option>
+            <option value="-3">-3 and better</option>
+            <option value="-2">-2 and better</option>
+            <option value="-1">-1 and better</option>
+            <option value="0">0 and better</option>
+            <option value="1">+1 and better</option>
+            <option value="2">+2 and better</option>
+            <option value="3">+3 and better</option>
+          </select>
+          <select
+            value={errorFilter}
+            onChange={(e) => setErrorFilter(e.target.value)}
+            className="w-32 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+            <option value="">All Error</option>
+            <option value="5">5 and better</option>
+            <option value="10">10 and better</option>
+            <option value="15">15 and better</option>
+            <option value="20">20 and better</option>
+            <option value="25">25 and better</option>
+          </select>
+          <select
+            value={tFilter}
+            onChange={(e) => setTFilter(e.target.value)}
+            className="w-32 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+            <option value="">All T (C)</option>
+            <option value="1">T-1 and better</option>
+            <option value="2">T-2 and better</option>
+            <option value="3">T-3 and better</option>
+            <option value="4">T-4 and better</option>
+            <option value="5">T-5 and better</option>
+            <option value="6">T-6 and better</option>
+            <option value="7">T-7 and better</option>
+          </select>
+          {(rangeFilter || armFilter || errorFilter || tFilter) && (
+            <button
+              onClick={() => {
+                setRangeFilter('');
+                setArmFilter('');
+                setErrorFilter('');
+                setTFilter('');
               }}
               className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
             >
