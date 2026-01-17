@@ -87,7 +87,12 @@ export function importHittersFromFile(file: File): Promise<ImportResult<Hitter>>
                 const match = stlStr.match(/\(([A-E]+)\)/);
                 return match ? match[1] : stlStr;
               })(),
-              runRating: normalizedRow.run ? String(normalizedRow.run) : normalizedRow.runrating ? String(normalizedRow.runrating) : normalizedRow.running ? String(normalizedRow.running) : undefined,
+              runRating: (() => {
+                // Try different column names for RUN rating
+                const runValue = normalizedRow.run || normalizedRow.runrating || normalizedRow.running || normalizedRow.rn;
+                if (!runValue) return undefined;
+                return String(runValue);
+              })(),
               ab,
               h: parseInt(normalizedRow.h || normalizedRow.hits || '0') || 0,
               doubles: parseInt(normalizedRow.doubles || normalizedRow['2b'] || normalizedRow.d || '0') || 0,
