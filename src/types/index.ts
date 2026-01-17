@@ -83,6 +83,8 @@ export interface HitterScoringWeights {
   hitByPitch: number;
   stolenBase: number;
   caughtStealing: number;
+  stlRating: number;
+  runRating: number;
   outPenalty: number;
   balanceVsRHP: number;
   balanceVsLHP: number;
@@ -112,6 +114,8 @@ export const DEFAULT_HITTER_WEIGHTS: HitterScoringWeights = {
   hitByPitch: 1,
   stolenBase: 2,
   caughtStealing: -1,
+  stlRating: 3,
+  runRating: 1.5,
   outPenalty: -0.3,
   balanceVsRHP: 0,
   balanceVsLHP: 0,
@@ -129,6 +133,8 @@ export const DEFAULT_SCORING_WEIGHTS: ScoringWeights = {
     hitByPitch: 1,
     stolenBase: 2,
     caughtStealing: -1,
+    stlRating: 3,
+    runRating: 1.5,
     outPenalty: -0.3,
     balanceVsRHP: 0,
     balanceVsLHP: 0,

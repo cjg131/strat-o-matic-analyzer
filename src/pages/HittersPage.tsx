@@ -12,31 +12,31 @@ import type { Hitter, HitterWithStats, HitterScoringWeights } from '../types';
 const HITTER_PRESETS: Record<string, { name: string; weights: HitterScoringWeights }> = {
   balanced: {
     name: 'Balanced',
-    weights: { single: 2, double: 3, triple: 5, homeRun: 6, walk: 1, hitByPitch: 1, stolenBase: 2, caughtStealing: -1, outPenalty: -0.3, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 0, fieldingErrorPenalty: 0 }
+    weights: { single: 2, double: 3, triple: 5, homeRun: 6, walk: 1, hitByPitch: 1, stolenBase: 2, caughtStealing: -1, stlRating: 3, runRating: 1.5, outPenalty: -0.3, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 0, fieldingErrorPenalty: 0 }
   },
   power: {
     name: 'Power Hitting',
-    weights: { single: 1, double: 4, triple: 7, homeRun: 10, walk: 0.5, hitByPitch: 0.5, stolenBase: 0.5, caughtStealing: -0.5, outPenalty: -0.2, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 0, fieldingErrorPenalty: 0 }
+    weights: { single: 1, double: 4, triple: 7, homeRun: 10, walk: 0.5, hitByPitch: 0.5, stolenBase: 0.5, caughtStealing: -0.5, stlRating: 1, runRating: 0.5, outPenalty: -0.2, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 0, fieldingErrorPenalty: 0 }
   },
   speed: {
     name: 'Speed & Base Running',
-    weights: { single: 3, double: 4, triple: 6, homeRun: 5, walk: 1.5, hitByPitch: 1.5, stolenBase: 4, caughtStealing: -3, outPenalty: -0.3, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 0, fieldingErrorPenalty: 0 }
+    weights: { single: 3, double: 4, triple: 6, homeRun: 5, walk: 1.5, hitByPitch: 1.5, stolenBase: 4, caughtStealing: -3, stlRating: 6, runRating: 3, outPenalty: -0.3, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 0, fieldingErrorPenalty: 0 }
   },
   obp: {
     name: 'On-Base (OBP)',
-    weights: { single: 3, double: 4, triple: 6, homeRun: 7, walk: 2.5, hitByPitch: 2.5, stolenBase: 1, caughtStealing: -1, outPenalty: -0.5, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 0, fieldingErrorPenalty: 0 }
+    weights: { single: 3, double: 4, triple: 6, homeRun: 7, walk: 2.5, hitByPitch: 2.5, stolenBase: 1, caughtStealing: -1, stlRating: 2, runRating: 1, outPenalty: -0.5, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 0, fieldingErrorPenalty: 0 }
   },
   contact: {
     name: 'Contact Hitting',
-    weights: { single: 3, double: 4, triple: 5, homeRun: 6, walk: 1.5, hitByPitch: 1.5, stolenBase: 1.5, caughtStealing: -1, outPenalty: -0.6, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 0, fieldingErrorPenalty: 0 }
+    weights: { single: 3, double: 4, triple: 5, homeRun: 6, walk: 1.5, hitByPitch: 1.5, stolenBase: 1.5, caughtStealing: -1, stlRating: 2, runRating: 1, outPenalty: -0.6, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 0, fieldingErrorPenalty: 0 }
   },
   defense: {
     name: 'Defense First',
-    weights: { single: 2, double: 3, triple: 5, homeRun: 6, walk: 1, hitByPitch: 1, stolenBase: 2, caughtStealing: -1, outPenalty: -0.3, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 3, fieldingErrorPenalty: -1 }
+    weights: { single: 2, double: 3, triple: 5, homeRun: 6, walk: 1, hitByPitch: 1, stolenBase: 2, caughtStealing: -1, stlRating: 3, runRating: 1.5, outPenalty: -0.3, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 3, fieldingErrorPenalty: -1 }
   },
   defenseSpeed: {
     name: 'Defense & Speed',
-    weights: { single: 2.5, double: 3.5, triple: 5, homeRun: 5, walk: 1.5, hitByPitch: 1.5, stolenBase: 3, caughtStealing: -2, outPenalty: -0.4, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 2, fieldingErrorPenalty: -0.75 }
+    weights: { single: 2.5, double: 3.5, triple: 5, homeRun: 5, walk: 1.5, hitByPitch: 1.5, stolenBase: 3, caughtStealing: -2, stlRating: 5, runRating: 2.5, outPenalty: -0.4, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 2, fieldingErrorPenalty: -0.75 }
   }
 };
 
@@ -289,10 +289,22 @@ export function HittersPage() {
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
           </div>
           <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">STL Rating (per level)</label>
+            <input type="number" step="0.1" value={weights.hitter.stlRating}
+              onChange={(e) => updateWeights({ ...weights, hitter: { ...weights.hitter, stlRating: parseFloat(e.target.value) || 0 }})}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">RUN Rating (per level)</label>
+            <input type="number" step="0.1" value={weights.hitter.runRating}
+              onChange={(e) => updateWeights({ ...weights, hitter: { ...weights.hitter, runRating: parseFloat(e.target.value) || 0 }})}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+          </div>
+          <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Out Penalty</label>
             <input type="number" step="0.1" value={weights.hitter.outPenalty}
               onChange={(e) => updateWeights({ ...weights, hitter: { ...weights.hitter, outPenalty: parseFloat(e.target.value) || 0 }})}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text:gray-900 dark:text-white" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Balance vs RHP (per level)</label>

@@ -46,14 +46,14 @@ export function calculateHitterStats(
   }
 
   // Calculate speed rating bonus
-  // STL rating: AA=6, A=5, B=4, C=3, D=2, E=1 (PRIMARY speed indicator)
+  // STL rating: AAA=7, AA=6, A=5, B=4, C=3, D=2, E=1 (PRIMARY speed indicator)
   // RUN rating: Extract first number from format "1-17" (higher is better, 17 best, 8 worst) (PRIMARY speed indicator)
   let speedRatingBonus = 0;
   if (hitter.stealRating) {
     const stlMap: Record<string, number> = { 'AAA': 7, 'AA': 6, 'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1 };
     const stlRatingStr = String(hitter.stealRating).toUpperCase();
     const stlValue = stlMap[stlRatingStr] || 0;
-    speedRatingBonus += stlValue * (weights.stolenBase || 0) * 3.0; // STL rating is PRIMARY speed indicator
+    speedRatingBonus += stlValue * (weights.stlRating || 0); // STL rating uses dedicated weight
   }
   if (hitter.runRating) {
     const runRatingStr = String(hitter.runRating);
@@ -62,7 +62,7 @@ export function calculateHitterStats(
       const runValue = parseInt(runMatch[1]);
       // Normalize run rating: 17 is best (1-17), 8 is worst (1-8)
       // Higher first number = better speed
-      speedRatingBonus += runValue * (weights.stolenBase || 0) * 1.5; // RUN rating is PRIMARY speed indicator
+      speedRatingBonus += runValue * (weights.runRating || 0); // RUN rating uses dedicated weight
     }
   }
 
