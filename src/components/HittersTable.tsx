@@ -66,7 +66,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
   };
   
   const getColumnWidth = (columnKey: string) => {
-    return columnWidths[columnKey] ? `${columnWidths[columnKey]}px` : 'auto';
+    return columnWidths[columnKey] ? `${columnWidths[columnKey]}px` : undefined;
   };
   
   const handleResizeStart = (e: React.MouseEvent, columnKey: string) => {
@@ -308,7 +308,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
       </div>
 
       <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
-        <table className="w-full text-sm table-fixed">
+        <table className="w-full text-sm">
           <thead className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 sticky top-0 z-20">
             <tr>
               <th style={{ width: getColumnWidth('name'), minWidth: '120px' }} className="px-3 py-2 text-left sticky left-0 bg-gray-50 dark:bg-gray-800 z-30 relative border-r border-gray-300 dark:border-gray-600">
