@@ -145,28 +145,28 @@ export function TeamBuilderPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${isOverCap ? 'border-2 border-red-500' : ''}`}>
-          <div className="flex items-center gap-2 mb-2">
-            <DollarSign className={`h-5 w-5 ${isOverCap ? 'text-red-600' : 'text-green-600'}`} />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Salary Cap</h3>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className={`bg-white dark:bg-gray-800 rounded-lg shadow p-3 ${isOverCap ? 'border-2 border-red-500' : ''}`}>
+          <div className="flex items-center gap-2 mb-1">
+            <DollarSign className={`h-4 w-4 ${isOverCap ? 'text-red-600' : 'text-green-600'}`} />
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Salary Cap</h3>
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">
+          <p className="text-xl font-bold text-gray-900 dark:text-white">
             {formatCurrency(team.totalSalary)}
           </p>
-          <p className={`text-sm ${isOverCap ? 'text-red-600' : 'text-gray-600 dark:text-gray-400'}`}>
+          <p className={`text-xs ${isOverCap ? 'text-red-600' : 'text-gray-600 dark:text-gray-400'}`}>
             {isOverCap ? 'OVER CAP by ' : 'Remaining: '}
             {formatCurrency(Math.abs(salaryRemaining))}
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-500">
             Cap: {formatCurrency(requirements.salaryCap)}
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Pitchers</h3>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{team.pitchers.length}</p>
-          <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1 mt-2">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">Pitchers</h3>
+          <p className="text-xl font-bold text-gray-900 dark:text-white">{team.pitchers.length}</p>
+          <div className="text-xs text-gray-600 dark:text-gray-400 space-y-0.5 mt-1">
             <p>Required: {requirements.minPitchers}-{requirements.maxPitchers}</p>
             <p>Who can start: {canStart.length} (need {requirements.minCanStart})</p>
             <p>Who can relieve: {canRelieve.length} (need {requirements.minCanRelieve})</p>
@@ -174,10 +174,10 @@ export function TeamBuilderPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Hitters</h3>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{team.hitters.length}</p>
-          <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1 mt-2">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">Hitters</h3>
+          <p className="text-xl font-bold text-gray-900 dark:text-white">{team.hitters.length}</p>
+          <div className="text-xs text-gray-600 dark:text-gray-400 space-y-0.5 mt-1">
             <p>Required: {requirements.minHitters}-{requirements.maxHitters}</p>
             <p>Catchers: {catchers.length} (need {requirements.minCatchers})</p>
             <p>Positions: {positionCoverage.covered.length}/9 {!positionCoverage.allCovered && `(missing: ${positionCoverage.missing.join(', ')})`}</p>
@@ -187,12 +187,12 @@ export function TeamBuilderPage() {
       </div>
 
       {!meetsRequirements() && (
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-2">
           <div className="flex items-start gap-2">
-            <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+            <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5" />
             <div>
-              <h4 className="font-semibold text-yellow-900 dark:text-yellow-200">Roster Requirements Not Met</h4>
-              <p className="text-sm text-yellow-800 dark:text-yellow-300 mt-1">
+              <h4 className="text-sm font-semibold text-yellow-900 dark:text-yellow-200">Roster Requirements Not Met</h4>
+              <p className="text-xs text-yellow-800 dark:text-yellow-300">
                 Add players from the Hitters and Pitchers pages to meet all roster requirements.
               </p>
             </div>
@@ -200,64 +200,64 @@ export function TeamBuilderPage() {
         </div>
       )}
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Ballpark Selection</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Ballpark Selection</h3>
         
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <div className="mb-2">
+          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
             Strategy
           </label>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             <button
               onClick={() => setBallparkStrategy('offense')}
-              className={`px-4 py-3 rounded-md border-2 transition-colors ${
+              className={`px-2 py-2 rounded-md border-2 transition-colors ${
                 team.ballparkStrategy === 'offense'
                   ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
                   : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
               }`}
             >
-              <div className="font-semibold">Heavy Offense</div>
-              <div className="text-xs mt-1">High HR, High Singles</div>
+              <div className="text-xs font-semibold">Heavy Offense</div>
+              <div className="text-xs mt-0.5 opacity-75">High HR, High Singles</div>
             </button>
             <button
               onClick={() => setBallparkStrategy('balanced')}
-              className={`px-4 py-3 rounded-md border-2 transition-colors ${
+              className={`px-2 py-2 rounded-md border-2 transition-colors ${
                 team.ballparkStrategy === 'balanced'
                   ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
                   : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
               }`}
             >
-              <div className="font-semibold">Balanced</div>
-              <div className="text-xs mt-1">Neutral Park</div>
+              <div className="text-xs font-semibold">Balanced</div>
+              <div className="text-xs mt-0.5 opacity-75">Neutral Park</div>
             </button>
             <button
               onClick={() => setBallparkStrategy('defense')}
-              className={`px-4 py-3 rounded-md border-2 transition-colors ${
+              className={`px-2 py-2 rounded-md border-2 transition-colors ${
                 team.ballparkStrategy === 'defense'
                   ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
                   : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
               }`}
             >
-              <div className="font-semibold">Heavy Defense</div>
-              <div className="text-xs mt-1">Low HR, Low Singles</div>
+              <div className="text-xs font-semibold">Heavy Defense</div>
+              <div className="text-xs mt-0.5 opacity-75">Low HR, Low Singles</div>
             </button>
             <button
               onClick={() => setBallparkStrategy('speedDefense')}
-              className={`px-4 py-3 rounded-md border-2 transition-colors ${
+              className={`px-2 py-2 rounded-md border-2 transition-colors ${
                 team.ballparkStrategy === 'speedDefense'
                   ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
                   : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
               }`}
             >
-              <div className="font-semibold">Speed/Defense</div>
-              <div className="text-xs mt-1">High Singles, Low HR</div>
+              <div className="text-xs font-semibold">Speed/Defense</div>
+              <div className="text-xs mt-0.5 opacity-75">High Singles, Low HR</div>
             </button>
           </div>
         </div>
 
         {ballparks.length > 0 && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Choose Ballpark {
                 team.ballparkStrategy === 'offense' ? '(Offense)' : 
                 team.ballparkStrategy === 'defense' ? '(Defense)' : 
