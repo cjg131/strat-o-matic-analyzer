@@ -262,7 +262,10 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
               <th className="px-3 py-2 text-center"><SortButton field="balance" label="Bal" /></th>
               <th className="px-3 py-2 text-center"><SortButton field="stealRating" label="STL" /></th>
               <th className="px-3 py-2 text-center"><SortButton field="runRating" label="RUN" /></th>
-              <th className="px-3 py-2 text-right"><SortButton field="fieldingRange" label="F" /></th>
+              <th className="px-3 py-2 text-center">Range</th>
+              <th className="px-3 py-2 text-center">Arm</th>
+              <th className="px-3 py-2 text-center">Error</th>
+              <th className="px-3 py-2 text-center">T</th>
               <th className="px-3 py-2 text-right"><SortButton field="games" label="G" /></th>
               <th className="px-3 py-2 text-right"><SortButton field="plateAppearances" label="PA" /></th>
               <th className="px-3 py-2 text-right"><SortButton field="ab" label="AB" /></th>
@@ -293,8 +296,45 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
                 <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300 font-semibold">{hitter.balance || 'E'}</td>
                 <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300 font-semibold">{hitter.stealRating || '-'}</td>
                 <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300 font-semibold">{hitter.runRating || '-'}</td>
-                <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300">
-                  {hitter.fieldingRange ? `${hitter.fieldingRange}(${hitter.fieldingError >= 0 ? '+' : ''}${hitter.fieldingError})` : '-'}
+                <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
+                  {(() => {
+                    const positions = positionFilter 
+                      ? hitter.defensivePositions.filter(dp => dp.position.toLowerCase() === positionFilter.toLowerCase())
+                      : hitter.defensivePositions;
+                    return positions.length > 0 
+                      ? positions.map(dp => `${dp.position.toUpperCase()}: ${dp.range}`).join(' / ')
+                      : '-';
+                  })()}
+                </td>
+                <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
+                  {(() => {
+                    const positions = positionFilter 
+                      ? hitter.defensivePositions.filter(dp => dp.position.toLowerCase() === positionFilter.toLowerCase())
+                      : hitter.defensivePositions;
+                    return positions.length > 0 
+                      ? positions.map(dp => dp.arm !== undefined ? (dp.arm >= 0 ? `+${dp.arm}` : `${dp.arm}`) : '-').join(' / ')
+                      : '-';
+                  })()}
+                </td>
+                <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
+                  {(() => {
+                    const positions = positionFilter 
+                      ? hitter.defensivePositions.filter(dp => dp.position.toLowerCase() === positionFilter.toLowerCase())
+                      : hitter.defensivePositions;
+                    return positions.length > 0 
+                      ? positions.map(dp => `${dp.position.toUpperCase()}: ${dp.error}`).join(' / ')
+                      : '-';
+                  })()}
+                </td>
+                <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
+                  {(() => {
+                    const positions = positionFilter 
+                      ? hitter.defensivePositions.filter(dp => dp.position.toLowerCase() === positionFilter.toLowerCase())
+                      : hitter.defensivePositions;
+                    return positions.length > 0 
+                      ? positions.map(dp => dp.throwingRating || '-').join(' / ')
+                      : '-';
+                  })()}
                 </td>
                 <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300">{hitter.games}</td>
                 <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300">{hitter.plateAppearances}</td>

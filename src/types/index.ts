@@ -1,13 +1,22 @@
+export interface DefensivePosition {
+  position: string; // 1b, 2b, 3b, ss, c, lf, cf, rf
+  range: number; // 1 (best) to 5 (worst)
+  arm?: number; // OF/C only: -6 (best) to +3 (worst)
+  error: number; // Lower is better
+  throwingRating?: string; // Catcher only: e.g., "T-7(pb-5)"
+}
+
 export interface Hitter {
   id: string;
   name: string;
   season: string;
   team?: string;
-  positions: string;
+  positions: string; // Comma-separated list for display
+  defensivePositions: DefensivePosition[]; // Detailed defensive stats per position
   salary: number;
   balance: string;
-  fieldingRange: number;
-  fieldingError: number;
+  fieldingRange: number; // Deprecated - kept for backward compatibility
+  fieldingError: number; // Deprecated - kept for backward compatibility
   stealRating?: string; // STL column: AA, A, B, C, D, E (AA best, E worst)
   runRating?: string; // RUN column: 1-17 (best) to 1-8 (worst)
   ab: number;

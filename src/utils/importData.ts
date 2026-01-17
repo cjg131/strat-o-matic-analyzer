@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import type { Hitter, Pitcher } from '../types';
+import type { Hitter, Pitcher, DefensivePosition } from '../types';
 
 export interface ImportResult<T> {
   success: boolean;
@@ -9,6 +9,76 @@ export interface ImportResult<T> {
 
 function normalizeHeader(header: string): string {
   return header.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+}
+
+function parseFieldingString(fieldingStr: string): { positions: string; defensivePositions: DefensivePosition[] } {
+  const defensivePositions: DefensivePosition[] = [];
+  const positionList: string[] = [];
+  
+  if (!fieldingStr || fieldingStr.trim() === '') {
+    return { positions: '', defensivePositions: [] };
+  }
+
+  // Split by "/" to get individual position entries
+  // Example: "lf-2(-1)e7 / lf-2e7 / 1b-4e25"
+  const entries = fieldingStr.split('/').map(s => s.trim());
+
+  entries.forEach(entry => {
+    if (!entry) return;
+
+    // Match pattern: position-range(arm)error or position-range(arm)errorT-X(pb-Y)
+    // Examples: "lf-2(-1)e7", "c-3(-3)e2,T-6(pb-6)", "1b-4e25", "cf-2(-3)e5"
+    
+    // Extract position (letters before the dash)
+    const posMatch = entry.match(/^([a-z]+)-/i);
+    if (!posMatch) return;
+    
+    const position = posMatch[1].toLowerCase();
+    positionList.push(position);
+
+    // Extract range (number after dash, before parenthesis or 'e')
+    const rangeMatch = entry.match(/-(\d+)/);
+    const range = rangeMatch ? parseInt(rangeMatch[1]) : 0;
+
+    // Extract arm rating (number in parentheses, can be negative)
+    // Only for OF (lf, cf, rf) and catchers (c)
+    let arm: number | undefined = undefined;
+    const isOutfielder = ['lf', 'cf', 'rf'].includes(position);
+    const isCatcher = position === 'c';
+    
+    if (isOutfielder || isCatcher) {
+      const armMatch = entry.match(/\(([+-]?\d+)\)/);
+      if (armMatch) {
+        arm = parseInt(armMatch[1]);
+      }
+    }
+
+    // Extract error (number after 'e')
+    const errorMatch = entry.match(/e(\d+)/);
+    const error = errorMatch ? parseInt(errorMatch[1]) : 0;
+
+    // Extract throwing rating for catchers (T-X(pb-Y))
+    let throwingRating: string | undefined = undefined;
+    if (isCatcher) {
+      const throwingMatch = entry.match(/T-\d+\(pb-\d+\)/);
+      if (throwingMatch) {
+        throwingRating = throwingMatch[0];
+      }
+    }
+
+    defensivePositions.push({
+      position,
+      range,
+      arm,
+      error,
+      throwingRating
+    });
+  });
+
+  return {
+    positions: positionList.join(', '),
+    defensivePositions
+  };
 }
 
 export function importHittersFromFile(file: File): Promise<ImportResult<Hitter>> {
@@ -52,19 +122,16 @@ export function importHittersFromFile(file: File): Promise<ImportResult<Hitter>>
               plateAppearances = ab + walks + hitByPitch + sf + sh;
             }
 
-            // Positions come from "Fielding" column (column F)
-            const positions = String(normalizedRow.fielding || normalizedRow.f || normalizedRow.pos || normalizedRow.position || normalizedRow.positions || '').trim();
+            // Parse fielding string from "Fielding" column
+            const fieldingStr = String(normalizedRow.fielding || normalizedRow.f || normalizedRow.pos || normalizedRow.position || normalizedRow.positions || '').trim();
+            const { positions, defensivePositions } = parseFieldingString(fieldingStr);
 
-            // Parse fielding range/error as Range(Error) format from a different column, e.g., "2(5)" or "3(+2)"
+            // Keep backward compatibility with old fielding range/error
             let fieldingRange = 0;
             let fieldingError = 0;
-            const fieldingStr = String(normalizedRow.defense || normalizedRow.fld || normalizedRow.def || '');
-            if (fieldingStr) {
-              const match = fieldingStr.match(/(\d+)\s*\(([+-]?\d+)\)/);
-              if (match) {
-                fieldingRange = parseInt(match[1]) || 0;
-                fieldingError = parseInt(match[2]) || 0;
-              }
+            if (defensivePositions.length > 0) {
+              fieldingRange = defensivePositions[0].range;
+              fieldingError = defensivePositions[0].error;
             }
 
             const hitter: Hitter = {
@@ -73,6 +140,7 @@ export function importHittersFromFile(file: File): Promise<ImportResult<Hitter>>
               season: String(normalizedRow.season || normalizedRow.year || new Date().getFullYear()),
               team: normalizedRow.team || normalizedRow.tm || '',
               positions,
+              defensivePositions,
               salary: parseFloat(normalizedRow.salary || normalizedRow.sal || normalizedRow.price || '0') || 0,
               balance: String(normalizedRow.aa || normalizedRow.balance || normalizedRow.bal || 'E').toUpperCase(),
               fieldingRange,

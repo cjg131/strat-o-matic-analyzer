@@ -15,6 +15,7 @@ export function HitterForm({ hitter, onSubmit, onCancel }: HitterFormProps) {
       season: '',
       team: '',
       positions: '',
+      defensivePositions: [],
       salary: 0,
       balance: 'E',
       fieldingRange: 0,
