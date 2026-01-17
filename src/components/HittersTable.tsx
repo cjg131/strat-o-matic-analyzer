@@ -29,10 +29,35 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
   });
   
   const [resizing, setResizing] = useState<{ column: string; startX: number; startWidth: number } | null>(null);
+  const [initialWidthsSet, setInitialWidthsSet] = useState(false);
   
   useEffect(() => {
     localStorage.setItem('hittersTableColumnWidths', JSON.stringify(columnWidths));
   }, [columnWidths]);
+  
+  useEffect(() => {
+    if (!initialWidthsSet && hitters.length > 0) {
+      const table = document.querySelector('table');
+      if (table) {
+        const headers = table.querySelectorAll('th');
+        const newWidths: Record<string, number> = { ...columnWidths };
+        let hasNewWidths = false;
+        
+        headers.forEach((th) => {
+          const columnKey = th.getAttribute('data-column-key');
+          if (columnKey && !columnWidths[columnKey]) {
+            newWidths[columnKey] = th.offsetWidth;
+            hasNewWidths = true;
+          }
+        });
+        
+        if (hasNewWidths) {
+          setColumnWidths(newWidths);
+        }
+        setInitialWidthsSet(true);
+      }
+    }
+  }, [hitters, initialWidthsSet, columnWidths]);
   
   useEffect(() => {
     if (!resizing) return;
@@ -313,119 +338,119 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
         <table className="w-full text-sm">
           <thead className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 sticky top-0 z-20">
             <tr>
-              <th style={{ width: getColumnWidth('name'), minWidth: '120px' }} className="px-3 py-2 text-left sticky left-0 bg-gray-50 dark:bg-gray-800 z-30 relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="name" style={{ width: getColumnWidth('name'), minWidth: '120px' }} className="px-3 py-2 text-left sticky left-0 bg-gray-50 dark:bg-gray-800 z-30 relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="name" label="Name" />
                 <ResizeHandle columnKey="name" />
               </th>
-              <th style={{ width: getColumnWidth('season') }} className="px-3 py-2 text-left relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="season" style={{ width: getColumnWidth('season') }} className="px-3 py-2 text-left relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="season" label="Season" />
                 <ResizeHandle columnKey="season" />
               </th>
-              <th style={{ width: getColumnWidth('team') }} className="px-3 py-2 text-left relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="team" style={{ width: getColumnWidth('team') }} className="px-3 py-2 text-left relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="team" label="Team" />
                 <ResizeHandle columnKey="team" />
               </th>
-              <th style={{ width: getColumnWidth('positions') }} className="px-3 py-2 text-left relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="positions" style={{ width: getColumnWidth('positions') }} className="px-3 py-2 text-left relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="positions" label="Pos" />
                 <ResizeHandle columnKey="positions" />
               </th>
-              <th style={{ width: getColumnWidth('salary') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="salary" style={{ width: getColumnWidth('salary') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="salary" label="Salary" />
                 <ResizeHandle columnKey="salary" />
               </th>
-              <th style={{ width: getColumnWidth('balance') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="balance" style={{ width: getColumnWidth('balance') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="balance" label="Bal" />
                 <ResizeHandle columnKey="balance" />
               </th>
-              <th style={{ width: getColumnWidth('stealRating') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="stealRating" style={{ width: getColumnWidth('stealRating') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="stealRating" label="STL" />
                 <ResizeHandle columnKey="stealRating" />
               </th>
-              <th style={{ width: getColumnWidth('runRating') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="runRating" style={{ width: getColumnWidth('runRating') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="runRating" label="RUN" />
                 <ResizeHandle columnKey="runRating" />
               </th>
-              <th style={{ width: getColumnWidth('range') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="range" style={{ width: getColumnWidth('range') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
                 Range
                 <ResizeHandle columnKey="range" />
               </th>
-              <th style={{ width: getColumnWidth('arm') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="arm" style={{ width: getColumnWidth('arm') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
                 Arm
                 <ResizeHandle columnKey="arm" />
               </th>
-              <th style={{ width: getColumnWidth('error') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="error" style={{ width: getColumnWidth('error') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
                 Error
                 <ResizeHandle columnKey="error" />
               </th>
-              <th style={{ width: getColumnWidth('t') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="t" style={{ width: getColumnWidth('t') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
                 T
                 <ResizeHandle columnKey="t" />
               </th>
-              <th style={{ width: getColumnWidth('games') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="games" style={{ width: getColumnWidth('games') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="games" label="G" />
                 <ResizeHandle columnKey="games" />
               </th>
-              <th style={{ width: getColumnWidth('pa') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="pa" style={{ width: getColumnWidth('pa') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="plateAppearances" label="PA" />
                 <ResizeHandle columnKey="pa" />
               </th>
-              <th style={{ width: getColumnWidth('ab') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="ab" style={{ width: getColumnWidth('ab') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="ab" label="AB" />
                 <ResizeHandle columnKey="ab" />
               </th>
-              <th style={{ width: getColumnWidth('h') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="h" style={{ width: getColumnWidth('h') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="h" label="H" />
                 <ResizeHandle columnKey="h" />
               </th>
-              <th style={{ width: getColumnWidth('singles') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="singles" style={{ width: getColumnWidth('singles') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="singles" label="1B" />
                 <ResizeHandle columnKey="singles" />
               </th>
-              <th style={{ width: getColumnWidth('doubles') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="doubles" style={{ width: getColumnWidth('doubles') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="doubles" label="2B" />
                 <ResizeHandle columnKey="doubles" />
               </th>
-              <th style={{ width: getColumnWidth('triples') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="triples" style={{ width: getColumnWidth('triples') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="triples" label="3B" />
                 <ResizeHandle columnKey="triples" />
               </th>
-              <th style={{ width: getColumnWidth('hr') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="hr" style={{ width: getColumnWidth('hr') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="homeRuns" label="HR" />
                 <ResizeHandle columnKey="hr" />
               </th>
-              <th style={{ width: getColumnWidth('bb') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="bb" style={{ width: getColumnWidth('bb') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="walks" label="BB" />
                 <ResizeHandle columnKey="bb" />
               </th>
-              <th style={{ width: getColumnWidth('hbp') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="hbp" style={{ width: getColumnWidth('hbp') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="hitByPitch" label="HBP" />
                 <ResizeHandle columnKey="hbp" />
               </th>
-              <th style={{ width: getColumnWidth('sb') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="sb" style={{ width: getColumnWidth('sb') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="stolenBases" label="SB" />
                 <ResizeHandle columnKey="sb" />
               </th>
-              <th style={{ width: getColumnWidth('cs') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="cs" style={{ width: getColumnWidth('cs') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="caughtStealing" label="CS" />
                 <ResizeHandle columnKey="cs" />
               </th>
-              <th style={{ width: getColumnWidth('fp') }} className="px-3 py-2 text-right font-semibold relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="fp" style={{ width: getColumnWidth('fp') }} className="px-3 py-2 text-right font-semibold relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="fantasyPoints" label="FP" />
                 <ResizeHandle columnKey="fp" />
               </th>
-              <th style={{ width: getColumnWidth('fp600') }} className="px-3 py-2 text-right font-semibold relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="fp600" style={{ width: getColumnWidth('fp600') }} className="px-3 py-2 text-right font-semibold relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="pointsPer600PA" label="FP/600PA" />
                 <ResizeHandle columnKey="fp600" />
               </th>
-              <th style={{ width: getColumnWidth('fpg') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="fpg" style={{ width: getColumnWidth('fpg') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="pointsPerGame" label="FP/G" />
                 <ResizeHandle columnKey="fpg" />
               </th>
-              <th style={{ width: getColumnWidth('fpdollar') }} className="px-3 py-2 text-right font-semibold relative border-r border-gray-300 dark:border-gray-600">
+              <th data-column-key="fpdollar" style={{ width: getColumnWidth('fpdollar') }} className="px-3 py-2 text-right font-semibold relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="pointsPerDollar" label="FP/$" />
                 <ResizeHandle columnKey="fpdollar" />
               </th>
-              <th style={{ width: getColumnWidth('actions') }} className="px-3 py-2 text-center relative">
+              <th data-column-key="actions" style={{ width: getColumnWidth('actions') }} className="px-3 py-2 text-center relative">
                 Actions
                 <ResizeHandle columnKey="actions" />
               </th>
