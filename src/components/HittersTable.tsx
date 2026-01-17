@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { ArrowUpDown, Edit2, Trash2, UserPlus } from 'lucide-react';
 import type { HitterWithStats } from '../types';
 import { formatNumber, formatCurrency } from '../utils/calculations';
@@ -22,6 +22,39 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
   const [maxSalary, setMaxSalary] = useState<string>('');
   const [stlFilter, setStlFilter] = useState('');
   const [runFilter, setRunFilter] = useState('');
+  
+  const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
+    const saved = localStorage.getItem('hittersTableColumnWidths');
+    return saved ? JSON.parse(saved) : {};
+  });
+  
+  const [resizing, setResizing] = useState<{ column: string; startX: number; startWidth: number } | null>(null);
+  
+  useEffect(() => {
+    localStorage.setItem('hittersTableColumnWidths', JSON.stringify(columnWidths));
+  }, [columnWidths]);
+  
+  useEffect(() => {
+    if (!resizing) return;
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      const diff = e.clientX - resizing.startX;
+      const newWidth = Math.max(50, resizing.startWidth + diff);
+      setColumnWidths(prev => ({ ...prev, [resizing.column]: newWidth }));
+    };
+    
+    const handleMouseUp = () => {
+      setResizing(null);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [resizing]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -31,6 +64,30 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
       setSortDirection('desc');
     }
   };
+  
+  const getColumnWidth = (columnKey: string) => {
+    return columnWidths[columnKey] ? `${columnWidths[columnKey]}px` : 'auto';
+  };
+  
+  const handleResizeStart = (e: React.MouseEvent, columnKey: string) => {
+    e.preventDefault();
+    const th = (e.target as HTMLElement).closest('th');
+    if (th) {
+      setResizing({
+        column: columnKey,
+        startX: e.clientX,
+        startWidth: th.offsetWidth
+      });
+    }
+  };
+  
+  const ResizeHandle = ({ columnKey }: { columnKey: string }) => (
+    <div
+      className="absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-blue-500 active:bg-blue-600"
+      onMouseDown={(e) => handleResizeStart(e, columnKey)}
+      onClick={(e) => e.stopPropagation()}
+    />
+  );
 
   const filteredAndSortedHitters = useMemo(() => {
     let filtered = hitters;
@@ -251,38 +308,125 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
       </div>
 
       <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm table-fixed">
           <thead className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 sticky top-0 z-20">
             <tr>
-              <th className="px-3 py-2 text-left sticky left-0 bg-gray-50 dark:bg-gray-800 z-10"><SortButton field="name" label="Name" /></th>
-              <th className="px-3 py-2 text-left"><SortButton field="season" label="Season" /></th>
-              <th className="px-3 py-2 text-left"><SortButton field="team" label="Team" /></th>
-              <th className="px-3 py-2 text-left"><SortButton field="positions" label="Pos" /></th>
-              <th className="px-3 py-2 text-right"><SortButton field="salary" label="Salary" /></th>
-              <th className="px-3 py-2 text-center"><SortButton field="balance" label="Bal" /></th>
-              <th className="px-3 py-2 text-center"><SortButton field="stealRating" label="STL" /></th>
-              <th className="px-3 py-2 text-center"><SortButton field="runRating" label="RUN" /></th>
-              <th className="px-3 py-2 text-center">Range</th>
-              <th className="px-3 py-2 text-center">Arm</th>
-              <th className="px-3 py-2 text-center">Error</th>
-              <th className="px-3 py-2 text-center">T</th>
-              <th className="px-3 py-2 text-right"><SortButton field="games" label="G" /></th>
-              <th className="px-3 py-2 text-right"><SortButton field="plateAppearances" label="PA" /></th>
-              <th className="px-3 py-2 text-right"><SortButton field="ab" label="AB" /></th>
-              <th className="px-3 py-2 text-right"><SortButton field="h" label="H" /></th>
-              <th className="px-3 py-2 text-right"><SortButton field="singles" label="1B" /></th>
-              <th className="px-3 py-2 text-right"><SortButton field="doubles" label="2B" /></th>
-              <th className="px-3 py-2 text-right"><SortButton field="triples" label="3B" /></th>
-              <th className="px-3 py-2 text-right"><SortButton field="homeRuns" label="HR" /></th>
-              <th className="px-3 py-2 text-right"><SortButton field="walks" label="BB" /></th>
-              <th className="px-3 py-2 text-right"><SortButton field="hitByPitch" label="HBP" /></th>
-              <th className="px-3 py-2 text-right"><SortButton field="stolenBases" label="SB" /></th>
-              <th className="px-3 py-2 text-right"><SortButton field="caughtStealing" label="CS" /></th>
-              <th className="px-3 py-2 text-right font-semibold"><SortButton field="fantasyPoints" label="FP" /></th>
-              <th className="px-3 py-2 text-right font-semibold"><SortButton field="pointsPer600PA" label="FP/600PA" /></th>
-              <th className="px-3 py-2 text-right"><SortButton field="pointsPerGame" label="FP/G" /></th>
-              <th className="px-3 py-2 text-right font-semibold"><SortButton field="pointsPerDollar" label="FP/$" /></th>
-              <th className="px-3 py-2 text-center">Actions</th>
+              <th style={{ width: getColumnWidth('name'), minWidth: '120px' }} className="px-3 py-2 text-left sticky left-0 bg-gray-50 dark:bg-gray-800 z-30 relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="name" label="Name" />
+                <ResizeHandle columnKey="name" />
+              </th>
+              <th style={{ width: getColumnWidth('season') }} className="px-3 py-2 text-left relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="season" label="Season" />
+                <ResizeHandle columnKey="season" />
+              </th>
+              <th style={{ width: getColumnWidth('team') }} className="px-3 py-2 text-left relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="team" label="Team" />
+                <ResizeHandle columnKey="team" />
+              </th>
+              <th style={{ width: getColumnWidth('positions') }} className="px-3 py-2 text-left relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="positions" label="Pos" />
+                <ResizeHandle columnKey="positions" />
+              </th>
+              <th style={{ width: getColumnWidth('salary') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="salary" label="Salary" />
+                <ResizeHandle columnKey="salary" />
+              </th>
+              <th style={{ width: getColumnWidth('balance') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="balance" label="Bal" />
+                <ResizeHandle columnKey="balance" />
+              </th>
+              <th style={{ width: getColumnWidth('stealRating') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="stealRating" label="STL" />
+                <ResizeHandle columnKey="stealRating" />
+              </th>
+              <th style={{ width: getColumnWidth('runRating') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="runRating" label="RUN" />
+                <ResizeHandle columnKey="runRating" />
+              </th>
+              <th style={{ width: getColumnWidth('range') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
+                Range
+                <ResizeHandle columnKey="range" />
+              </th>
+              <th style={{ width: getColumnWidth('arm') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
+                Arm
+                <ResizeHandle columnKey="arm" />
+              </th>
+              <th style={{ width: getColumnWidth('error') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
+                Error
+                <ResizeHandle columnKey="error" />
+              </th>
+              <th style={{ width: getColumnWidth('t') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
+                T
+                <ResizeHandle columnKey="t" />
+              </th>
+              <th style={{ width: getColumnWidth('games') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="games" label="G" />
+                <ResizeHandle columnKey="games" />
+              </th>
+              <th style={{ width: getColumnWidth('pa') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="plateAppearances" label="PA" />
+                <ResizeHandle columnKey="pa" />
+              </th>
+              <th style={{ width: getColumnWidth('ab') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="ab" label="AB" />
+                <ResizeHandle columnKey="ab" />
+              </th>
+              <th style={{ width: getColumnWidth('h') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="h" label="H" />
+                <ResizeHandle columnKey="h" />
+              </th>
+              <th style={{ width: getColumnWidth('singles') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="singles" label="1B" />
+                <ResizeHandle columnKey="singles" />
+              </th>
+              <th style={{ width: getColumnWidth('doubles') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="doubles" label="2B" />
+                <ResizeHandle columnKey="doubles" />
+              </th>
+              <th style={{ width: getColumnWidth('triples') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="triples" label="3B" />
+                <ResizeHandle columnKey="triples" />
+              </th>
+              <th style={{ width: getColumnWidth('hr') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="homeRuns" label="HR" />
+                <ResizeHandle columnKey="hr" />
+              </th>
+              <th style={{ width: getColumnWidth('bb') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="walks" label="BB" />
+                <ResizeHandle columnKey="bb" />
+              </th>
+              <th style={{ width: getColumnWidth('hbp') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="hitByPitch" label="HBP" />
+                <ResizeHandle columnKey="hbp" />
+              </th>
+              <th style={{ width: getColumnWidth('sb') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="stolenBases" label="SB" />
+                <ResizeHandle columnKey="sb" />
+              </th>
+              <th style={{ width: getColumnWidth('cs') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="caughtStealing" label="CS" />
+                <ResizeHandle columnKey="cs" />
+              </th>
+              <th style={{ width: getColumnWidth('fp') }} className="px-3 py-2 text-right font-semibold relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="fantasyPoints" label="FP" />
+                <ResizeHandle columnKey="fp" />
+              </th>
+              <th style={{ width: getColumnWidth('fp600') }} className="px-3 py-2 text-right font-semibold relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="pointsPer600PA" label="FP/600PA" />
+                <ResizeHandle columnKey="fp600" />
+              </th>
+              <th style={{ width: getColumnWidth('fpg') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="pointsPerGame" label="FP/G" />
+                <ResizeHandle columnKey="fpg" />
+              </th>
+              <th style={{ width: getColumnWidth('fpdollar') }} className="px-3 py-2 text-right font-semibold relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="pointsPerDollar" label="FP/$" />
+                <ResizeHandle columnKey="fpdollar" />
+              </th>
+              <th style={{ width: getColumnWidth('actions') }} className="px-3 py-2 text-center relative">
+                Actions
+                <ResizeHandle columnKey="actions" />
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
