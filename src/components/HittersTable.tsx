@@ -48,13 +48,16 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
       filtered = filtered.filter((h) => {
         if (!h.positions) return false;
         const posUpper = h.positions.toUpperCase();
+        const filterUpper = positionFilter.toUpperCase();
         
         // If filtering by OF, match any outfield position (LF, CF, RF, or OF)
         if (positionFilter === 'OF') {
           return posUpper.includes('LF') || posUpper.includes('CF') || posUpper.includes('RF') || posUpper.includes('OF');
         }
         
-        return posUpper.includes(positionFilter.toUpperCase());
+        // Use word boundary regex to match exact position (e.g., C won't match CF)
+        const regex = new RegExp(`\\b${filterUpper}\\b`);
+        return regex.test(posUpper);
       });
     }
 
