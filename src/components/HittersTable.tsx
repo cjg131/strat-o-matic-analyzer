@@ -23,41 +23,48 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
   const [stlFilter, setStlFilter] = useState('');
   const [runFilter, setRunFilter] = useState('');
   
+  const defaultWidths: Record<string, number> = {
+    name: 180,
+    season: 80,
+    team: 80,
+    positions: 80,
+    salary: 100,
+    balance: 60,
+    stealRating: 60,
+    runRating: 80,
+    range: 100,
+    arm: 80,
+    error: 100,
+    t: 100,
+    games: 60,
+    pa: 70,
+    ab: 70,
+    h: 60,
+    singles: 60,
+    doubles: 60,
+    triples: 60,
+    hr: 60,
+    bb: 60,
+    hbp: 60,
+    sb: 60,
+    cs: 60,
+    fp: 80,
+    fp600: 100,
+    fpg: 80,
+    fpdollar: 80,
+    actions: 120,
+  };
+
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
     const saved = localStorage.getItem('hittersTableColumnWidths');
-    return saved ? JSON.parse(saved) : {};
+    return saved ? JSON.parse(saved) : defaultWidths;
   });
   
   const [resizing, setResizing] = useState<{ column: string; startX: number; startWidth: number } | null>(null);
-  const [initialWidthsSet, setInitialWidthsSet] = useState(false);
   
   useEffect(() => {
     localStorage.setItem('hittersTableColumnWidths', JSON.stringify(columnWidths));
   }, [columnWidths]);
-  
-  useEffect(() => {
-    if (!initialWidthsSet && hitters.length > 0) {
-      const table = document.querySelector('table');
-      if (table) {
-        const headers = table.querySelectorAll('th');
-        const newWidths: Record<string, number> = { ...columnWidths };
-        let hasNewWidths = false;
-        
-        headers.forEach((th) => {
-          const columnKey = th.getAttribute('data-column-key');
-          if (columnKey && !columnWidths[columnKey]) {
-            newWidths[columnKey] = th.offsetWidth;
-            hasNewWidths = true;
-          }
-        });
-        
-        if (hasNewWidths) {
-          setColumnWidths(newWidths);
-        }
-        setInitialWidthsSet(true);
-      }
-    }
-  }, [hitters, initialWidthsSet, columnWidths]);
   
   useEffect(() => {
     if (!resizing) return;
@@ -91,7 +98,8 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
   };
   
   const getColumnWidth = (columnKey: string) => {
-    return columnWidths[columnKey] ? `${columnWidths[columnKey]}px` : undefined;
+    const width = columnWidths[columnKey] || defaultWidths[columnKey] || 100;
+    return `${width}px`;
   };
   
   const handleResizeStart = (e: React.MouseEvent, columnKey: string) => {
@@ -335,7 +343,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
       </div>
 
       <div className="overflow-x-auto max-h-[600px] overflow-y-auto select-none">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm" style={{ tableLayout: 'fixed' }}>
           <thead className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 sticky top-0 z-20">
             <tr>
               <th data-column-key="name" style={{ width: getColumnWidth('name'), minWidth: '120px' }} className="px-3 py-2 text-left sticky left-0 bg-gray-50 dark:bg-gray-800 z-30 relative border-r border-gray-300 dark:border-gray-600">
