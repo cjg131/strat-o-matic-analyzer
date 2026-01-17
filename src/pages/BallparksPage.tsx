@@ -122,34 +122,34 @@ export function BallparksPage() {
         </p>
       </div>
 
-      <div className="bg-gradient-to-r from-green-50 to-purple-50 dark:from-green-900/20 dark:to-purple-900/20 rounded-lg p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Strategic Rating Calculations</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-            <h3 className="font-semibold text-green-700 dark:text-green-300 mb-2">Offense Rating</h3>
-            <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+      <div className="bg-gradient-to-r from-green-50 to-purple-50 dark:from-green-900/20 dark:to-purple-900/20 rounded-lg p-3 mb-4">
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Strategic Rating Calculations</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div className="bg-white dark:bg-gray-800 rounded-md p-2">
+            <h3 className="text-xs font-semibold text-green-700 dark:text-green-300 mb-1">Offense Rating</h3>
+            <p className="text-xs text-gray-700 dark:text-gray-300 mb-1">
               <strong>Formula:</strong> (1B LH + 1B RH + HR LH×3 + HR RH×3) ÷ 8
             </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Weighted average with HRs counting 3x more than singles. Higher values favor power and hitting teams.
+            <p className="text-xs text-gray-600 dark:text-gray-400">
+              HRs count 3x. Higher = better for power/hitting.
             </p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-700 dark:text-blue-300 mb-2">Defense Rating</h3>
-            <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+          <div className="bg-white dark:bg-gray-800 rounded-md p-2">
+            <h3 className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-1">Defense Rating</h3>
+            <p className="text-xs text-gray-700 dark:text-gray-300 mb-1">
               <strong>Formula:</strong> [(42 - 1B LH - 1B RH) + (42 - HR LH - HR RH)×3] ÷ 8
             </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Inverse of offense with HRs weighted 3x. Higher values favor pitching teams (parks that suppress HRs heavily).
+            <p className="text-xs text-gray-600 dark:text-gray-400">
+              Inverse of offense. Higher = better for pitching.
             </p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-            <h3 className="font-semibold text-purple-700 dark:text-purple-300 mb-2">Speed/Defense Rating</h3>
-            <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+          <div className="bg-white dark:bg-gray-800 rounded-md p-2">
+            <h3 className="text-xs font-semibold text-purple-700 dark:text-purple-300 mb-1">Speed/Defense Rating</h3>
+            <p className="text-xs text-gray-700 dark:text-gray-300 mb-1">
               <strong>Formula:</strong> [(1B LH + 1B RH) ÷ 2] + [(42 - HR LH - HR RH)×3 ÷ 2]
             </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Rewards high singles (speed) and heavily rewards low HRs (defense). Perfect for speed/defense strategy.
+            <p className="text-xs text-gray-600 dark:text-gray-400">
+              High singles + low HRs. Perfect for speed/defense.
             </p>
           </div>
         </div>
