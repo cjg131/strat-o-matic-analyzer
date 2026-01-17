@@ -13,6 +13,7 @@ export function useTeam() {
   const [teams, setTeams] = useState<TeamRoster[]>([]);
   const [currentTeamId, setCurrentTeamId] = useState<string>('');
 
+  // Subscribe to teams
   useEffect(() => {
     if (!currentUser) {
       setTeams([]);
@@ -21,6 +22,7 @@ export function useTeam() {
 
     const unsubscribe = subscribeToTeams(currentUser.uid, (updatedTeams) => {
       if (updatedTeams.length === 0) {
+        // Create default team if none exist
         const defaultTeam: TeamRoster = {
           id: crypto.randomUUID(),
           name: 'My Team',
@@ -38,6 +40,7 @@ export function useTeam() {
     return unsubscribe;
   }, [currentUser]);
 
+  // Subscribe to current team ID
   useEffect(() => {
     if (!currentUser) {
       setCurrentTeamId('');

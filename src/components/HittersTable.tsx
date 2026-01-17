@@ -200,17 +200,17 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
       });
     }
 
-    // RUN rating filter: Show selected number and better (lower first number is better, e.g., 1-17 is better than 1-15)
+    // RUN rating filter: Show selected rating and better (lower second number is better, e.g., 1-12 is better than 1-15)
     if (runFilter && runFilter !== '') {
       const maxRunValue = parseInt(runFilter);
       if (!isNaN(maxRunValue)) {
         filtered = filtered.filter((h) => {
           if (!h.runRating) return false;
           const runRatingStr = String(h.runRating);
-          const runMatch = runRatingStr.match(/(\d+)-/);
+          const runMatch = runRatingStr.match(/(\d+)-(\d+)/);
           if (!runMatch) return false;
-          const runValue = parseInt(runMatch[1]);
-          return runValue <= maxRunValue;
+          const runSecondNumber = parseInt(runMatch[2]);
+          return runSecondNumber <= maxRunValue;
         });
       }
     }
