@@ -142,18 +142,35 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
 
     if (positionFilter) {
       filtered = filtered.filter((h) => {
-        if (!h.positions) return false;
-        const posUpper = h.positions.toUpperCase();
-        const filterUpper = positionFilter.toUpperCase();
+        // Check both positions string and defensivePositions array
+        let hasPosition = false;
         
-        // If filtering by OF, match any outfield position (LF, CF, RF, or OF)
-        if (positionFilter === 'OF') {
-          return posUpper.includes('LF') || posUpper.includes('CF') || posUpper.includes('RF') || posUpper.includes('OF');
+        // Check positions string
+        if (h.positions) {
+          const posUpper = h.positions.toUpperCase();
+          const filterUpper = positionFilter.toUpperCase();
+          
+          // If filtering by OF, match any outfield position (LF, CF, RF, or OF)
+          if (positionFilter === 'OF') {
+            hasPosition = posUpper.includes('LF') || posUpper.includes('CF') || posUpper.includes('RF') || posUpper.includes('OF');
+          } else {
+            // Use word boundary regex to match exact position (e.g., C won't match CF)
+            const regex = new RegExp(`\\b${filterUpper}\\b`);
+            hasPosition = regex.test(posUpper);
+          }
         }
         
-        // Use word boundary regex to match exact position (e.g., C won't match CF)
-        const regex = new RegExp(`\\b${filterUpper}\\b`);
-        return regex.test(posUpper);
+        // Also check defensivePositions array
+        if (!hasPosition && h.defensivePositions && h.defensivePositions.length > 0) {
+          const filterLower = positionFilter.toLowerCase();
+          if (positionFilter === 'OF') {
+            hasPosition = h.defensivePositions.some(dp => ['lf', 'cf', 'rf'].includes(dp.position.toLowerCase()));
+          } else {
+            hasPosition = h.defensivePositions.some(dp => dp.position.toLowerCase() === filterLower);
+          }
+        }
+        
+        return hasPosition;
       });
     }
 
@@ -183,17 +200,17 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
       });
     }
 
-    // RUN rating filter: Show selected number and better (higher number is better)
+    // RUN rating filter: Show selected number and better (lower first number is better, e.g., 1-17 is better than 1-15)
     if (runFilter && runFilter !== '') {
-      const minRunValue = parseInt(runFilter);
-      if (!isNaN(minRunValue)) {
+      const maxRunValue = parseInt(runFilter);
+      if (!isNaN(maxRunValue)) {
         filtered = filtered.filter((h) => {
           if (!h.runRating) return false;
           const runRatingStr = String(h.runRating);
           const runMatch = runRatingStr.match(/(\d+)-/);
           if (!runMatch) return false;
           const runValue = parseInt(runMatch[1]);
-          return runValue >= minRunValue;
+          return runValue <= maxRunValue;
         });
       }
     }
