@@ -5,6 +5,20 @@ function normalizeHeader(header: string): string {
   return header.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
 }
 
+// Helper to detect if a value is an Excel date serial number
+function isExcelDateSerial(value: any): boolean {
+  if (typeof value === 'number') {
+    // Excel date serials are typically between 1 (1900-01-01) and 50000+ (modern dates)
+    // Values like 45308 are definitely date serials (around year 2024)
+    return value > 1000 && value < 100000;
+  }
+  if (typeof value === 'string') {
+    const num = parseFloat(value);
+    return !isNaN(num) && num > 1000 && num < 100000;
+  }
+  return false;
+}
+
 function parseFieldingString(fieldingStr: string): { positions: string; defensivePositions: any[] } {
   const defensivePositions: any[] = [];
   const positionList: string[] = [];
@@ -133,6 +147,11 @@ export function processHittersFromRawData(jsonData: any[]): ImportResult<Hitter>
           const stlValue = normalizedRow.stl || normalizedRow.stealrating || normalizedRow.steal || normalizedRow.scsstealing || normalizedRow.stealing;
           if (!stlValue) return undefined;
           
+          // Filter out Excel date serial numbers
+          if (isExcelDateSerial(stlValue)) {
+            return undefined;
+          }
+          
           const stlStr = String(stlValue);
           const match = stlStr.match(/\(([A-E]+)\)/);
           return match ? match[1] : stlStr;
@@ -140,6 +159,12 @@ export function processHittersFromRawData(jsonData: any[]): ImportResult<Hitter>
         runRating: (() => {
           const runValue = normalizedRow.run || normalizedRow.runrating || normalizedRow.running || normalizedRow.rn;
           if (!runValue) return undefined;
+          
+          // Filter out Excel date serial numbers
+          if (isExcelDateSerial(runValue)) {
+            return undefined;
+          }
+          
           return String(runValue);
         })(),
         plateAppearances,
