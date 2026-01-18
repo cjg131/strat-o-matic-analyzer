@@ -18,6 +18,12 @@ import {
 const MIGRATION_KEY = 'strat-o-matic-migrated';
 
 export async function migrateLocalStorageToFirestore(userId: string): Promise<void> {
+  // Migration disabled - data already in Firestore
+  // This was causing quota exceeded errors with large datasets
+  console.log('Migration skipped - data already in Firestore');
+  localStorage.setItem(MIGRATION_KEY, 'true');
+  return;
+
   // Check if already migrated
   const migrated = localStorage.getItem(MIGRATION_KEY);
   if (migrated === 'true') {
