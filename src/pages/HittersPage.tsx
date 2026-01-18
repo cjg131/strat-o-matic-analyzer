@@ -153,6 +153,7 @@ export function HittersPage() {
 
     setReprocessing(true);
     try {
+      console.log('[Re-process] Starting re-process operation...');
       const rawImport = await getRawImportData(currentUser.uid, 'hitters');
       
       if (!rawImport) {
@@ -160,18 +161,28 @@ export function HittersPage() {
         return;
       }
 
+      console.log(`[Re-process] Retrieved ${rawImport.rawData.length} raw rows from storage`);
+      
       // Re-process the raw data using current import logic
+      console.log('[Re-process] Processing raw data...');
       const result = processHittersFromRawData(rawImport.rawData);
+      console.log(`[Re-process] Processed ${result.data.length} hitters (${result.errors.length} errors)`);
 
       if (result.success) {
         // Clear existing hitters and add all re-processed hitters in batch
+        console.log('[Re-process] Clearing existing hitters...');
         await clearAllHitters();
+        
+        console.log(`[Re-process] Saving ${result.data.length} hitters in batches of 500...`);
         await addMultipleHitters(result.data);
+        
+        console.log('[Re-process] ✓ Complete!');
         alert(`Successfully re-processed ${result.data.length} hitter(s) from stored data!`);
       } else {
         alert(`Re-process failed: ${result.errors.join(', ')}`);
       }
     } catch (err) {
+      console.error('[Re-process] Error:', err);
       alert(`Re-process failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setReprocessing(false);
@@ -228,10 +239,10 @@ export function HittersPage() {
             onClick={handleReprocess}
             disabled={reprocessing || !currentUser}
             className="flex items-center gap-2 px-4 py-2 border border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50"
-            title="Re-process stored data with latest import logic"
+            title="Re-process stored data with latest import logic (check console for progress)"
           >
-            <RefreshCw className="h-5 w-5" />
-            {reprocessing ? 'Re-processing...' : 'Re-process'}
+            <RefreshCw className={`h-5 w-5 ${reprocessing ? 'animate-spin' : ''}`} />
+            {reprocessing ? 'Re-processing... (check console)' : 'Re-process'}
           </button>
           <button
             onClick={handleExport}
