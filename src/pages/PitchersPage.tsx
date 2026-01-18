@@ -32,7 +32,7 @@ const PITCHER_PRESETS: Record<string, { name: string; weights: PitcherScoringWei
 };
 
 export function PitchersPage() {
-  const { pitchers, addPitcher, updatePitcher, deletePitcher } = usePitchers();
+  const { pitchers, addPitcher, addMultiplePitchers, updatePitcher, deletePitcher, clearAllPitchers } = usePitchers();
   const { weights, updateWeights } = useScoringWeights();
   const { addPitcher: addPitcherToTeam } = useTeam();
   const { currentUser } = useAuth();
@@ -148,15 +148,13 @@ export function PitchersPage() {
         return;
       }
 
-      // Clear existing pitchers
-      pitchers.forEach(pitcher => deletePitcher(pitcher.id));
-
       // Re-process the raw data using current import logic
       const result = processPitchersFromRawData(rawImport.rawData);
 
       if (result.success) {
-        // Add all re-processed pitchers
-        await Promise.all(result.data.map(pitcher => addPitcher(pitcher)));
+        // Clear existing pitchers and add all re-processed pitchers in batch
+        await clearAllPitchers();
+        await addMultiplePitchers(result.data);
         alert(`Successfully re-processed ${result.data.length} pitcher(s) from stored data!`);
       } else {
         alert(`Re-process failed: ${result.errors.join(', ')}`);

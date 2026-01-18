@@ -44,7 +44,7 @@ const HITTER_PRESETS: Record<string, { name: string; weights: HitterScoringWeigh
 };
 
 export function HittersPage() {
-  const { hitters, addHitter, updateHitter, deleteHitter } = useHitters();
+  const { hitters, addHitter, addMultipleHitters, updateHitter, deleteHitter, clearAllHitters } = useHitters();
   const { weights, updateWeights } = useScoringWeights();
   const { addHitter: addHitterToTeam } = useTeam();
   const { currentUser } = useAuth();
@@ -160,15 +160,13 @@ export function HittersPage() {
         return;
       }
 
-      // Clear existing hitters
-      hitters.forEach(hitter => deleteHitter(hitter.id));
-
       // Re-process the raw data using current import logic
       const result = processHittersFromRawData(rawImport.rawData);
 
       if (result.success) {
-        // Add all re-processed hitters
-        await Promise.all(result.data.map(hitter => addHitter(hitter)));
+        // Clear existing hitters and add all re-processed hitters in batch
+        await clearAllHitters();
+        await addMultipleHitters(result.data);
         alert(`Successfully re-processed ${result.data.length} hitter(s) from stored data!`);
       } else {
         alert(`Re-process failed: ${result.errors.join(', ')}`);

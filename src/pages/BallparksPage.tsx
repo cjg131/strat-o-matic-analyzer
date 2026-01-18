@@ -131,14 +131,12 @@ export function BallparksPage() {
         return;
       }
 
-      // Clear existing ballparks
-      await clearAllBallparks();
-
       // Re-process the raw data using current import logic
       const result = processBallparksFromRawData(rawImport.rawData);
 
       if (result.success) {
-        // Add all re-processed ballparks
+        // Clear existing ballparks and add all re-processed ballparks in batch
+        await clearAllBallparks();
         await addMultipleBallparks(result.data);
         alert(`Successfully re-processed ${result.data.length} ballpark(s) from stored data!`);
       } else {

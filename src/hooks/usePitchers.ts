@@ -3,7 +3,8 @@ import type { Pitcher } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   subscribeToPitchers, 
-  savePitcher, 
+  savePitcher,
+  saveMultiplePitchers as saveMultiplePitchersToFirestore,
   deletePitcher as deletePitcherFromFirestore,
   clearAllPitchers as clearAllPitchersFromFirestore 
 } from '../services/firestore';
@@ -30,6 +31,11 @@ export function usePitchers() {
     await savePitcher(currentUser.uid, pitcher);
   };
 
+  const addMultiplePitchers = async (pitchers: Pitcher[]) => {
+    if (!currentUser) return;
+    await saveMultiplePitchersToFirestore(currentUser.uid, pitchers);
+  };
+
   const updatePitcher = async (_id: string, updatedPitcher: Pitcher) => {
     if (!currentUser) return;
     await savePitcher(currentUser.uid, updatedPitcher);
@@ -48,6 +54,7 @@ export function usePitchers() {
   return {
     pitchers,
     addPitcher,
+    addMultiplePitchers,
     updatePitcher,
     deletePitcher,
     clearAllPitchers,

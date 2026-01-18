@@ -3,7 +3,8 @@ import type { Hitter } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   subscribeToHitters, 
-  saveHitter, 
+  saveHitter,
+  saveMultipleHitters as saveMultipleHittersToFirestore,
   deleteHitter as deleteHitterFromFirestore,
   clearAllHitters as clearAllHittersFromFirestore 
 } from '../services/firestore';
@@ -30,6 +31,11 @@ export function useHitters() {
     await saveHitter(currentUser.uid, hitter);
   };
 
+  const addMultipleHitters = async (hitters: Hitter[]) => {
+    if (!currentUser) return;
+    await saveMultipleHittersToFirestore(currentUser.uid, hitters);
+  };
+
   const updateHitter = async (_id: string, updatedHitter: Hitter) => {
     if (!currentUser) return;
     await saveHitter(currentUser.uid, updatedHitter);
@@ -48,6 +54,7 @@ export function useHitters() {
   return {
     hitters,
     addHitter,
+    addMultipleHitters,
     updateHitter,
     deleteHitter,
     clearAllHitters,
