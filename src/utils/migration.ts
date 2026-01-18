@@ -57,9 +57,9 @@ export async function migrateLocalStorageToFirestore(userId: string): Promise<vo
 
     // Migrate current team ID
     const currentTeamId = loadCurrentTeamId();
-    if (currentTeamId) {
+    if (currentTeamId !== null && currentTeamId !== undefined) {
       console.log('Migrating current team ID...');
-      await saveCurrentTeamId(userId, currentTeamId);
+      await saveCurrentTeamId(userId, currentTeamId as string);
     }
 
     // Migrate ballparks
