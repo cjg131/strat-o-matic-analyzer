@@ -230,11 +230,19 @@ const CHUNK_SIZE = 100; // Store 100 rows per chunk to stay well under 1MB limit
 export const saveRawImportData = async (userId: string, importData: RawImportData): Promise<void> => {
   const { rawData, ...metadata } = importData;
   
+  console.log(`[saveRawImportData] Starting save for ${importData.type}:`, {
+    filename: importData.filename,
+    totalRows: rawData.length,
+    userId: userId.substring(0, 8) + '...'
+  });
+  
   // Split rawData into chunks
   const chunks: any[][] = [];
   for (let i = 0; i < rawData.length; i += CHUNK_SIZE) {
     chunks.push(rawData.slice(i, i + CHUNK_SIZE));
   }
+  
+  console.log(`[saveRawImportData] Split into ${chunks.length} chunks (${CHUNK_SIZE} rows per chunk)`);
   
   // Save metadata
   const metadataRef = doc(db, getUserPath(userId, 'rawImports'), importData.id);
@@ -243,6 +251,8 @@ export const saveRawImportData = async (userId: string, importData: RawImportDat
     chunkCount: chunks.length
   }));
   
+  console.log(`[saveRawImportData] Metadata saved for ${importData.id}`);
+  
   // Save each chunk
   const batch = writeBatch(db);
   chunks.forEach((chunk, index) => {
@@ -250,11 +260,17 @@ export const saveRawImportData = async (userId: string, importData: RawImportDat
     batch.set(chunkRef, sanitizeData({ data: chunk }));
   });
   await batch.commit();
+  
+  console.log(`[saveRawImportData] ✓ Successfully saved ${chunks.length} chunks for ${importData.type}`);
 };
 
 export const getRawImportData = async (userId: string, type: 'hitters' | 'pitchers' | 'ballparks'): Promise<RawImportData | null> => {
+  console.log(`[getRawImportData] Retrieving raw data for ${type}, userId: ${userId.substring(0, 8)}...`);
+  
   const importsRef = collection(db, getUserPath(userId, 'rawImports'));
   const snapshot = await getDocs(importsRef);
+  
+  console.log(`[getRawImportData] Found ${snapshot.docs.length} total documents in rawImports`);
   
   // Find the latest metadata document for this type
   const metadataDocs = snapshot.docs
@@ -263,9 +279,20 @@ export const getRawImportData = async (userId: string, type: 'hitters' | 'pitche
     .filter(imp => imp.type === type)
     .sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime());
   
-  if (metadataDocs.length === 0) return null;
+  console.log(`[getRawImportData] Found ${metadataDocs.length} metadata documents for ${type}`);
+  
+  if (metadataDocs.length === 0) {
+    console.log(`[getRawImportData] No stored data found for ${type}`);
+    return null;
+  }
   
   const metadata = metadataDocs[0];
+  console.log(`[getRawImportData] Using metadata:`, {
+    id: metadata.id,
+    filename: metadata.filename,
+    chunkCount: metadata.chunkCount,
+    rowCount: metadata.rowCount
+  });
   
   // Retrieve all chunks
   const chunkPromises: Promise<any[]>[] = [];
@@ -273,13 +300,18 @@ export const getRawImportData = async (userId: string, type: 'hitters' | 'pitche
     const chunkRef = doc(db, getUserPath(userId, 'rawImports'), `${metadata.id}_chunk_${i}`);
     chunkPromises.push(
       getDoc(chunkRef).then(chunkDoc => {
-        return chunkDoc.exists() ? (chunkDoc.data().data || []) : [];
+        const exists = chunkDoc.exists();
+        const data = exists ? (chunkDoc.data().data || []) : [];
+        console.log(`[getRawImportData] Chunk ${i}: ${exists ? 'found' : 'missing'}, rows: ${data.length}`);
+        return data;
       })
     );
   }
   
   const chunks = await Promise.all(chunkPromises);
   const rawData = chunks.flat();
+  
+  console.log(`[getRawImportData] ✓ Successfully retrieved ${rawData.length} total rows from ${chunks.length} chunks`);
   
   return {
     id: metadata.id,

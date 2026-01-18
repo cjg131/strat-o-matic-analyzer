@@ -100,7 +100,9 @@ export function BallparksPage() {
         }
 
         await addMultipleBallparks(result.data);
-        alert(`Successfully imported ${result.data.length} ballparks!`);
+        const savedMsg = currentUser && result.rawData ? ' (Raw data saved for re-processing)' : '';
+        alert(`Successfully imported ${result.data.length} ballparks!${savedMsg}`);
+        console.log(`✓ Import complete: ${result.data.length} ballparks, raw data saved: ${!!result.rawData}`);
       } else {
         alert(`Import completed with errors:\n${result.errors.join('\n')}`);
       }

@@ -114,10 +114,12 @@ export function PitchersPage() {
 
         // Use Promise.all to wait for all async addPitcher calls
         await Promise.all(result.data.map(pitcher => addPitcher(pitcher)));
-        alert(`Successfully imported ${result.data.length} pitcher(s)${result.errors.length > 0 ? ` with ${result.errors.length} error(s)` : ''}`);
+        const savedMsg = currentUser && result.rawData ? ' (Raw data saved for re-processing)' : '';
+        alert(`Successfully imported ${result.data.length} pitcher(s)${result.errors.length > 0 ? ` with ${result.errors.length} error(s)` : ''}${savedMsg}`);
         if (result.errors.length > 0) {
           console.error('Import errors:', result.errors);
         }
+        console.log(`✓ Import complete: ${result.data.length} pitchers, raw data saved: ${!!result.rawData}`);
       } else {
         alert(`Import failed: ${result.errors.join(', ')}`);
       }
