@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Plus, Upload, Download, Trash2 } from 'lucide-react';
+import { Plus, Upload, Download, Trash2, RefreshCw } from 'lucide-react';
 import { useHitters } from '../hooks/useHitters';
 import { useScoringWeights } from '../hooks/useScoringWeights';
 import { useTeam } from '../hooks/useTeam';
@@ -8,7 +8,8 @@ import { HittersTable } from '../components/HittersTable';
 import { HitterForm } from '../components/HitterForm';
 import { calculateHitterStats } from '../utils/calculations';
 import { importHittersFromFile, exportHittersToExcel } from '../utils/importData';
-import { saveRawImportData } from '../services/firestore';
+import { saveRawImportData, getRawImportData } from '../services/firestore';
+import { processHittersFromRawData } from '../utils/processRawData';
 import type { Hitter, HitterWithStats, HitterScoringWeights } from '../types';
 
 const HITTER_PRESETS: Record<string, { name: string; weights: HitterScoringWeights }> = {
@@ -50,6 +51,7 @@ export function HittersPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingHitter, setEditingHitter] = useState<Hitter | undefined>();
   const [importing, setImporting] = useState(false);
+  const [reprocessing, setReprocessing] = useState(false);
   const [useNormalized, setUseNormalized] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState('balanced');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -141,6 +143,41 @@ export function HittersPage() {
     }
   };
 
+  const handleReprocess = async () => {
+    if (!currentUser) {
+      alert('You must be logged in to re-process data');
+      return;
+    }
+
+    setReprocessing(true);
+    try {
+      const rawImport = await getRawImportData(currentUser.uid, 'hitters');
+      
+      if (!rawImport) {
+        alert('No stored import data found. Please import a file first.');
+        return;
+      }
+
+      // Clear existing hitters
+      hitters.forEach(hitter => deleteHitter(hitter.id));
+
+      // Re-process the raw data using current import logic
+      const result = processHittersFromRawData(rawImport.rawData);
+
+      if (result.success) {
+        // Add all re-processed hitters
+        await Promise.all(result.data.map(hitter => addHitter(hitter)));
+        alert(`Successfully re-processed ${result.data.length} hitter(s) from stored data!`);
+      } else {
+        alert(`Re-process failed: ${result.errors.join(', ')}`);
+      }
+    } catch (err) {
+      alert(`Re-process failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setReprocessing(false);
+    }
+  };
+
   const handleExport = () => {
     if (hittersWithStats.length === 0) {
       alert('No hitters to export');
@@ -186,6 +223,15 @@ export function HittersPage() {
           >
             <Upload className="h-5 w-5" />
             {importing ? 'Importing...' : 'Import Excel'}
+          </button>
+          <button
+            onClick={handleReprocess}
+            disabled={reprocessing || !currentUser}
+            className="flex items-center gap-2 px-4 py-2 border border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50"
+            title="Re-process stored data with latest import logic"
+          >
+            <RefreshCw className="h-5 w-5" />
+            {reprocessing ? 'Re-processing...' : 'Re-process'}
           </button>
           <button
             onClick={handleExport}
