@@ -216,10 +216,10 @@ export function PitchersPage() {
             onClick={handleReprocess}
             disabled={reprocessing || !currentUser}
             className="flex items-center gap-2 px-4 py-2 border border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50"
-            title="Re-process stored data with latest import logic"
+            title="Re-process stored data with latest import logic (check console for progress)"
           >
-            <RefreshCw className="h-5 w-5" />
-            {reprocessing ? 'Re-processing...' : 'Re-process'}
+            <RefreshCw className={`h-5 w-5 ${reprocessing ? 'animate-spin' : ''}`} />
+            {reprocessing ? 'Re-processing... (check console)' : 'Re-process'}
           </button>
           <button
             onClick={handleExport}
