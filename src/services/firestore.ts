@@ -59,6 +59,7 @@ export const deleteHitter = async (userId: string, hitterId: string): Promise<vo
 export const saveMultipleHitters = async (userId: string, hitters: Hitter[]): Promise<void> => {
   // Firestore batch limit is 500 operations, so chunk if needed
   const BATCH_SIZE = 500;
+  const DELAY_MS = 1000; // 1 second delay between batches to avoid quota limits
   
   for (let i = 0; i < hitters.length; i += BATCH_SIZE) {
     const batch = writeBatch(db);
@@ -71,6 +72,11 @@ export const saveMultipleHitters = async (userId: string, hitters: Hitter[]): Pr
     
     await batch.commit();
     console.log(`[saveMultipleHitters] Saved batch ${Math.floor(i / BATCH_SIZE) + 1} (${chunk.length} hitters)`);
+    
+    // Add delay between batches to avoid quota limits (except for last batch)
+    if (i + BATCH_SIZE < hitters.length) {
+      await new Promise(resolve => setTimeout(resolve, DELAY_MS));
+    }
   }
   
   console.log(`[saveMultipleHitters] ✓ Total saved: ${hitters.length} hitters`);
@@ -120,6 +126,7 @@ export const deletePitcher = async (userId: string, pitcherId: string): Promise<
 export const saveMultiplePitchers = async (userId: string, pitchers: Pitcher[]): Promise<void> => {
   // Firestore batch limit is 500 operations, so chunk if needed
   const BATCH_SIZE = 500;
+  const DELAY_MS = 1000; // 1 second delay between batches to avoid quota limits
   
   for (let i = 0; i < pitchers.length; i += BATCH_SIZE) {
     const batch = writeBatch(db);
@@ -132,6 +139,11 @@ export const saveMultiplePitchers = async (userId: string, pitchers: Pitcher[]):
     
     await batch.commit();
     console.log(`[saveMultiplePitchers] Saved batch ${Math.floor(i / BATCH_SIZE) + 1} (${chunk.length} pitchers)`);
+    
+    // Add delay between batches to avoid quota limits (except for last batch)
+    if (i + BATCH_SIZE < pitchers.length) {
+      await new Promise(resolve => setTimeout(resolve, DELAY_MS));
+    }
   }
   
   console.log(`[saveMultiplePitchers] ✓ Total saved: ${pitchers.length} pitchers`);
