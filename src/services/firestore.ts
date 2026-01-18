@@ -57,20 +57,42 @@ export const deleteHitter = async (userId: string, hitterId: string): Promise<vo
 };
 
 export const saveMultipleHitters = async (userId: string, hitters: Hitter[]): Promise<void> => {
-  const batch = writeBatch(db);
-  hitters.forEach(hitter => {
-    const hitterRef = doc(db, getUserPath(userId, 'hitters'), hitter.id);
-    batch.set(hitterRef, sanitizeData(hitter));
-  });
-  await batch.commit();
+  // Firestore batch limit is 500 operations, so chunk if needed
+  const BATCH_SIZE = 500;
+  
+  for (let i = 0; i < hitters.length; i += BATCH_SIZE) {
+    const batch = writeBatch(db);
+    const chunk = hitters.slice(i, i + BATCH_SIZE);
+    
+    chunk.forEach(hitter => {
+      const hitterRef = doc(db, getUserPath(userId, 'hitters'), hitter.id);
+      batch.set(hitterRef, sanitizeData(hitter));
+    });
+    
+    await batch.commit();
+    console.log(`[saveMultipleHitters] Saved batch ${Math.floor(i / BATCH_SIZE) + 1} (${chunk.length} hitters)`);
+  }
+  
+  console.log(`[saveMultipleHitters] ✓ Total saved: ${hitters.length} hitters`);
 };
 
 export const clearAllHitters = async (userId: string): Promise<void> => {
   const hittersRef = collection(db, getUserPath(userId, 'hitters'));
   const snapshot = await getDocs(hittersRef);
-  const batch = writeBatch(db);
-  snapshot.docs.forEach(doc => batch.delete(doc.ref));
-  await batch.commit();
+  
+  // Firestore batch limit is 500 operations, so chunk if needed
+  const BATCH_SIZE = 500;
+  const docs = snapshot.docs;
+  
+  for (let i = 0; i < docs.length; i += BATCH_SIZE) {
+    const batch = writeBatch(db);
+    const chunk = docs.slice(i, i + BATCH_SIZE);
+    chunk.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+    console.log(`[clearAllHitters] Deleted batch ${Math.floor(i / BATCH_SIZE) + 1} (${chunk.length} hitters)`);
+  }
+  
+  console.log(`[clearAllHitters] ✓ Total deleted: ${docs.length} hitters`);
 };
 
 // Pitchers
@@ -96,20 +118,42 @@ export const deletePitcher = async (userId: string, pitcherId: string): Promise<
 };
 
 export const saveMultiplePitchers = async (userId: string, pitchers: Pitcher[]): Promise<void> => {
-  const batch = writeBatch(db);
-  pitchers.forEach(pitcher => {
-    const pitcherRef = doc(db, getUserPath(userId, 'pitchers'), pitcher.id);
-    batch.set(pitcherRef, sanitizeData(pitcher));
-  });
-  await batch.commit();
+  // Firestore batch limit is 500 operations, so chunk if needed
+  const BATCH_SIZE = 500;
+  
+  for (let i = 0; i < pitchers.length; i += BATCH_SIZE) {
+    const batch = writeBatch(db);
+    const chunk = pitchers.slice(i, i + BATCH_SIZE);
+    
+    chunk.forEach(pitcher => {
+      const pitcherRef = doc(db, getUserPath(userId, 'pitchers'), pitcher.id);
+      batch.set(pitcherRef, sanitizeData(pitcher));
+    });
+    
+    await batch.commit();
+    console.log(`[saveMultiplePitchers] Saved batch ${Math.floor(i / BATCH_SIZE) + 1} (${chunk.length} pitchers)`);
+  }
+  
+  console.log(`[saveMultiplePitchers] ✓ Total saved: ${pitchers.length} pitchers`);
 };
 
 export const clearAllPitchers = async (userId: string): Promise<void> => {
   const pitchersRef = collection(db, getUserPath(userId, 'pitchers'));
   const snapshot = await getDocs(pitchersRef);
-  const batch = writeBatch(db);
-  snapshot.docs.forEach(doc => batch.delete(doc.ref));
-  await batch.commit();
+  
+  // Firestore batch limit is 500 operations, so chunk if needed
+  const BATCH_SIZE = 500;
+  const docs = snapshot.docs;
+  
+  for (let i = 0; i < docs.length; i += BATCH_SIZE) {
+    const batch = writeBatch(db);
+    const chunk = docs.slice(i, i + BATCH_SIZE);
+    chunk.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+    console.log(`[clearAllPitchers] Deleted batch ${Math.floor(i / BATCH_SIZE) + 1} (${chunk.length} pitchers)`);
+  }
+  
+  console.log(`[clearAllPitchers] ✓ Total deleted: ${docs.length} pitchers`);
 };
 
 // Teams
