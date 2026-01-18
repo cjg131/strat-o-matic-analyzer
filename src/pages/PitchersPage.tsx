@@ -1,12 +1,15 @@
 import { useState, useRef } from 'react';
-import { Plus, Upload, Download, Trash2 } from 'lucide-react';
+import { Plus, Upload, Download, Trash2, RefreshCw } from 'lucide-react';
 import { usePitchers } from '../hooks/usePitchers';
 import { useScoringWeights } from '../hooks/useScoringWeights';
 import { useTeam } from '../hooks/useTeam';
+import { useAuth } from '../contexts/AuthContext';
 import { PitchersTable } from '../components/PitchersTable';
 import { PitcherForm } from '../components/PitcherForm';
 import { calculatePitcherStats } from '../utils/calculations';
 import { importPitchersFromFile, exportPitchersToExcel } from '../utils/importData';
+import { saveRawImportData, getRawImportData } from '../services/firestore';
+import { processPitchersFromRawData } from '../utils/processRawData';
 import type { Pitcher, PitcherWithStats, PitcherScoringWeights } from '../types';
 
 const PITCHER_PRESETS: Record<string, { name: string; weights: PitcherScoringWeights }> = {
@@ -32,9 +35,11 @@ export function PitchersPage() {
   const { pitchers, addPitcher, updatePitcher, deletePitcher } = usePitchers();
   const { weights, updateWeights } = useScoringWeights();
   const { addPitcher: addPitcherToTeam } = useTeam();
+  const { currentUser } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [editingPitcher, setEditingPitcher] = useState<Pitcher | undefined>();
   const [importing, setImporting] = useState(false);
+  const [reprocessing, setReprocessing] = useState(false);
   const [useNormalized, setUseNormalized] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState('balanced');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -95,6 +100,18 @@ export function PitchersPage() {
       const result = await importPitchersFromFile(file);
       
       if (result.success) {
+        // Save raw data to Firestore for future re-processing
+        if (currentUser && result.rawData) {
+          await saveRawImportData(currentUser.uid, {
+            id: 'pitchers',
+            type: 'pitchers',
+            filename: file.name,
+            uploadDate: new Date().toISOString(),
+            rowCount: result.rawData.length,
+            rawData: result.rawData,
+          });
+        }
+
         // Use Promise.all to wait for all async addPitcher calls
         await Promise.all(result.data.map(pitcher => addPitcher(pitcher)));
         alert(`Successfully imported ${result.data.length} pitcher(s)${result.errors.length > 0 ? ` with ${result.errors.length} error(s)` : ''}`);
@@ -111,6 +128,41 @@ export function PitchersPage() {
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+    }
+  };
+
+  const handleReprocess = async () => {
+    if (!currentUser) {
+      alert('You must be logged in to re-process data');
+      return;
+    }
+
+    setReprocessing(true);
+    try {
+      const rawImport = await getRawImportData(currentUser.uid, 'pitchers');
+      
+      if (!rawImport) {
+        alert('No stored import data found. Please import a file first.');
+        return;
+      }
+
+      // Clear existing pitchers
+      pitchers.forEach(pitcher => deletePitcher(pitcher.id));
+
+      // Re-process the raw data using current import logic
+      const result = processPitchersFromRawData(rawImport.rawData);
+
+      if (result.success) {
+        // Add all re-processed pitchers
+        await Promise.all(result.data.map(pitcher => addPitcher(pitcher)));
+        alert(`Successfully re-processed ${result.data.length} pitcher(s) from stored data!`);
+      } else {
+        alert(`Re-process failed: ${result.errors.join(', ')}`);
+      }
+    } catch (err) {
+      alert(`Re-process failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setReprocessing(false);
     }
   };
 
@@ -159,6 +211,15 @@ export function PitchersPage() {
           >
             <Upload className="h-5 w-5" />
             {importing ? 'Importing...' : 'Import Excel'}
+          </button>
+          <button
+            onClick={handleReprocess}
+            disabled={reprocessing || !currentUser}
+            className="flex items-center gap-2 px-4 py-2 border border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50"
+            title="Re-process stored data with latest import logic"
+          >
+            <RefreshCw className="h-5 w-5" />
+            {reprocessing ? 'Re-processing...' : 'Re-process'}
           </button>
           <button
             onClick={handleExport}

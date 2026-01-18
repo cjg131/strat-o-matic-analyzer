@@ -1,7 +1,10 @@
 import { useState, useRef, useMemo } from 'react';
-import { Upload, Download, Trash2, ArrowUpDown } from 'lucide-react';
+import { Upload, Download, Trash2, ArrowUpDown, RefreshCw } from 'lucide-react';
 import { useBallparks } from '../hooks/useBallparks';
+import { useAuth } from '../contexts/AuthContext';
 import { importBallparksFromFile, exportBallparksToExcel } from '../utils/importData';
+import { saveRawImportData, getRawImportData } from '../services/firestore';
+import { processBallparksFromRawData } from '../utils/processRawData';
 import type { Ballpark } from '../types';
 
 type BallparkWithRatings = Ballpark & {
@@ -14,7 +17,9 @@ type SortField = keyof BallparkWithRatings;
 
 export function BallparksPage() {
   const { ballparks, addMultipleBallparks, deleteBallpark, clearAllBallparks } = useBallparks();
+  const { currentUser } = useAuth();
   const [importing, setImporting] = useState(false);
+  const [reprocessing, setReprocessing] = useState(false);
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -82,6 +87,18 @@ export function BallparksPage() {
       const result = await importBallparksFromFile(file);
       
       if (result.success) {
+        // Save raw data to Firestore for future re-processing
+        if (currentUser && result.rawData) {
+          await saveRawImportData(currentUser.uid, {
+            id: 'ballparks',
+            type: 'ballparks',
+            filename: file.name,
+            uploadDate: new Date().toISOString(),
+            rowCount: result.rawData.length,
+            rawData: result.rawData,
+          });
+        }
+
         await addMultipleBallparks(result.data);
         alert(`Successfully imported ${result.data.length} ballparks!`);
       } else {
@@ -94,6 +111,41 @@ export function BallparksPage() {
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+    }
+  };
+
+  const handleReprocess = async () => {
+    if (!currentUser) {
+      alert('You must be logged in to re-process data');
+      return;
+    }
+
+    setReprocessing(true);
+    try {
+      const rawImport = await getRawImportData(currentUser.uid, 'ballparks');
+      
+      if (!rawImport) {
+        alert('No stored import data found. Please import a file first.');
+        return;
+      }
+
+      // Clear existing ballparks
+      await clearAllBallparks();
+
+      // Re-process the raw data using current import logic
+      const result = processBallparksFromRawData(rawImport.rawData);
+
+      if (result.success) {
+        // Add all re-processed ballparks
+        await addMultipleBallparks(result.data);
+        alert(`Successfully re-processed ${result.data.length} ballpark(s) from stored data!`);
+      } else {
+        alert(`Re-process failed: ${result.errors.join(', ')}`);
+      }
+    } catch (err) {
+      alert(`Re-process failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setReprocessing(false);
     }
   };
 
@@ -171,6 +223,15 @@ export function BallparksPage() {
           >
             <Upload className="h-5 w-5" />
             {importing ? 'Importing...' : 'Import Excel'}
+          </button>
+          <button
+            onClick={handleReprocess}
+            disabled={reprocessing || !currentUser}
+            className="flex items-center gap-2 px-4 py-2 border border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50"
+            title="Re-process stored data with latest import logic"
+          >
+            <RefreshCw className="h-5 w-5" />
+            {reprocessing ? 'Re-processing...' : 'Re-process'}
           </button>
           <button
             onClick={handleExport}
