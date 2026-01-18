@@ -1,6 +1,7 @@
 import { 
   collection, 
   doc, 
+  getDoc,
   getDocs, 
   setDoc, 
   deleteDoc, 
@@ -215,18 +216,77 @@ export interface RawImportData {
   rawData: any[];
 }
 
+interface RawImportMetadata {
+  id: string;
+  type: 'hitters' | 'pitchers' | 'ballparks';
+  filename: string;
+  uploadDate: string;
+  rowCount: number;
+  chunkCount: number;
+}
+
+const CHUNK_SIZE = 100; // Store 100 rows per chunk to stay well under 1MB limit
+
 export const saveRawImportData = async (userId: string, importData: RawImportData): Promise<void> => {
-  const importRef = doc(db, getUserPath(userId, 'rawImports'), importData.id);
-  await setDoc(importRef, sanitizeData(importData));
+  const { rawData, ...metadata } = importData;
+  
+  // Split rawData into chunks
+  const chunks: any[][] = [];
+  for (let i = 0; i < rawData.length; i += CHUNK_SIZE) {
+    chunks.push(rawData.slice(i, i + CHUNK_SIZE));
+  }
+  
+  // Save metadata
+  const metadataRef = doc(db, getUserPath(userId, 'rawImports'), importData.id);
+  await setDoc(metadataRef, sanitizeData({
+    ...metadata,
+    chunkCount: chunks.length
+  }));
+  
+  // Save each chunk
+  const batch = writeBatch(db);
+  chunks.forEach((chunk, index) => {
+    const chunkRef = doc(db, getUserPath(userId, 'rawImports'), `${importData.id}_chunk_${index}`);
+    batch.set(chunkRef, sanitizeData({ data: chunk }));
+  });
+  await batch.commit();
 };
 
 export const getRawImportData = async (userId: string, type: 'hitters' | 'pitchers' | 'ballparks'): Promise<RawImportData | null> => {
   const importsRef = collection(db, getUserPath(userId, 'rawImports'));
   const snapshot = await getDocs(importsRef);
-  const imports = snapshot.docs
-    .map(doc => doc.data() as RawImportData)
+  
+  // Find the latest metadata document for this type
+  const metadataDocs = snapshot.docs
+    .filter(doc => !doc.id.includes('_chunk_'))
+    .map(doc => ({ id: doc.id, ...doc.data() } as RawImportMetadata))
     .filter(imp => imp.type === type)
     .sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime());
   
-  return imports.length > 0 ? imports[0] : null;
+  if (metadataDocs.length === 0) return null;
+  
+  const metadata = metadataDocs[0];
+  
+  // Retrieve all chunks
+  const chunkPromises: Promise<any[]>[] = [];
+  for (let i = 0; i < metadata.chunkCount; i++) {
+    const chunkRef = doc(db, getUserPath(userId, 'rawImports'), `${metadata.id}_chunk_${i}`);
+    chunkPromises.push(
+      getDoc(chunkRef).then(chunkDoc => {
+        return chunkDoc.exists() ? (chunkDoc.data().data || []) : [];
+      })
+    );
+  }
+  
+  const chunks = await Promise.all(chunkPromises);
+  const rawData = chunks.flat();
+  
+  return {
+    id: metadata.id,
+    type: metadata.type,
+    filename: metadata.filename,
+    uploadDate: metadata.uploadDate,
+    rowCount: metadata.rowCount,
+    rawData
+  };
 };
