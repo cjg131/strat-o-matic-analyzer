@@ -5,6 +5,7 @@ export interface ImportResult<T> {
   success: boolean;
   data: T[];
   errors: string[];
+  rawData?: any[];
 }
 
 function normalizeHeader(header: string): string {
@@ -202,6 +203,7 @@ export function importHittersFromFile(file: File): Promise<ImportResult<Hitter>>
           success: hitters.length > 0,
           data: hitters,
           errors,
+          rawData: jsonData,
         });
       } catch (err) {
         resolve({
@@ -299,6 +301,7 @@ export function importPitchersFromFile(file: File): Promise<ImportResult<Pitcher
           success: pitchers.length > 0,
           data: pitchers,
           errors,
+          rawData: jsonData,
         });
       } catch (err) {
         resolve({
@@ -427,6 +430,7 @@ export function importBallparksFromFile(file: File): Promise<ImportResult<any>> 
           success: errors.length === 0,
           data: ballparks,
           errors,
+          rawData: jsonData,
         });
       } catch (error) {
         resolve({

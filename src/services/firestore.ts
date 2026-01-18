@@ -204,3 +204,29 @@ export const saveScoringWeights = async (userId: string, weights: ScoringWeights
   const weightsRef = doc(db, getUserPath(userId, 'settings'), 'scoringWeights');
   await setDoc(weightsRef, sanitizeData(weights));
 };
+
+// Raw Import Data Storage
+export interface RawImportData {
+  id: string;
+  type: 'hitters' | 'pitchers' | 'ballparks';
+  filename: string;
+  uploadDate: string;
+  rowCount: number;
+  rawData: any[];
+}
+
+export const saveRawImportData = async (userId: string, importData: RawImportData): Promise<void> => {
+  const importRef = doc(db, getUserPath(userId, 'rawImports'), importData.id);
+  await setDoc(importRef, sanitizeData(importData));
+};
+
+export const getRawImportData = async (userId: string, type: 'hitters' | 'pitchers' | 'ballparks'): Promise<RawImportData | null> => {
+  const importsRef = collection(db, getUserPath(userId, 'rawImports'));
+  const snapshot = await getDocs(importsRef);
+  const imports = snapshot.docs
+    .map(doc => doc.data() as RawImportData)
+    .filter(imp => imp.type === type)
+    .sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime());
+  
+  return imports.length > 0 ? imports[0] : null;
+};

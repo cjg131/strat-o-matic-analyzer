@@ -3,10 +3,12 @@ import { Plus, Upload, Download, Trash2 } from 'lucide-react';
 import { useHitters } from '../hooks/useHitters';
 import { useScoringWeights } from '../hooks/useScoringWeights';
 import { useTeam } from '../hooks/useTeam';
+import { useAuth } from '../contexts/AuthContext';
 import { HittersTable } from '../components/HittersTable';
 import { HitterForm } from '../components/HitterForm';
 import { calculateHitterStats } from '../utils/calculations';
 import { importHittersFromFile, exportHittersToExcel } from '../utils/importData';
+import { saveRawImportData } from '../services/firestore';
 import type { Hitter, HitterWithStats, HitterScoringWeights } from '../types';
 
 const HITTER_PRESETS: Record<string, { name: string; weights: HitterScoringWeights }> = {
@@ -44,6 +46,7 @@ export function HittersPage() {
   const { hitters, addHitter, updateHitter, deleteHitter } = useHitters();
   const { weights, updateWeights } = useScoringWeights();
   const { addHitter: addHitterToTeam } = useTeam();
+  const { currentUser } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [editingHitter, setEditingHitter] = useState<Hitter | undefined>();
   const [importing, setImporting] = useState(false);
@@ -107,6 +110,18 @@ export function HittersPage() {
       const result = await importHittersFromFile(file);
       
       if (result.success) {
+        // Save raw data to Firestore for future re-processing
+        if (currentUser && result.rawData) {
+          await saveRawImportData(currentUser.uid, {
+            id: 'hitters',
+            type: 'hitters',
+            filename: file.name,
+            uploadDate: new Date().toISOString(),
+            rowCount: result.rawData.length,
+            rawData: result.rawData,
+          });
+        }
+
         // Use Promise.all to wait for all async addHitter calls
         await Promise.all(result.data.map(hitter => addHitter(hitter)));
         alert(`Successfully imported ${result.data.length} hitter(s)${result.errors.length > 0 ? ` with ${result.errors.length} error(s)` : ''}`);
@@ -127,11 +142,11 @@ export function HittersPage() {
   };
 
   const handleExport = () => {
-    if (hitters.length === 0) {
+    if (hittersWithStats.length === 0) {
       alert('No hitters to export');
       return;
     }
-    exportHittersToExcel(hitters);
+    exportHittersToExcel(hittersWithStats);
   };
 
   const handleClearAll = () => {
