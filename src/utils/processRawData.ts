@@ -7,12 +7,19 @@ function normalizeHeader(header: string): string {
 
 // Helper to detect if a value is an Excel date serial number
 function isExcelDateSerial(value: any): boolean {
+  // Only filter out pure numeric values that are Excel date serials
+  // Don't filter strings like "1-15" which are valid ratings
   if (typeof value === 'number') {
     // Excel date serials are typically between 1 (1900-01-01) and 50000+ (modern dates)
     // Values like 45308 are definitely date serials (around year 2024)
     return value > 1000 && value < 100000;
   }
   if (typeof value === 'string') {
+    // If string contains non-numeric characters (like dashes), it's not a date serial
+    if (/[^0-9.]/.test(value)) {
+      return false;
+    }
+    // Only filter if it's a pure number string that looks like a date serial
     const num = parseFloat(value);
     return !isNaN(num) && num > 1000 && num < 100000;
   }
