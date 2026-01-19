@@ -224,12 +224,29 @@ export const subscribeToBallparks = (
 };
 
 export const saveMultipleBallparks = async (userId: string, ballparks: Ballpark[]): Promise<void> => {
-  const batch = writeBatch(db);
-  ballparks.forEach(ballpark => {
-    const ballparkRef = doc(db, getUserPath(userId, 'ballparks'), ballpark.id);
-    batch.set(ballparkRef, sanitizeData(ballpark));
-  });
-  await batch.commit();
+  // Firestore batch limit is 500 operations, so chunk if needed
+  const BATCH_SIZE = 500;
+  const DELAY_MS = 1000; // 1 second delay between batches to avoid quota limits
+  
+  for (let i = 0; i < ballparks.length; i += BATCH_SIZE) {
+    const batch = writeBatch(db);
+    const chunk = ballparks.slice(i, i + BATCH_SIZE);
+    
+    chunk.forEach(ballpark => {
+      const ballparkRef = doc(db, getUserPath(userId, 'ballparks'), ballpark.id);
+      batch.set(ballparkRef, sanitizeData(ballpark));
+    });
+    
+    await batch.commit();
+    console.log(`[saveMultipleBallparks] Saved batch ${Math.floor(i / BATCH_SIZE) + 1} (${chunk.length} ballparks)`);
+    
+    // Add delay between batches to avoid quota limits (except for last batch)
+    if (i + BATCH_SIZE < ballparks.length) {
+      await new Promise(resolve => setTimeout(resolve, DELAY_MS));
+    }
+  }
+  
+  console.log(`[saveMultipleBallparks] Total saved: ${ballparks.length} ballparks`);
 };
 
 export const deleteBallpark = async (userId: string, ballparkId: string): Promise<void> => {
@@ -240,9 +257,20 @@ export const deleteBallpark = async (userId: string, ballparkId: string): Promis
 export const clearAllBallparks = async (userId: string): Promise<void> => {
   const ballparksRef = collection(db, getUserPath(userId, 'ballparks'));
   const snapshot = await getDocs(ballparksRef);
-  const batch = writeBatch(db);
-  snapshot.docs.forEach(doc => batch.delete(doc.ref));
-  await batch.commit();
+  
+  // Firestore batch limit is 500 operations, so chunk if needed
+  const BATCH_SIZE = 500;
+  const docs = snapshot.docs;
+  
+  for (let i = 0; i < docs.length; i += BATCH_SIZE) {
+    const batch = writeBatch(db);
+    const chunk = docs.slice(i, i + BATCH_SIZE);
+    chunk.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+    console.log(`[clearAllBallparks] Deleted batch ${Math.floor(i / BATCH_SIZE) + 1} (${chunk.length} ballparks)`);
+  }
+  
+  console.log(`[clearAllBallparks] Total deleted: ${docs.length} ballparks`);
 };
 
 // Scoring Weights
