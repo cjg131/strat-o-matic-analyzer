@@ -288,12 +288,12 @@ export function processBallparksFromRawData(jsonData: any[]): ImportResult<any> 
       const ballpark = {
         id: crypto.randomUUID(),
         name: String(name),
-        singleLeft: parseInt(normalizedRow.singleleft || normalizedRow['1bl'] || '0') || 0,
-        singleCenter: parseInt(normalizedRow.singlecenter || normalizedRow['1bc'] || '0') || 0,
-        singleRight: parseInt(normalizedRow.singleright || normalizedRow['1br'] || '0') || 0,
-        homeRunLeft: parseInt(normalizedRow.homerunleft || normalizedRow.hrl || '0') || 0,
-        homeRunCenter: parseInt(normalizedRow.homeruncenter || normalizedRow.hrc || '0') || 0,
-        homeRunRight: parseInt(normalizedRow.homerunright || normalizedRow.hrr || '0') || 0,
+        singleLeft: parseInt(normalizedRow.singlesl || normalizedRow.singleleft || normalizedRow['1bl'] || '0') || 0,
+        singleCenter: parseInt(normalizedRow.singlesc || normalizedRow.singlecenter || normalizedRow['1bc'] || '0') || 0,
+        singleRight: parseInt(normalizedRow.singlesr || normalizedRow.singleright || normalizedRow['1br'] || '0') || 0,
+        homeRunLeft: parseInt(normalizedRow.homerunsl || normalizedRow.homerunleft || normalizedRow.hrl || '0') || 0,
+        homeRunCenter: parseInt(normalizedRow.homerunsc || normalizedRow.homeruncenter || normalizedRow.hrc || '0') || 0,
+        homeRunRight: parseInt(normalizedRow.homerunsr || normalizedRow.homerunright || normalizedRow.hrr || '0') || 0,
       };
 
       ballparks.push(ballpark);
