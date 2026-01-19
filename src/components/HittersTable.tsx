@@ -175,14 +175,14 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
     }
 
     if (minSalary) {
-      const min = parseFloat(minSalary);
+      const min = parseFloat(minSalary) * 1000;
       if (!isNaN(min)) {
         filtered = filtered.filter((h) => h.salary >= min);
       }
     }
 
     if (maxSalary) {
-      const max = parseFloat(maxSalary);
+      const max = parseFloat(maxSalary) * 1000;
       if (!isNaN(max)) {
         filtered = filtered.filter((h) => h.salary <= max);
       }
@@ -345,20 +345,20 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
           <label className="font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Salary:</label>
           <input
             type="number"
-            placeholder="Min"
+            placeholder="Min (e.g. 3000)"
             value={minSalary}
             onChange={(e) => setMinSalary(e.target.value)}
-            className="w-40 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            title="Enter full salary amount (e.g., 3000000 for $3M)"
+            className="w-32 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            title="Enter salary in thousands (e.g., 3000 for $3M)"
           />
           <span className="text-gray-500 dark:text-gray-400 text-xs">to</span>
           <input
             type="number"
-            placeholder="Max (e.g. 5000000)"
+            placeholder="Max (e.g. 5000)"
             value={maxSalary}
             onChange={(e) => setMaxSalary(e.target.value)}
-            className="w-40 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            title="Enter full salary amount (e.g., 5000000 for $5M)"
+            className="w-32 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            title="Enter salary in thousands (e.g., 5000 for $5M)"
           />
           <select
             value={stlFilter}
