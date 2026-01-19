@@ -10,6 +10,9 @@ interface TeamRosterTableProps {
 }
 
 export function TeamRosterTable({ hitters, pitchers, onRemoveHitter, onRemovePitcher }: TeamRosterTableProps) {
+  console.log('[TeamRosterTable] Received hitters:', hitters.length, hitters);
+  console.log('[TeamRosterTable] Received pitchers:', pitchers.length, pitchers);
+  
   const positionOrder = ['C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'DH'];
   
   const groupHittersByPosition = () => {
