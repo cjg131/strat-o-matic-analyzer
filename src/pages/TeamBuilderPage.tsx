@@ -348,12 +348,23 @@ export function TeamBuilderPage() {
         )}
       </div>
 
-      <TeamRosterTable
-        hitters={team.hitters.map(h => calculateHitterStats(h, weights.hitter))}
-        pitchers={team.pitchers.map(p => calculatePitcherStats(p, weights.pitcher))}
-        onRemoveHitter={removeHitter}
-        onRemovePitcher={removePitcher}
-      />
+      {(() => {
+        console.log('[TeamBuilder] Current team:', team);
+        console.log('[TeamBuilder] Team hitters:', team.hitters.length, team.hitters);
+        console.log('[TeamBuilder] Team pitchers:', team.pitchers.length, team.pitchers);
+        const hittersWithStats = team.hitters.map(h => calculateHitterStats(h, weights.hitter));
+        const pitchersWithStats = team.pitchers.map(p => calculatePitcherStats(p, weights.pitcher));
+        console.log('[TeamBuilder] Hitters with stats:', hittersWithStats.length);
+        console.log('[TeamBuilder] Pitchers with stats:', pitchersWithStats.length);
+        return (
+          <TeamRosterTable
+            hitters={hittersWithStats}
+            pitchers={pitchersWithStats}
+            onRemoveHitter={removeHitter}
+            onRemovePitcher={removePitcher}
+          />
+        );
+      })()}
     </div>
   );
 }
