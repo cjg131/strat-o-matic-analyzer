@@ -124,8 +124,10 @@ export function HittersPage() {
           });
         }
 
-        // Use Promise.all to wait for all async addHitter calls
-        await Promise.all(result.data.map(hitter => addHitter(hitter)));
+        // Use batch operation for faster, more reliable imports
+        console.log(`[Import] Saving ${result.data.length} hitters in batches...`);
+        await addMultipleHitters(result.data);
+        
         const savedMsg = currentUser && result.rawData ? ' (Raw data saved for re-processing)' : '';
         alert(`Successfully imported ${result.data.length} hitter(s)${result.errors.length > 0 ? ` with ${result.errors.length} error(s)` : ''}${savedMsg}`);
         if (result.errors.length > 0) {
