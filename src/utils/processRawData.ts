@@ -279,6 +279,17 @@ export function processBallparksFromRawData(jsonData: any[]): ImportResult<any> 
         normalizedRow[normalizeHeader(key)] = row[key];
       });
 
+      // Debug logging for first row
+      if (index === 0) {
+        console.log('[Ballpark Import] First row normalized keys:', Object.keys(normalizedRow));
+        console.log('[Ballpark Import] Sample values:', {
+          singlesl: normalizedRow.singlesl,
+          singlesr: normalizedRow.singlesr,
+          homerunsl: normalizedRow.homerunsl,
+          homerunsr: normalizedRow.homerunsr,
+        });
+      }
+
       const name = normalizedRow.name || normalizedRow.ballpark || normalizedRow.park || '';
       if (!name) {
         errors.push(`Row ${index + 2}: Missing ballpark name`);
