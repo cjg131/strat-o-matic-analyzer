@@ -296,15 +296,26 @@ export function processBallparksFromRawData(jsonData: any[]): ImportResult<any> 
         return;
       }
 
+      const singlesLeft = parseInt(normalizedRow.singlesl || normalizedRow.singleleft || normalizedRow['1bl'] || '0') || 0;
+      const singlesRight = parseInt(normalizedRow.singlesr || normalizedRow.singleright || normalizedRow['1br'] || '0') || 0;
+      const homeRunsLeft = parseInt(normalizedRow.homerunsl || normalizedRow.homerunleft || normalizedRow.hrl || '0') || 0;
+      const homeRunsRight = parseInt(normalizedRow.homerunsr || normalizedRow.homerunright || normalizedRow.hrr || '0') || 0;
+      
+      // Calculate strategic ratings
+      const offenseRating = Number(((singlesLeft + singlesRight + homeRunsLeft * 3 + homeRunsRight * 3) / 8).toFixed(1));
+      const defenseRating = Number((((42 - singlesLeft - singlesRight) + (42 - homeRunsLeft - homeRunsRight) * 3) / 8).toFixed(1));
+      const speedDefenseRating = Number((((singlesLeft + singlesRight) / 2) + ((42 - homeRunsLeft - homeRunsRight) * 3 / 2)).toFixed(1));
+
       const ballpark = {
         id: crypto.randomUUID(),
         name: String(name),
-        singleLeft: parseInt(normalizedRow.singlesl || normalizedRow.singleleft || normalizedRow['1bl'] || '0') || 0,
-        singleCenter: parseInt(normalizedRow.singlesc || normalizedRow.singlecenter || normalizedRow['1bc'] || '0') || 0,
-        singleRight: parseInt(normalizedRow.singlesr || normalizedRow.singleright || normalizedRow['1br'] || '0') || 0,
-        homeRunLeft: parseInt(normalizedRow.homerunsl || normalizedRow.homerunleft || normalizedRow.hrl || '0') || 0,
-        homeRunCenter: parseInt(normalizedRow.homerunsc || normalizedRow.homeruncenter || normalizedRow.hrc || '0') || 0,
-        homeRunRight: parseInt(normalizedRow.homerunsr || normalizedRow.homerunright || normalizedRow.hrr || '0') || 0,
+        singlesLeft,
+        singlesRight,
+        homeRunsLeft,
+        homeRunsRight,
+        offenseRating,
+        defenseRating,
+        speedDefenseRating,
       };
 
       ballparks.push(ballpark);

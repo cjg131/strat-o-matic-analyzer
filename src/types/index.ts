@@ -81,6 +81,9 @@ export interface Ballpark {
   singlesRight: number;
   homeRunsLeft: number;
   homeRunsRight: number;
+  offenseRating: number;
+  defenseRating: number;
+  speedDefenseRating: number;
 }
 
 export interface HitterScoringWeights {
