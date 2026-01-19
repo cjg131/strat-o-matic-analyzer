@@ -9,6 +9,7 @@ import { DEFAULT_ROSTER_REQUIREMENTS } from '../types';
 import { formatCurrency, calculateHitterStats, calculatePitcherStats } from '../utils/calculations';
 import { autoSelectTeam, AutoBuildStrategy } from '../utils/autoTeamBuilder';
 import { AutoBuildModal } from '../components/AutoBuildModal';
+import { TeamRosterTable } from '../components/TeamRosterTable';
 import { checkPositionCoverage } from '../utils/positionUtils';
 
 export function TeamBuilderPage() {
@@ -347,86 +348,12 @@ export function TeamBuilderPage() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              Pitchers ({team.pitchers.length})
-            </h2>
-          </div>
-          <div className="p-4">
-            {team.pitchers.length === 0 ? (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-                No pitchers added yet. Go to the Pitchers page to add players.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {team.pitchers.map((pitcher) => (
-                  <div
-                    key={pitcher.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
-                  >
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900 dark:text-white">{pitcher.name}</p>
-                      <div className="flex gap-4 text-sm text-gray-600 dark:text-gray-400">
-                        <span>{pitcher.throwingArm || '-'}</span>
-                        <span>{pitcher.endurance || '-'}</span>
-                        <span className="font-mono">{formatCurrency(pitcher.salary)}</span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => removePitcher(pitcher.id)}
-                      className="p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                      title="Remove from team"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              Hitters ({team.hitters.length})
-            </h2>
-          </div>
-          <div className="p-4">
-            {team.hitters.length === 0 ? (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-                No hitters added yet. Go to the Hitters page to add players.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {team.hitters.map((hitter) => (
-                  <div
-                    key={hitter.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
-                  >
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900 dark:text-white">{hitter.name}</p>
-                      <div className="flex gap-4 text-sm text-gray-600 dark:text-gray-400">
-                        <span>{hitter.positions || '-'}</span>
-                        <span className="font-mono">{formatCurrency(hitter.salary)}</span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => removeHitter(hitter.id)}
-                      className="p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                      title="Remove from team"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      <TeamRosterTable
+        hitters={team.hitters.map(h => calculateHitterStats(h, weights.hitter))}
+        pitchers={team.pitchers.map(p => calculatePitcherStats(p, weights.pitcher))}
+        onRemoveHitter={removeHitter}
+        onRemovePitcher={removePitcher}
+      />
     </div>
   );
 }
