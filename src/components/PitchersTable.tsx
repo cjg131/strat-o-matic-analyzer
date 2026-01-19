@@ -52,6 +52,8 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: Pitch
   const [pitcherType, setPitcherType] = useState<'all' | 'starter' | 'reliever'>('all');
   const [throwingArm, setThrowingArm] = useState<'all' | 'L' | 'R'>('all');
   const [enduranceFilter, setEnduranceFilter] = useState<string>('all');
+  const [minSalary, setMinSalary] = useState<string>('');
+  const [maxSalary, setMaxSalary] = useState<string>('');
   
   const defaultWidths: Record<string, number> = {
     name: 180,
@@ -192,6 +194,20 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: Pitch
       });
     }
 
+    if (minSalary) {
+      const min = parseFloat(minSalary);
+      if (!isNaN(min)) {
+        filtered = filtered.filter((p) => p.salary >= min);
+      }
+    }
+
+    if (maxSalary) {
+      const max = parseFloat(maxSalary);
+      if (!isNaN(max)) {
+        filtered = filtered.filter((p) => p.salary <= max);
+      }
+    }
+
     if (enduranceFilter !== 'all') {
       filtered = filtered.filter((p) => {
         const endurance = p.endurance?.toUpperCase() || '';
@@ -213,7 +229,7 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: Pitch
         ? aStr.localeCompare(bStr)
         : bStr.localeCompare(aStr);
     });
-  }, [pitchers, sortField, sortDirection, searchTerm, pitcherType, throwingArm, enduranceFilter]);
+  }, [pitchers, sortField, sortDirection, searchTerm, pitcherType, throwingArm, enduranceFilter, minSalary, maxSalary]);
 
   const SortButton = ({ field, label }: { field: SortField; label: string }) => (
     <button
@@ -274,6 +290,22 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: Pitch
             <option key={endurance} value={endurance}>{endurance} or better</option>
           ))}
         </select>
+
+        <input
+          type="number"
+          placeholder="Min Salary"
+          value={minSalary}
+          onChange={(e) => setMinSalary(e.target.value)}
+          className="w-32 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+        />
+
+        <input
+          type="number"
+          placeholder="Max Salary"
+          value={maxSalary}
+          onChange={(e) => setMaxSalary(e.target.value)}
+          className="w-32 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+        />
       </div>
 
       <div className="overflow-x-auto max-h-[600px] overflow-y-auto select-none">
