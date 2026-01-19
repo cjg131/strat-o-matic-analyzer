@@ -348,15 +348,17 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
             placeholder="Min"
             value={minSalary}
             onChange={(e) => setMinSalary(e.target.value)}
-            className="w-24 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-40 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            title="Enter full salary amount (e.g., 3000000 for $3M)"
           />
           <span className="text-gray-500 dark:text-gray-400 text-xs">to</span>
           <input
             type="number"
-            placeholder="Max"
+            placeholder="Max (e.g. 5000000)"
             value={maxSalary}
             onChange={(e) => setMaxSalary(e.target.value)}
-            className="w-24 px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-40 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            title="Enter full salary amount (e.g., 5000000 for $5M)"
           />
           <select
             value={stlFilter}

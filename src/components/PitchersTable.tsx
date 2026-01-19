@@ -293,18 +293,20 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: Pitch
 
         <input
           type="number"
-          placeholder="Min Salary"
+          placeholder="Min (e.g. 3000000)"
           value={minSalary}
           onChange={(e) => setMinSalary(e.target.value)}
-          className="w-32 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-40 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          title="Enter full salary amount (e.g., 3000000 for $3M)"
         />
 
         <input
           type="number"
-          placeholder="Max Salary"
+          placeholder="Max (e.g. 5000000)"
           value={maxSalary}
           onChange={(e) => setMaxSalary(e.target.value)}
-          className="w-32 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-40 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          title="Enter full salary amount (e.g., 5000000 for $5M)"
         />
       </div>
 
