@@ -99,7 +99,13 @@ export function BallparksPage() {
           });
         }
 
+        // Clear existing ballparks first to prevent duplicates and old NaN values
+        console.log('[Import] Clearing existing ballparks...');
+        await clearAllBallparks();
+        
+        console.log(`[Import] Saving ${result.data.length} ballparks...`);
         await addMultipleBallparks(result.data);
+        
         const savedMsg = currentUser && result.rawData ? ' (Raw data saved for re-processing)' : '';
         alert(`Successfully imported ${result.data.length} ballparks!${savedMsg}`);
         console.log(`✓ Import complete: ${result.data.length} ballparks, raw data saved: ${!!result.rawData}`);

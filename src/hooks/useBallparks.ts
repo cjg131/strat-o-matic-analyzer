@@ -32,7 +32,7 @@ export function useBallparks() {
 
   const addMultipleBallparks = async (newBallparks: Ballpark[]) => {
     if (!currentUser) return;
-    await saveMultipleBallparksToFirestore(currentUser.uid, [...ballparks, ...newBallparks]);
+    await saveMultipleBallparksToFirestore(currentUser.uid, newBallparks);
   };
 
   const updateBallpark = async (id: string, updatedBallpark: Ballpark) => {
