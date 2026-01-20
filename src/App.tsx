@@ -48,6 +48,26 @@ function Navigation() {
               Home
             </Link>
             <Link
+              to="/pre-draft/hitters"
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                location.pathname.startsWith('/pre-draft')
+                  ? 'bg-primary-600 text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              Pre-Draft
+            </Link>
+            <Link
+              to="/season/overview"
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                location.pathname.startsWith('/season')
+                  ? 'bg-primary-600 text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              Season
+            </Link>
+            <Link
               to="/settings"
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 isActive('/settings')
@@ -56,46 +76,6 @@ function Navigation() {
               }`}
             >
               Settings
-            </Link>
-            <Link
-              to="/hitters"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActive('/hitters')
-                  ? 'bg-primary-600 text-white'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              Hitters
-            </Link>
-            <Link
-              to="/pitchers"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActive('/pitchers')
-                  ? 'bg-primary-600 text-white'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              Pitchers
-            </Link>
-            <Link
-              to="/ballparks"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActive('/ballparks')
-                  ? 'bg-primary-600 text-white'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              Ballparks
-            </Link>
-            <Link
-              to="/team"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActive('/team')
-                  ? 'bg-primary-600 text-white'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              Team Builder
             </Link>
             {currentUser && (
               <>
