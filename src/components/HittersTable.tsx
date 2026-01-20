@@ -145,6 +145,15 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
         // Check both positions string and defensivePositions array
         let hasPosition = false;
         
+        // Debug logging for OF filter
+        if (positionFilter === 'OF') {
+          console.log('[OF Filter Debug]', {
+            name: h.name,
+            positions: h.positions,
+            defensivePositions: h.defensivePositions?.map(dp => dp.position)
+          });
+        }
+        
         // Check positions string
         if (h.positions) {
           const posUpper = h.positions.toUpperCase();
@@ -153,6 +162,9 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
           // If filtering by OF, match any outfield position (LF, CF, RF, or OF)
           if (positionFilter === 'OF') {
             hasPosition = posUpper.includes('LF') || posUpper.includes('CF') || posUpper.includes('RF') || posUpper.includes('OF');
+            if (positionFilter === 'OF') {
+              console.log('[OF Filter] String check:', { name: h.name, posUpper, hasPosition });
+            }
           } else {
             // Use word boundary regex to match exact position (e.g., C won't match CF)
             const regex = new RegExp(`\\b${filterUpper}\\b`);
@@ -165,6 +177,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
           const filterLower = positionFilter.toLowerCase();
           if (positionFilter === 'OF') {
             hasPosition = h.defensivePositions.some(dp => ['lf', 'cf', 'rf'].includes(dp.position.toLowerCase()));
+            console.log('[OF Filter] Array check:', { name: h.name, positions: h.defensivePositions.map(dp => dp.position), hasPosition });
           } else {
             hasPosition = h.defensivePositions.some(dp => dp.position.toLowerCase() === filterLower);
           }
