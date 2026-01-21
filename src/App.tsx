@@ -7,6 +7,10 @@ import { PitchersPage } from './pages/PitchersPage';
 import { BallparksPage } from './pages/BallparksPage';
 import { TeamBuilderPage } from './pages/TeamBuilderPage';
 import { SeasonOverviewPage } from './pages/SeasonOverviewPage';
+import { HitterPreferencesPage } from './pages/HitterPreferencesPage';
+import { SeasonHittersPage } from './pages/SeasonHittersPage';
+import { SeasonPitchersPage } from './pages/SeasonPitchersPage';
+import { TeamRostersPage } from './pages/TeamRostersPage';
 import { PreDraftLayout } from './layouts/PreDraftLayout';
 import { SeasonLayout } from './layouts/SeasonLayout';
 import { Login } from './components/Login';
@@ -125,7 +129,11 @@ function App() {
               
               {/* Season Section */}
               <Route path="/season" element={<ProtectedRoute><SeasonLayout /></ProtectedRoute>}>
-                <Route index element={<Navigate to="/season/overview" replace />} />
+                <Route index element={<Navigate to="/season/hitter-preferences" replace />} />
+                <Route path="hitter-preferences" element={<HitterPreferencesPage />} />
+                <Route path="hitters" element={<SeasonHittersPage />} />
+                <Route path="pitchers" element={<SeasonPitchersPage />} />
+                <Route path="team-rosters" element={<TeamRostersPage />} />
                 <Route path="overview" element={<SeasonOverviewPage />} />
               </Route>
               
