@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { ArrowUpDown, Edit2, Trash2, UserPlus } from 'lucide-react';
+import { ArrowUpDown, Edit2, Trash2, UserPlus, Star } from 'lucide-react';
 import type { PitcherWithStats } from '../types';
 import { formatNumber, formatCurrency } from '../utils/calculations';
 
@@ -8,6 +8,7 @@ interface PitchersTableProps {
   onEdit: (pitcher: PitcherWithStats) => void;
   onDelete: (id: string) => void;
   onAddToTeam?: (pitcher: PitcherWithStats) => void;
+  onAddToWanted?: (pitcher: PitcherWithStats) => void;
 }
 
 type SortField = keyof PitcherWithStats;
@@ -45,7 +46,7 @@ function compareEndurance(a: string, b: string): number {
   return 0;
 }
 
-export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: PitchersTableProps) {
+export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddToWanted }: PitchersTableProps) {
   const [sortField, setSortField] = useState<SortField>('fantasyPoints');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [searchTerm, setSearchTerm] = useState('');
@@ -478,6 +479,15 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: Pitch
                 </td>
                 <td className="px-3 py-2">
                   <div className="flex items-center justify-center gap-2">
+                    {onAddToWanted && (
+                      <button
+                        onClick={() => onAddToWanted(pitcher)}
+                        className="p-1 text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-300"
+                        title="Add to Wanted List"
+                      >
+                        <Star className="h-4 w-4" />
+                      </button>
+                    )}
                     {onAddToTeam && (
                       <button
                         onClick={() => onAddToTeam(pitcher)}

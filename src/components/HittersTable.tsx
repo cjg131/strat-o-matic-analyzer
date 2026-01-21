@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { ArrowUpDown, Edit2, Trash2, UserPlus } from 'lucide-react';
+import { ArrowUpDown, Edit2, Trash2, UserPlus, Star } from 'lucide-react';
 import type { HitterWithStats } from '../types';
 import { formatNumber, formatCurrency } from '../utils/calculations';
 
@@ -8,12 +8,13 @@ interface HittersTableProps {
   onEdit: (hitter: HitterWithStats) => void;
   onDelete: (id: string) => void;
   onAddToTeam?: (hitter: HitterWithStats) => void;
+  onAddToWanted?: (hitter: HitterWithStats) => void;
 }
 
 type SortField = keyof HitterWithStats;
 type SortDirection = 'asc' | 'desc';
 
-export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: HittersTableProps) {
+export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWanted }: HittersTableProps) {
   const [sortField, setSortField] = useState<SortField>('fantasyPoints');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [searchTerm, setSearchTerm] = useState('');
@@ -706,6 +707,15 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: Hitters
                 </td>
                 <td className="px-3 py-2">
                   <div className="flex items-center justify-center gap-2">
+                    {onAddToWanted && (
+                      <button
+                        onClick={() => onAddToWanted(hitter)}
+                        className="p-1 text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-300"
+                        title="Add to Wanted List"
+                      >
+                        <Star className="h-4 w-4" />
+                      </button>
+                    )}
                     {onAddToTeam && (
                       <button
                         onClick={() => onAddToTeam(hitter)}

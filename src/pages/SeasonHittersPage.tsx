@@ -3,6 +3,7 @@ import { Upload, Download } from 'lucide-react';
 import { useHitters } from '../hooks/useHitters';
 import { useScoringWeights } from '../hooks/useScoringWeights';
 import { useAuth } from '../contexts/AuthContext';
+import { useWantedPlayers } from '../hooks/useWantedPlayers';
 import { HittersTable } from '../components/HittersTable';
 import { calculateHitterStats } from '../utils/calculations';
 import { importHittersFromFile, exportHittersToExcel } from '../utils/importData';
@@ -13,12 +14,37 @@ export function SeasonHittersPage() {
   const { hitters, addMultipleHitters } = useHitters();
   const { weights } = useScoringWeights();
   const { currentUser } = useAuth();
+  const { addPlayer, isPlayerWanted } = useWantedPlayers();
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const hittersWithStats: HitterWithStats[] = hitters.map((hitter) =>
     calculateHitterStats(hitter, weights.hitter)
   );
+
+  const handleAddToWanted = async (hitter: HitterWithStats) => {
+    if (isPlayerWanted(hitter.id)) {
+      alert('This player is already on your wanted list');
+      return;
+    }
+
+    try {
+      await addPlayer({
+        playerId: hitter.id,
+        playerName: hitter.name,
+        playerType: 'hitter',
+        season: hitter.season,
+        team: hitter.team,
+        roster: hitter.roster,
+        salary: hitter.salary,
+        positions: hitter.positions,
+        fantasyPoints: hitter.fantasyPoints,
+      });
+      alert(`Added ${hitter.name} to wanted list`);
+    } catch (error) {
+      alert('Failed to add player to wanted list');
+    }
+  };
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -111,6 +137,7 @@ export function SeasonHittersPage() {
           hitters={hittersWithStats}
           onEdit={() => {}}
           onDelete={() => {}}
+          onAddToWanted={handleAddToWanted}
         />
       </div>
     </div>
