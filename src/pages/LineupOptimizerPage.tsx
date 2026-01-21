@@ -30,24 +30,6 @@ export function LineupOptimizerPage() {
     .filter(h => h.roster)
     .map(h => calculateHitterStats(h, weights.hitter));
 
-  const emptySlot = (position: number): LineupSlot => ({
-    position,
-    playerId: null,
-    playerName: 'empty',
-    pos: '',
-    def: '',
-    bal: '',
-    simBA: 0,
-    simOBP: 0,
-    simSLG: 0,
-    realBA: 0,
-    realOBP: 0,
-    realSLG: 0,
-    backup1: '',
-    backup2: '',
-    platoonPH: '',
-  });
-
   // Initial lineup vs LHSP (favor right-handed batters)
   const [vsLHSPLineup] = useState<LineupSlot[]>([
     { position: 1, playerId: '1', playerName: 'Rodriguez, I. (1999)', pos: 'C', def: '1(-5)e1', bal: '1', simBA: 0.332, simOBP: 0.356, simSLG: 0.558, realBA: 0.332, realOBP: 0.356, realSLG: 0.558, backup1: '', backup2: '', platoonPH: '' },
