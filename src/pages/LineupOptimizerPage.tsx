@@ -48,13 +48,29 @@ export function LineupOptimizerPage() {
     platoonPH: '',
   });
 
-  const [vsLHSPLineup] = useState<LineupSlot[]>(
-    Array.from({ length: 8 }, (_, i) => emptySlot(i + 1))
-  );
+  // Initial lineup vs LHSP (favor right-handed batters)
+  const [vsLHSPLineup] = useState<LineupSlot[]>([
+    { position: 1, playerId: '1', playerName: 'Rodriguez, I. (1999)', pos: 'C', def: '1(-5)e1', bal: '1', simBA: 0.332, simOBP: 0.356, simSLG: 0.558, realBA: 0.332, realOBP: 0.356, realSLG: 0.558, backup1: '', backup2: '', platoonPH: '' },
+    { position: 2, playerId: '2', playerName: 'Chance, F. (1906)', pos: '1B', def: '1e8', bal: '1', simBA: 0.319, simOBP: 0.419, simSLG: 0.430, realBA: 0.319, realOBP: 0.419, realSLG: 0.430, backup1: '', backup2: '', platoonPH: '' },
+    { position: 3, playerId: '3', playerName: 'Boone, B. (2003)', pos: '2B', def: '1e8', bal: '1', simBA: 0.294, simOBP: 0.366, simSLG: 0.535, realBA: 0.294, realOBP: 0.366, realSLG: 0.535, backup1: '', backup2: '', platoonPH: '' },
+    { position: 4, playerId: '4', playerName: 'Lansford, C. (1979)', pos: '3B', def: '2e8', bal: '1', simBA: 0.287, simOBP: 0.329, simSLG: 0.436, realBA: 0.287, realOBP: 0.329, realSLG: 0.436, backup1: '', backup2: '', platoonPH: '' },
+    { position: 5, playerId: '5', playerName: "O'Neill, C. (1909)", pos: '3B', def: '3e25', bal: '1', simBA: 0.203, simOBP: 0.224, simSLG: 0.241, realBA: 0.203, realOBP: 0.224, realSLG: 0.241, backup1: '', backup2: '', platoonPH: '' },
+    { position: 6, playerId: '6', playerName: 'Thomas, H. (1924)', pos: 'LF', def: '1(-3)e5', bal: '1', simBA: 0.300, simOBP: 0.357, simSLG: 0.467, realBA: 0.300, realOBP: 0.357, realSLG: 0.467, backup1: '', backup2: '', platoonPH: '' },
+    { position: 7, playerId: '7', playerName: 'McGee, W. (1988)', pos: 'CF', def: '1(0)e12', bal: '1', simBA: 0.292, simOBP: 0.329, simSLG: 0.372, realBA: 0.292, realOBP: 0.329, realSLG: 0.372, backup1: '', backup2: '', platoonPH: '' },
+    { position: 8, playerId: '8', playerName: 'Bonds, B. (1969)', pos: 'RF', def: '2(-4)e9', bal: '1', simBA: 0.259, simOBP: 0.351, simSLG: 0.473, realBA: 0.259, realOBP: 0.351, realSLG: 0.473, backup1: '', backup2: '', platoonPH: '' },
+  ]);
 
-  const [vsRHSPLineup] = useState<LineupSlot[]>(
-    Array.from({ length: 8 }, (_, i) => emptySlot(i + 1))
-  );
+  // Initial lineup vs RHSP (can include left-handed batters)
+  const [vsRHSPLineup] = useState<LineupSlot[]>([
+    { position: 1, playerId: '1', playerName: 'Rodriguez, I. (1999)', pos: 'C', def: '1(-5)e1', bal: '1', simBA: 0.332, simOBP: 0.356, simSLG: 0.558, realBA: 0.332, realOBP: 0.356, realSLG: 0.558, backup1: '', backup2: '', platoonPH: '' },
+    { position: 2, playerId: '2', playerName: 'Chance, F. (1906)', pos: '1B', def: '1e8', bal: '1', simBA: 0.319, simOBP: 0.419, simSLG: 0.430, realBA: 0.319, realOBP: 0.419, realSLG: 0.430, backup1: '', backup2: '', platoonPH: '' },
+    { position: 3, playerId: '3', playerName: 'Boone, B. (2003)', pos: '2B', def: '1e8', bal: '1', simBA: 0.294, simOBP: 0.366, simSLG: 0.535, realBA: 0.294, realOBP: 0.366, realSLG: 0.535, backup1: '', backup2: '', platoonPH: '' },
+    { position: 4, playerId: '4', playerName: 'Lansford, C. (1979)', pos: '3B', def: '2e8', bal: '1', simBA: 0.287, simOBP: 0.329, simSLG: 0.436, realBA: 0.287, realOBP: 0.329, realSLG: 0.436, backup1: '', backup2: '', platoonPH: '' },
+    { position: 5, playerId: '9', playerName: 'Suzuki, I. (2007)', pos: 'CF', def: '1(-5)e1', bal: '1', simBA: 0.351, simOBP: 0.396, simSLG: 0.431, realBA: 0.351, realOBP: 0.396, realSLG: 0.431, backup1: '', backup2: '', platoonPH: '' },
+    { position: 6, playerId: '6', playerName: 'Thomas, H. (1924)', pos: 'LF', def: '1(-3)e5', bal: '1', simBA: 0.300, simOBP: 0.357, simSLG: 0.467, realBA: 0.300, realOBP: 0.357, realSLG: 0.467, backup1: '', backup2: '', platoonPH: '' },
+    { position: 7, playerId: '10', playerName: 'Beniquez, J. (1982)', pos: 'LF', def: '1(-2)e7', bal: '1', simBA: 0.265, simOBP: 0.321, simSLG: 0.388, realBA: 0.265, realOBP: 0.321, realSLG: 0.388, backup1: '', backup2: '', platoonPH: '' },
+    { position: 8, playerId: '8', playerName: 'Bonds, B. (1969)', pos: 'RF', def: '2(-4)e9', bal: '1', simBA: 0.259, simOBP: 0.351, simSLG: 0.473, realBA: 0.259, realOBP: 0.351, realSLG: 0.473, backup1: '', backup2: '', platoonPH: '' },
+  ]);
 
   const renderLineupTable = (
     lineup: LineupSlot[],
