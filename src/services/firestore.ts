@@ -406,3 +406,25 @@ export const getRawImportData = async (userId: string, type: 'hitters' | 'pitche
     rawData
   };
 };
+
+// Wanted Players
+export const getWantedPlayers = async (userId: string): Promise<any[]> => {
+  const wantedRef = collection(db, getUserPath(userId, 'wantedPlayers'));
+  const snapshot = await getDocs(wantedRef);
+  return snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+};
+
+export const addWantedPlayer = async (userId: string, player: any): Promise<void> => {
+  const playerRef = doc(db, getUserPath(userId, 'wantedPlayers'), player.id);
+  await setDoc(playerRef, sanitizeData(player));
+};
+
+export const removeWantedPlayer = async (userId: string, playerId: string): Promise<void> => {
+  const playerRef = doc(db, getUserPath(userId, 'wantedPlayers'), playerId);
+  await deleteDoc(playerRef);
+};
+
+export const updateWantedPlayerNotes = async (userId: string, playerId: string, notes: string): Promise<void> => {
+  const playerRef = doc(db, getUserPath(userId, 'wantedPlayers'), playerId);
+  await setDoc(playerRef, { notes }, { merge: true });
+};
