@@ -19,25 +19,29 @@ export function RosterImportPage() {
 
   // Function to match player names flexibly (handles abbreviated first names and separate season field)
   const matchPlayerName = (rosterName: string, dbName: string, dbSeason: string): boolean => {
-    // Extract last name, first initial, and year from roster name format: "LastName, F. (YYYY)"
-    const rosterMatch = rosterName.match(/^([^,]+),\s*([A-Z])\.?\s*\((\d+)\)$/);
+    // Extract last name, first initial, and year/NeL from roster name format: "LastName, F. (YYYY)" or "LastName, F. (NeL)"
+    const rosterMatch = rosterName.match(/^([^,]+),\s*([A-Z])\.?\s*\(([^)]+)\)$/);
     if (!rosterMatch) return false;
     
     const [, rosterLast, rosterFirstInitial, rosterYear] = rosterMatch;
     
-    // Extract last name and first name from database format: "LastName, FirstName" or "LastName Jr., FirstName"
+    // Extract last name and first name from database format: "LastName, FirstName" or "LastName Jr., FirstName" or "LastName Jr, FirstName"
     const dbMatch = dbName.match(/^([^,]+),\s*(.+)$/);
     if (!dbMatch) return false;
     
-    const [, dbLast, dbFirst] = dbMatch;
+    const [, dbLastRaw, dbFirst] = dbMatch;
+    
+    // Handle "Jr" or "Jr." in last name - normalize both
+    const rosterLastNorm = rosterLast.trim().replace(/\s+Jr\.?$/i, '').toLowerCase();
+    const dbLastNorm = dbLastRaw.trim().replace(/\s+Jr\.?$/i, '').toLowerCase();
     
     // Check if:
-    // 1. Last names match (case-insensitive)
+    // 1. Last names match (case-insensitive, ignoring Jr/Jr.)
     // 2. First name starts with the roster's first initial
-    // 3. Season/year matches
-    return rosterLast.trim().toLowerCase() === dbLast.trim().toLowerCase() && 
+    // 3. Season/year matches (including "NeL" for Negro League players)
+    return rosterLastNorm === dbLastNorm && 
            dbFirst.trim().toUpperCase().startsWith(rosterFirstInitial) && 
-           dbSeason === rosterYear;
+           dbSeason.trim() === rosterYear.trim();
   };
 
   const importRosters = async () => {
