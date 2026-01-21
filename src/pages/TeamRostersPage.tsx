@@ -1,7 +1,7 @@
 import { useHitters } from '../hooks/useHitters';
 import { usePitchers } from '../hooks/usePitchers';
 import { useScoringWeights } from '../hooks/useScoringWeights';
-import { calculateHitterStats, calculatePitcherStats, formatCurrency } from '../utils/calculations';
+import { calculateHitterStats, calculatePitcherStats } from '../utils/calculations';
 import type { HitterWithStats, PitcherWithStats } from '../types';
 
 interface TeamData {

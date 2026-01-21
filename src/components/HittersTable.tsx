@@ -8,13 +8,12 @@ interface HittersTableProps {
   onEdit: (hitter: HitterWithStats) => void;
   onDelete: (id: string) => void;
   onAddToTeam?: (hitter: HitterWithStats) => void;
-  showTeamColumn?: boolean;
 }
 
 type SortField = keyof HitterWithStats;
 type SortDirection = 'asc' | 'desc';
 
-export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, showTeamColumn = false }: HittersTableProps) {
+export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam }: HittersTableProps) {
   const [sortField, setSortField] = useState<SortField>('fantasyPoints');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [searchTerm, setSearchTerm] = useState('');

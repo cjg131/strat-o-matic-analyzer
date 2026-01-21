@@ -111,7 +111,6 @@ export function SeasonHittersPage() {
           hitters={hittersWithStats}
           onEdit={() => {}}
           onDelete={() => {}}
-          showTeamColumn={true}
         />
       </div>
     </div>

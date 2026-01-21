@@ -8,7 +8,6 @@ interface PitchersTableProps {
   onEdit: (pitcher: PitcherWithStats) => void;
   onDelete: (id: string) => void;
   onAddToTeam?: (pitcher: PitcherWithStats) => void;
-  showTeamColumn?: boolean;
 }
 
 type SortField = keyof PitcherWithStats;
@@ -46,7 +45,7 @@ function compareEndurance(a: string, b: string): number {
   return 0;
 }
 
-export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, showTeamColumn = false }: PitchersTableProps) {
+export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: PitchersTableProps) {
   const [sortField, setSortField] = useState<SortField>('fantasyPoints');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [searchTerm, setSearchTerm] = useState('');
