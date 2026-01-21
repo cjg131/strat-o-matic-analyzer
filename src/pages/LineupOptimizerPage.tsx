@@ -48,11 +48,11 @@ export function LineupOptimizerPage() {
     platoonPH: '',
   });
 
-  const [vsLHSPLineup, setVsLHSPLineup] = useState<LineupSlot[]>(
+  const [vsLHSPLineup] = useState<LineupSlot[]>(
     Array.from({ length: 8 }, (_, i) => emptySlot(i + 1))
   );
 
-  const [vsRHSPLineup, setVsRHSPLineup] = useState<LineupSlot[]>(
+  const [vsRHSPLineup] = useState<LineupSlot[]>(
     Array.from({ length: 8 }, (_, i) => emptySlot(i + 1))
   );
 
