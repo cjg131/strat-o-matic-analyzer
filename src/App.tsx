@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { Activity, LogOut } from 'lucide-react';
 import { HomePage } from './pages/HomePage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -6,6 +6,9 @@ import { HittersPage } from './pages/HittersPage';
 import { PitchersPage } from './pages/PitchersPage';
 import { BallparksPage } from './pages/BallparksPage';
 import { TeamBuilderPage } from './pages/TeamBuilderPage';
+import { SeasonOverviewPage } from './pages/SeasonOverviewPage';
+import { PreDraftLayout } from './layouts/PreDraftLayout';
+import { SeasonLayout } from './layouts/SeasonLayout';
 import { Login } from './components/Login';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -110,10 +113,27 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-              <Route path="/hitters" element={<ProtectedRoute><HittersPage /></ProtectedRoute>} />
-              <Route path="/pitchers" element={<ProtectedRoute><PitchersPage /></ProtectedRoute>} />
-              <Route path="/ballparks" element={<ProtectedRoute><BallparksPage /></ProtectedRoute>} />
-              <Route path="/team" element={<ProtectedRoute><TeamBuilderPage /></ProtectedRoute>} />
+              
+              {/* Pre-Draft Section */}
+              <Route path="/pre-draft" element={<ProtectedRoute><PreDraftLayout /></ProtectedRoute>}>
+                <Route index element={<Navigate to="/pre-draft/hitters" replace />} />
+                <Route path="hitters" element={<HittersPage />} />
+                <Route path="pitchers" element={<PitchersPage />} />
+                <Route path="ballparks" element={<BallparksPage />} />
+                <Route path="team-builder" element={<TeamBuilderPage />} />
+              </Route>
+              
+              {/* Season Section */}
+              <Route path="/season" element={<ProtectedRoute><SeasonLayout /></ProtectedRoute>}>
+                <Route index element={<Navigate to="/season/overview" replace />} />
+                <Route path="overview" element={<SeasonOverviewPage />} />
+              </Route>
+              
+              {/* Legacy redirects for old URLs */}
+              <Route path="/hitters" element={<Navigate to="/pre-draft/hitters" replace />} />
+              <Route path="/pitchers" element={<Navigate to="/pre-draft/pitchers" replace />} />
+              <Route path="/ballparks" element={<Navigate to="/pre-draft/ballparks" replace />} />
+              <Route path="/team" element={<Navigate to="/pre-draft/team-builder" replace />} />
             </Routes>
           </main>
 
