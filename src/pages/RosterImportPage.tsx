@@ -17,6 +17,26 @@ export function RosterImportPage() {
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
 
+  // Function to match player names flexibly (handles abbreviated first names)
+  const matchPlayerName = (rosterName: string, dbName: string): boolean => {
+    // Exact match
+    if (rosterName === dbName) return true;
+    
+    // Extract last name and year from both
+    const rosterMatch = rosterName.match(/^([^,]+),\s*([A-Z])\.\s*\((\d+)\)$/);
+    const dbMatch = dbName.match(/^([^,]+),\s*([^(]+)\s*\((\d+)\)$/);
+    
+    if (!rosterMatch || !dbMatch) return false;
+    
+    const [, rosterLast, rosterFirst, rosterYear] = rosterMatch;
+    const [, dbLast, dbFirst, dbYear] = dbMatch;
+    
+    // Check if last name and year match, and first initial matches
+    return rosterLast.trim() === dbLast.trim() && 
+           rosterYear === dbYear && 
+           dbFirst.trim().startsWith(rosterFirst);
+  };
+
   const importRosters = async () => {
     setImporting(true);
     setResult(null);
@@ -29,7 +49,7 @@ export function RosterImportPage() {
       for (const [teamName, teamData] of Object.entries(rosterData.rosters)) {
         // Update pitchers
         for (const pitcherName of teamData.pitchers) {
-          const pitcher = pitchers.find(p => p.name === pitcherName);
+          const pitcher = pitchers.find(p => matchPlayerName(pitcherName, p.name));
           if (pitcher) {
             await updatePitcher(pitcher.id, { ...pitcher, roster: teamName });
             playersUpdated++;
@@ -40,7 +60,7 @@ export function RosterImportPage() {
 
         // Update hitters
         for (const hitterName of teamData.hitters) {
-          const hitter = hitters.find(h => h.name === hitterName);
+          const hitter = hitters.find(h => matchPlayerName(hitterName, h.name));
           if (hitter) {
             await updateHitter(hitter.id, { ...hitter, roster: teamName });
             playersUpdated++;
