@@ -51,6 +51,7 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: Pitch
   const [searchTerm, setSearchTerm] = useState('');
   const [pitcherType, setPitcherType] = useState<'all' | 'starter' | 'reliever'>('all');
   const [throwingArm, setThrowingArm] = useState<'all' | 'L' | 'R'>('all');
+  const [rosterFilter, setRosterFilter] = useState('');
   const [enduranceFilter, setEnduranceFilter] = useState<string>('all');
   const [minSalary, setMinSalary] = useState<string>('');
   const [maxSalary, setMaxSalary] = useState<string>('');
@@ -194,6 +195,14 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: Pitch
       });
     }
 
+    if (rosterFilter) {
+      if (rosterFilter === 'FA') {
+        filtered = filtered.filter((p) => !p.roster || p.roster === '');
+      } else {
+        filtered = filtered.filter((p) => p.roster === rosterFilter);
+      }
+    }
+
     if (minSalary) {
       const min = parseFloat(minSalary) * 1000;
       if (!isNaN(min)) {
@@ -229,7 +238,7 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: Pitch
         ? aStr.localeCompare(bStr)
         : bStr.localeCompare(aStr);
     });
-  }, [pitchers, sortField, sortDirection, searchTerm, pitcherType, throwingArm, enduranceFilter, minSalary, maxSalary]);
+  }, [pitchers, sortField, sortDirection, searchTerm, pitcherType, throwingArm, rosterFilter, enduranceFilter, minSalary, maxSalary]);
 
   const SortButton = ({ field, label }: { field: SortField; label: string }) => (
     <button
@@ -278,6 +287,15 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: Pitch
           <option value="all">All Arms</option>
           <option value="L">Left-Handed</option>
           <option value="R">Right-Handed</option>
+        </select>
+
+        <select
+          value={rosterFilter}
+          onChange={(e) => setRosterFilter(e.target.value)}
+          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+        >
+          <option value="">All Rosters</option>
+          <option value="FA">FA - Free Agents</option>
         </select>
 
         <select
