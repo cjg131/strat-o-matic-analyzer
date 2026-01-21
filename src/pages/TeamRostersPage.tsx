@@ -18,11 +18,11 @@ export function TeamRostersPage() {
   const hittersWithStats = hitters.map((h) => calculateHitterStats(h, weights.hitter));
   const pitchersWithStats = pitchers.map((p) => calculatePitcherStats(p, weights.pitcher));
 
-  // Group players by team
+  // Group players by roster
   const teams: Record<string, TeamData> = {};
   
   hittersWithStats.forEach((hitter) => {
-    const teamName = hitter.team || 'Unassigned';
+    const teamName = hitter.roster || 'Free Agents';
     if (!teams[teamName]) {
       teams[teamName] = { name: teamName, pitchers: [], hitters: [] };
     }
@@ -30,7 +30,7 @@ export function TeamRostersPage() {
   });
 
   pitchersWithStats.forEach((pitcher) => {
-    const teamName = pitcher.team || 'Unassigned';
+    const teamName = pitcher.roster || 'Free Agents';
     if (!teams[teamName]) {
       teams[teamName] = { name: teamName, pitchers: [], hitters: [] };
     }

@@ -11,6 +11,7 @@ export interface Hitter {
   name: string;
   season: string;
   team?: string;
+  roster?: string;
   positions: string; // Comma-separated list for display
   defensivePositions: DefensivePosition[]; // Detailed defensive stats per position
   salary: number;
@@ -45,6 +46,7 @@ export interface Pitcher {
   name: string;
   season: string;
   team?: string;
+  roster?: string;
   salary: number;
   inningsPitched: number;
   strikeouts: number;

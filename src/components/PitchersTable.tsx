@@ -326,6 +326,10 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: Pitch
                 <SortButton field="team" label="Team" />
                 <ResizeHandle columnKey="team" />
               </th>
+              <th data-column-key="roster" style={{ width: getColumnWidth('roster') }} className="px-3 py-2 text-left relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="roster" label="Roster" />
+                <ResizeHandle columnKey="roster" />
+              </th>
               <th data-column-key="salary" style={{ width: getColumnWidth('salary') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="salary" label="Salary" />
                 <ResizeHandle columnKey="salary" />
@@ -422,6 +426,7 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam }: Pitch
                 <td className="px-3 py-2 text-gray-900 dark:text-white font-medium sticky left-0 bg-white dark:bg-gray-900 z-10">{pitcher.name}</td>
                 <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{pitcher.season}</td>
                 <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{pitcher.team || '-'}</td>
+                <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{pitcher.roster || 'FA'}</td>
                 <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300 font-mono whitespace-nowrap">{formatCurrency(pitcher.salary)}</td>
                 <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">{pitcher.endurance || '-'}</td>
                 <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300 font-semibold">{pitcher.throwingArm || '-'}</td>
