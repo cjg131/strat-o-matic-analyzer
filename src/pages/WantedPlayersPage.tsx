@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useWantedPlayers } from '../hooks/useWantedPlayers';
 import { useHitters } from '../hooks/useHitters';
 import { usePitchers } from '../hooks/usePitchers';
@@ -13,6 +13,7 @@ export function WantedPlayersPage() {
   const { hitters: allHitters } = useHitters();
   const { pitchers: allPitchers } = usePitchers();
   const { weights } = useScoringWeights();
+  const [useNormalized, setUseNormalized] = useState(false);
 
   // Get wanted player IDs
   const wantedHitterIds = useMemo(() => 
@@ -29,8 +30,22 @@ export function WantedPlayersPage() {
   const wantedHittersWithStats: HitterWithStats[] = useMemo(() => {
     return allHitters
       .filter(h => wantedHitterIds.includes(h.id))
-      .map(h => calculateHitterStats(h, weights.hitter));
-  }, [allHitters, wantedHitterIds, weights.hitter]);
+      .map(h => {
+        const stats = calculateHitterStats(h, weights.hitter);
+        
+        if (useNormalized) {
+          // Recalculate FP/G and FP/$ based on FP/600PA instead of total FP
+          const normalizedFP = stats.pointsPer600PA;
+          return {
+            ...stats,
+            pointsPerGame: h.games > 0 ? normalizedFP / h.games : 0,
+            pointsPerDollar: h.salary > 0 ? (normalizedFP / (h.salary / 1000)) * 100 : 0,
+          };
+        }
+        
+        return stats;
+      });
+  }, [allHitters, wantedHitterIds, weights.hitter, useNormalized]);
 
   const wantedPitchersWithStats: PitcherWithStats[] = useMemo(() => {
     return allPitchers
@@ -79,6 +94,23 @@ export function WantedPlayersPage() {
         </div>
       ) : (
         <div className="space-y-6">
+          {/* Normalization Toggle */}
+          {wantedHittersWithStats.length > 0 && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useNormalized}
+                  onChange={(e) => setUseNormalized(e.target.checked)}
+                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Calculate FP/G and FP/$ from FP/600PA (normalized)
+                </span>
+              </label>
+            </div>
+          )}
+
           {/* Hitters Section */}
           {wantedHittersWithStats.length > 0 && (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
