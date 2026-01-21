@@ -101,6 +101,46 @@ export function RosterImportPage() {
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
         <div className="space-y-4">
+          {(hitters.length === 0 && pitchers.length === 0) && (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <h3 className="font-semibold text-red-900 dark:text-red-100 mb-2">
+                ⚠️ No Players Found in Database
+              </h3>
+              <p className="text-sm text-red-800 dark:text-red-200">
+                You need to import your hitters and pitchers data first before running the roster import.
+                Go to <strong>Pre-Draft → Hitters</strong> and <strong>Pre-Draft → Pitchers</strong> to import your player data.
+              </p>
+            </div>
+          )}
+
+          {(hitters.length > 0 || pitchers.length > 0) && (
+            <div className="bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                Database Status:
+              </h3>
+              <div className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
+                <div>Hitters in database: {hitters.length}</div>
+                <div>Pitchers in database: {pitchers.length}</div>
+                {hitters.length > 0 && (
+                  <div className="mt-2 text-xs">
+                    <strong>Sample hitter names:</strong>
+                    <ul className="list-disc list-inside ml-2 mt-1">
+                      {hitters.slice(0, 3).map(h => <li key={h.id}>{h.name}</li>)}
+                    </ul>
+                  </div>
+                )}
+                {pitchers.length > 0 && (
+                  <div className="mt-2 text-xs">
+                    <strong>Sample pitcher names:</strong>
+                    <ul className="list-disc list-inside ml-2 mt-1">
+                      {pitchers.slice(0, 3).map(p => <li key={p.id}>{p.name}</li>)}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
             <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
               Teams to Import:
