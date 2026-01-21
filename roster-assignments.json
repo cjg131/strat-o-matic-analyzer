@@ -1,0 +1,377 @@
+{
+  "rosters": {
+    "Ballast Key Lemon Sharks": {
+      "pitchers": [
+        "Waddell, R. (1904)",
+        "Doaker, N. (1934)",
+        "Cockrell, P. (NeL)",
+        "Hoyt, L. (1984)",
+        "Foster, B. (1936)",
+        "Mesa, J. (1995)",
+        "Williamson, M. (1989)",
+        "Colborn, J. (1970)",
+        "Miller, T. (2008)",
+        "Borbon, P. (1975)"
+      ],
+      "hitters": [
+        "Bassett, P. (1944)",
+        "Oliver, J. (1992)",
+        "Cepeda, O. (1961)",
+        "Soriano, A. (2002)",
+        "Gleason, K. (1896)",
+        "Ramirez, J. (2017)",
+        "Baerga, C. (1991)",
+        "Ramirez, A. (2010)",
+        "Koenig, M. (1927)",
+        "Foster, G. (1977)",
+        "Johnson, A. (1964)",
+        "Griffey Jr, K. (1997)",
+        "Cannell, R. (1905)",
+        "Parker, D. (1978)",
+        "French, W. (1929)"
+      ]
+    },
+    "Eastlake Blackouts": {
+      "pitchers": [
+        "Ruth, B. (1916)",
+        "Rembold, W. (1902)",
+        "Shantz, B. (1952)",
+        "Candelaria, J. (1977)",
+        "Backe, B. (2008)",
+        "Klieman, E. (1944)",
+        "Leskanic, C. (1998)",
+        "Beard, D. (1984)",
+        "Lopez, J. (2012)",
+        "Alvarado, J. (2019)"
+      ],
+      "hitters": [
+        "Porter, D. (1980)",
+        "Myatt, G. (1934)",
+        "Helton, T. (2007)",
+        "Carew, R. (1973)",
+        "Gallaraga, A. (1990)",
+        "McEwing, J. (2003)",
+        "Mathews, E. (1961)",
+        "Reboulet, J. (1996)",
+        "Harrelson, B. (1966)",
+        "Belliard, R. (1995)",
+        "Soto, J. (2019)",
+        "Murcer, B. (1971)",
+        "Rucker, J. (1944)",
+        "Drew, J. (2004)"
+      ]
+    },
+    "Vancouver Jets": {
+      "pitchers": [
+        "Jenkins, F. (1968)",
+        "Jefferson, B. (1945)",
+        "Grimsley, R. (1978)",
+        "Mizell, V. (1960)",
+        "Pizarro, J. (1961)",
+        "Thompson, J. (1939)",
+        "Thigpen, B. (1990)",
+        "Stanton, M. (1997)",
+        "Oliver, D. (2011)",
+        "Wickman, B. (2001)",
+        "Venafro, M. (1999)"
+      ],
+      "hitters": [
+        "Sanguillen, M. (1971)",
+        "Kling, J. (1902)",
+        "Pena, T. (1987)",
+        "Rissanotte, D. (1928)",
+        "Buford, D. (1965)",
+        "Jefferies, G. (1990)",
+        "Martinez, T. (1977)",
+        "Law, V. (1986)",
+        "Tinker, J. (1906)",
+        "Bloomquist, W. (2012)",
+        "Vosnik, J. (1935)",
+        "Heath, J. (1939)",
+        "Cather, T. (1914)",
+        "Moreno, O. (1980)",
+        "Flick, E. (1905)",
+        "Abreu, B. (2004)"
+      ]
+    },
+    "Maryland Terps": {
+      "pitchers": [
+        "Sale, C. (2017)",
+        "Hubbell, C. (1934)",
+        "Hahn, N. (1903)",
+        "Finley, C. (1990)",
+        "Van Poppel, T. (1998)",
+        "Cvengros, M. (1927)",
+        "Seats, T. (1940)",
+        "Kittredge, A. (2019)",
+        "Mungo, R. (1996)",
+        "Plesac, D. (1999)"
+      ],
+      "hitters": [
+        "McCann, B. (2010)",
+        "Baker, B. (1940)",
+        "Yastrzemski, C. (1970)",
+        "Grimm, C. (1929)",
+        "Moran, P. (1976)",
+        "Fontenot, M. (2009)",
+        "Howard, D. (1997)",
+        "Nettles, G. (1984)",
+        "Garrett, W. (1974)",
+        "Vaughan, A. (1935)",
+        "Torres, R. (1980)",
+        "Lankford, R. (1997)",
+        "Griffith, T. (1924)",
+        "Page, T. (1931)"
+      ]
+    },
+    "BeanTown Bruins": {
+      "pitchers": [
+        "Hunter, C. (1975)",
+        "Maddux, G. (1993)",
+        "Alexander, P. (1927)",
+        "Drysdale, D. (1968)",
+        "Kamieniecki, S. (1998)",
+        "Jackson, M. (1998)",
+        "Tincup, B. (1914)",
+        "Sherry, L. (1964)",
+        "Riddleberger, D. (1972)",
+        "D'Acquisto, J. (1980)"
+      ],
+      "hitters": [
+        "Davis, J. (1986)",
+        "Foiles, H. (1958)",
+        "Butera, D. (2015)",
+        "Garvey, S. (1977)",
+        "Sax, S. (1986)",
+        "Backman, W. (1984)",
+        "Ojeda, A. (2009)",
+        "Weaver, J. (1979)",
+        "Dark, A. (1952)",
+        "Roenicke, G. (1983)",
+        "Puckett, K. (1992)",
+        "Seymour, C. (1904)",
+        "Walker, L. (1997)",
+        "Barber, J. (1916)"
+      ]
+    },
+    "Arkansas Arkinals™": {
+      "pitchers": [
+        "Plank, E. (1911)",
+        "Kennedy, B. (1899)",
+        "Trout, D. (1945)",
+        "Hernandez, L. (2007)",
+        "Lee, S. (1924)",
+        "Conroy, T. (1987)",
+        "Roberts, D. (1979)",
+        "Andersen, L. (1986)",
+        "Linzy, F. (1972)",
+        "Burns, T. (1990)"
+      ],
+      "hitters": [
+        "Mauer, J. (2009)",
+        "Wolters, T. (2017)",
+        "Cash, N. (1961)",
+        "Hodges, G. (1957)",
+        "Hornsby, R. (1929)",
+        "Walling, D. (1986)",
+        "Blowers, M. (1993)",
+        "McMillan, R. (1953)",
+        "Ryan, B. (2010)",
+        "Pennington, C. (2013)",
+        "Coleman, V. (1987)",
+        "Brock, L. (1974)",
+        "Mays, W. (1965)",
+        "Smith, R. (1969)"
+      ]
+    },
+    "Tortugas Lie": {
+      "pitchers": [
+        "Hawley, P. (1895)",
+        "Walters, B. (1941)",
+        "Garver, N. (1951)",
+        "Bell, W. (NeL)",
+        "Carlton, S. (1982)",
+        "Berenyi, B. (1986)",
+        "Hawkins, L. (2007)",
+        "Stewart, S. (1983)",
+        "Darensbourg, V. (2000)",
+        "Augustine, J. (1982)",
+        "Riske, D. (2002)"
+      ],
+      "hitters": [
+        "Bell, H. (1944)",
+        "Burgess, S. (1960)",
+        "Taylor, B. (1920)",
+        "Demeter, D. (1964)",
+        "Whitaker, L. (1993)",
+        "Whitehead, B. (1941)",
+        "Monroe, R. (NeL)",
+        "Dahlen, B. (1903)",
+        "Mercer, J. (2013)",
+        "English, W. (1929)",
+        "Fermin, F. (1990)",
+        "Jackson, J. (1919)",
+        "Wingo, A. (1925)",
+        "Cimoli, G. (1960)",
+        "Bell, J. (1936)",
+        "Rice, H. (1925)",
+        "Collins, S. (1920)"
+      ]
+    },
+    "Mendham Knights": {
+      "pitchers": [
+        "Newhouser, H. (1944)",
+        "Bunning, J. (1964)",
+        "Halladay, R. (2010)",
+        "Tiant, L. (1978)",
+        "Wickware, F. (NeL)",
+        "Smith, L. (1991)",
+        "Hader, J. (2017)",
+        "Brabender, G. (1966)",
+        "Tekulve, K. (1976)",
+        "Humphreys, B. (1968)"
+      ],
+      "hitters": [
+        "Berra, Y. (1951)",
+        "Boone, B. (1973)",
+        "McGwire, M. (1999)",
+        "Johnson, D. (1973)",
+        "Scott, R. (1980)",
+        "Wills, M. (1962)",
+        "Sewell, J. (1920)",
+        "Simmons, A. (1930)",
+        "Mitchell, K. (1989)",
+        "Kingman, D. (1979)",
+        "Robinson, B. (1979)",
+        "Thurman, B. (1957)",
+        "Williams, C. (1923)",
+        "Moreland, K. (1984)"
+      ]
+    },
+    "Manhattan WOW Award Stars": {
+      "pitchers": [
+        "Cooper, W. (1916)",
+        "Clarkson, J. (1888)",
+        "Fraser, C. (1901)",
+        "Thurston, S. (1924)",
+        "Earnshaw, G. (1930)",
+        "Johnson, S. (1916)",
+        "Drabowsky, M. (1966)",
+        "Fisher, B. (1965)",
+        "Laroche, D. (1979)",
+        "Mooney, J. (1934)"
+      ],
+      "hitters": [
+        "Rodriguez, I. (1999)",
+        "Berg, M. (1934)",
+        "Chance, F. (1906)",
+        "Chase, H. (1910)",
+        "Boone, B. (2003)",
+        "Matsui, K. (2007)",
+        "Lansford, C. (1979)",
+        "O'Leary, C. (1909)",
+        "Bowa, L. (1978)",
+        "Thomas, H. (1924)",
+        "Beniquez, J. (1982)",
+        "Suzuki, I. (2007)",
+        "McGee, W. (1988)",
+        "Bonds, B. (1969)"
+      ]
+    },
+    "Washington Capitals II": {
+      "pitchers": [
+        "Grove, L. (1930)",
+        "Whitworth, D. (1916)",
+        "Hudson, S. (1941)",
+        "Caldwell, M. (1982)",
+        "Sutton, D. (1982)",
+        "Labine, C. (1953)",
+        "Conzelman, J. (1914)",
+        "Chamberlin, I. (1952)",
+        "Hassler, A. (1982)",
+        "Choate, R. (2009)"
+      ],
+      "hitters": [
+        "Gibson, J. (NeL)",
+        "Petway, B. (1916)",
+        "Davis, P. (1944)",
+        "Lowe, B. (1894)",
+        "Melillo, S. (1934)",
+        "Molitor, P. (1982)",
+        "Steinfeldt, H. (1909)",
+        "Tannehill, L. (1909)",
+        "Crosetti, F. (1939)",
+        "Phillips, T. (1993)",
+        "Kiesko, R. (1996)",
+        "Lofton, K. (1996)",
+        "Leflore, R. (1975)",
+        "Sosa, S. (2001)"
+      ]
+    },
+    "Forest City Grays": {
+      "pitchers": [
+        "Strasburg, S. (2017)",
+        "Maddox, N. (1909)",
+        "Lee, C. (2008)",
+        "Leal, L. (1985)",
+        "Abbott, G. (1984)",
+        "Lyle, S. (1972)",
+        "Adams, A. (1945)",
+        "Osinski, D. (1967)",
+        "Sheehan, T. (1916)",
+        "Mirabella, P. (1984)"
+      ],
+      "hitters": [
+        "Santop, L. (1924)",
+        "Wockenfuss, J. (1979)",
+        "Gernert, D. (1958)",
+        "Thompson, R. (1989)",
+        "Duncan, M. (1990)",
+        "McGraw, J. (1899)",
+        "Boone, R. (1955)",
+        "Devlin, A. (1909)",
+        "Miller, E. (1945)",
+        "Barry, J. (1911)",
+        "Brown, G. (1968)",
+        "O'Doul, L. (1934)",
+        "Harper, T. (1982)",
+        "Averill, E. (1936)",
+        "Leibold, N. (1919)"
+      ]
+    },
+    "Northfield Retirees": {
+      "pitchers": [
+        "Chandler, S. (1943)",
+        "Ford, W. (1958)",
+        "Overall, O. (1906)",
+        "Wyatt, W. (1940)",
+        "Rowe, S. (1940)",
+        "Grim, B. (1957)",
+        "Barlow, H. (1979)",
+        "Afonseca, A. (1998)",
+        "Berly, J. (1932)",
+        "Arias, R. (1959)",
+        "Bair, D. (1988)"
+      ],
+      "hitters": [
+        "Cochrane, M. (1934)",
+        "Molina, B. (2002)",
+        "Cater, L. (1971)",
+        "Oquendo, J. (1987)",
+        "Ray, J. (1983)",
+        "Benjamin, M. (1993)",
+        "Britton, J. (1944)",
+        "Berry, S. (1994)",
+        "Rollins, R. (1965)",
+        "Cronin, J. (1941)",
+        "Amaro, R. (1964)",
+        "Clarke, F. (1897)",
+        "Weintraub, P. (1934)",
+        "Mantle, M. (1959)",
+        "Staub, R. (1973)",
+        "Brouhard, M. (1982)",
+        "Holland, D. (1934)"
+      ]
+    }
+  }
+}
