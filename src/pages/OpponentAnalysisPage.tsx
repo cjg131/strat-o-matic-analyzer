@@ -176,6 +176,55 @@ export function OpponentAnalysisPage() {
           <div><strong>Johnson, School Boy (R, 1R):</strong> S8*, 2.56 ERA - Slightly better vs RHB</div>
         </div>
       </div>
+
+      <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-6">
+        <h3 className="font-bold text-green-900 dark:text-green-100 mb-4">
+          📋 Recommended Starters by Opponent:
+        </h3>
+        <div className="space-y-3">
+          {opponentAnalysis.map((analysis) => {
+            if (!analysis) return null;
+            
+            // Determine best pitcher based on opponent balance
+            let recommendedPitcher = '';
+            let reason = '';
+            
+            if (analysis.vulnerableToRHP && !analysis.vulnerableToLHP) {
+              // More lefties = use RHP
+              recommendedPitcher = 'Clarkson, Fraser, or Johnson (RHP)';
+              reason = `${analysis.balanceCount.L} L-balance hitters vulnerable to RHP`;
+            } else if (analysis.vulnerableToLHP && !analysis.vulnerableToRHP) {
+              // More righties = use LHP
+              recommendedPitcher = 'Cooper (LHP)';
+              reason = `${analysis.balanceCount.R} R-balance hitters vulnerable to LHP`;
+            } else {
+              // Balanced roster = use best available
+              recommendedPitcher = 'Any pitcher (balanced roster)';
+              reason = 'No clear platoon advantage - use standard rotation';
+            }
+            
+            return (
+              <div key={analysis.teamName} className="bg-white dark:bg-gray-800 rounded p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900 dark:text-white mb-1">
+                      vs {analysis.teamName}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {reason}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-green-600 dark:text-green-400">
+                      {recommendedPitcher}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
