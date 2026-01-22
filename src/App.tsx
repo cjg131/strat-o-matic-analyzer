@@ -136,6 +136,7 @@ function App() {
               <Route path="/season" element={<ProtectedRoute><SeasonLayout /></ProtectedRoute>}>
                 <Route index element={<Navigate to="/season/hitter-preferences" replace />} />
                 <Route path="hitter-preferences" element={<HitterPreferencesPage />} />
+                <Route path="pitcher-preferences" element={<PitcherPreferencesPage />} />
                 <Route path="team-rosters" element={<TeamRostersPage />} />
                 <Route path="roster-import" element={<RosterImportPage />} />
                 <Route path="wanted-players" element={<WantedPlayersPage />} />
