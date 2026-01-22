@@ -18,13 +18,13 @@ interface TeamStrategy {
   
   // Defensive subs
   defensiveReplacement1Player: string;
-  defensiveReplacement1Inning: string;
+  defensiveReplacement1Position: string;
   defensiveReplacement2Player: string;
-  defensiveReplacement2Inning: string;
+  defensiveReplacement2Position: string;
   defensiveReplacement3Player: string;
-  defensiveReplacement3Inning: string;
+  defensiveReplacement3Position: string;
   defensiveReplacement4Player: string;
-  defensiveReplacement4Inning: string;
+  defensiveReplacement4Position: string;
 }
 
 export function TeamStrategyPage() {
@@ -53,14 +53,14 @@ export function TeamStrategyPage() {
     pinchRunner: 'McGee, Willie (S, CF)',             // AA stealer, E balance, bench player
     
     // Defensive subs - bring in elite defenders late
-    defensiveReplacement1Player: 'Chase, Hal (R, 1B)',
-    defensiveReplacement1Inning: '7th',
-    defensiveReplacement2Player: "O'Leary, Charley (R, 3B)",
-    defensiveReplacement2Inning: '7th',
-    defensiveReplacement3Player: 'McGee, Willie (S, CF)',
-    defensiveReplacement3Inning: '8th',
+    defensiveReplacement1Player: 'Chase, Hal (R, E) 1B',
+    defensiveReplacement1Position: '1B',
+    defensiveReplacement2Player: "O'Leary, Charley (R, 1L) 3B,2B,SS,LF",
+    defensiveReplacement2Position: '3B',
+    defensiveReplacement3Player: 'McGee, Willie (S, E) CF',
+    defensiveReplacement3Position: 'LF',
     defensiveReplacement4Player: '',
-    defensiveReplacement4Inning: '',
+    defensiveReplacement4Position: '',
   });
 
   const updateStrategy = (field: keyof TeamStrategy, value: string) => {
@@ -99,7 +99,7 @@ export function TeamStrategyPage() {
     infieldIn: ['1st Inning', '2nd Inning', '3rd Inning', '4th Inning', '5th Inning'],
   };
 
-  const inningOptions = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
+  const positionOptions = ['C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
 
   return (
     <div className="space-y-6">
@@ -290,13 +290,13 @@ export function TeamStrategyPage() {
             </select>
             <span className="text-gray-900 dark:text-white">at</span>
             <select
-              value={strategy.defensiveReplacement1Inning}
-              onChange={(e) => updateStrategy('defensiveReplacement1Inning', e.target.value)}
+              value={strategy.defensiveReplacement1Position}
+              onChange={(e) => updateStrategy('defensiveReplacement1Position', e.target.value)}
               className="w-24 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               <option value="">---</option>
-              {inningOptions.map(inning => (
-                <option key={inning} value={inning}>{inning}</option>
+              {positionOptions.map(pos => (
+                <option key={pos} value={pos}>{pos}</option>
               ))}
             </select>
           </div>
@@ -315,13 +315,13 @@ export function TeamStrategyPage() {
             </select>
             <span className="text-gray-900 dark:text-white">at</span>
             <select
-              value={strategy.defensiveReplacement2Inning}
-              onChange={(e) => updateStrategy('defensiveReplacement2Inning', e.target.value)}
+              value={strategy.defensiveReplacement2Position}
+              onChange={(e) => updateStrategy('defensiveReplacement2Position', e.target.value)}
               className="w-24 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               <option value="">---</option>
-              {inningOptions.map(inning => (
-                <option key={inning} value={inning}>{inning}</option>
+              {positionOptions.map(pos => (
+                <option key={pos} value={pos}>{pos}</option>
               ))}
             </select>
           </div>
@@ -340,13 +340,13 @@ export function TeamStrategyPage() {
             </select>
             <span className="text-gray-900 dark:text-white">at</span>
             <select
-              value={strategy.defensiveReplacement3Inning}
-              onChange={(e) => updateStrategy('defensiveReplacement3Inning', e.target.value)}
+              value={strategy.defensiveReplacement3Position}
+              onChange={(e) => updateStrategy('defensiveReplacement3Position', e.target.value)}
               className="w-24 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               <option value="">---</option>
-              {inningOptions.map(inning => (
-                <option key={inning} value={inning}>{inning}</option>
+              {positionOptions.map(pos => (
+                <option key={pos} value={pos}>{pos}</option>
               ))}
             </select>
           </div>
@@ -365,13 +365,13 @@ export function TeamStrategyPage() {
             </select>
             <span className="text-gray-900 dark:text-white">at</span>
             <select
-              value={strategy.defensiveReplacement4Inning}
-              onChange={(e) => updateStrategy('defensiveReplacement4Inning', e.target.value)}
+              value={strategy.defensiveReplacement4Position}
+              onChange={(e) => updateStrategy('defensiveReplacement4Position', e.target.value)}
               className="w-24 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               <option value="">---</option>
-              {inningOptions.map(inning => (
-                <option key={inning} value={inning}>{inning}</option>
+              {positionOptions.map(pos => (
+                <option key={pos} value={pos}>{pos}</option>
               ))}
             </select>
           </div>
@@ -384,7 +384,7 @@ export function TeamStrategyPage() {
 
       <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
         <p className="text-sm text-blue-800 dark:text-blue-200">
-          <strong>Strategy Applied:</strong> Very Aggressive baserunning/stealing (7 AA stealers). Aggressive hit-and-run (elite contact: Gwynn .370, Suzuki .351). Platoon PH: Chase vs LHP (.290 BA), Washington vs RHP (.322 OBP). McGee as PR (AA steal). Defensive subs: Chase 1B (7th), O'Leary 3B (7th), McGee CF (8th) - preserve leads with elite defense.
+          <strong>Strategy Applied:</strong> Very Aggressive baserunning/stealing (7 AA stealers). Aggressive hit-and-run (elite contact: Gwynn .370, Suzuki .351). Platoon PH: Chase vs LHP (.290 BA), Washington vs RHP (.322 OBP). McGee as PR (AA steal). Defensive subs: Chase at 1B (AA range), O'Leary at 3B (1L balance), McGee at LF (elite CF defense) - upgrade defense late in games.
         </p>
       </div>
 
