@@ -22,33 +22,33 @@ interface HitterPreference {
 
 export function HitterPreferencesPage() {
   const [preferences, setPreferences] = useState<HitterPreference[]>([
-    // Rodriguez - Elite catcher, never PH, defensive sub
-    { name: 'Rodriguez, Ivan', hand: 'R', position: 'C', balance: '1R', avoidLHP: false, avoidRHP: false, moreSacBunt: false, dontSacBunt: true, moreHitAndRun: false, dontHitAndRun: false, moreSteal: false, dontSteal: true, dontPHvsLHP: true, dontPHvsRHP: true, avoidPHInBlowouts: true, rememberFor4DefSub: true, pinchRunForDont: false },
-    // Killefer - Backup catcher, available for PR
-    { name: 'Killefer, Bill', hand: 'R', position: 'C', balance: 'E', avoidLHP: false, avoidRHP: false, moreSacBunt: false, dontSacBunt: false, moreHitAndRun: false, dontHitAndRun: false, moreSteal: false, dontSteal: false, dontPHvsLHP: false, dontPHvsRHP: false, avoidPHInBlowouts: false, rememberFor4DefSub: true, pinchRunForDont: true },
-    // Chance - Contact hitter, hit & run capable
-    { name: 'Chance, Frank', hand: 'R', position: '1B', balance: '1L', avoidLHP: false, avoidRHP: false, moreSacBunt: false, dontSacBunt: true, moreHitAndRun: true, dontHitAndRun: false, moreSteal: false, dontSteal: false, dontPHvsLHP: true, dontPHvsRHP: false, avoidPHInBlowouts: true, rememberFor4DefSub: false, pinchRunForDont: false },
-    // Chase - Bench 1B, defensive sub
-    { name: 'Chase, Hal', hand: 'R', position: '1B', balance: 'E', avoidLHP: false, avoidRHP: false, moreSacBunt: false, dontSacBunt: false, moreHitAndRun: false, dontHitAndRun: false, moreSteal: false, dontSteal: false, dontPHvsLHP: false, dontPHvsRHP: false, avoidPHInBlowouts: false, rememberFor4DefSub: true, pinchRunForDont: false },
-    // Gordon - Speed, steal, hit & run
+    // Rodriguez - C, Stl: A, 1R balance, power (.558 SLG), elite defense
+    { name: 'Rodriguez, Ivan', hand: 'R', position: 'C', balance: '1R', avoidLHP: false, avoidRHP: false, moreSacBunt: false, dontSacBunt: true, moreHitAndRun: false, dontHitAndRun: false, moreSteal: false, dontSteal: false, dontPHvsLHP: true, dontPHvsRHP: true, avoidPHInBlowouts: true, rememberFor4DefSub: true, pinchRunForDont: false },
+    // Killefer - Backup C, Stl: B, E balance, weak bat
+    { name: 'Killefer, Bill', hand: 'R', position: 'C', balance: 'E', avoidLHP: false, avoidRHP: false, moreSacBunt: false, dontSacBunt: false, moreHitAndRun: false, dontHitAndRun: false, moreSteal: false, dontSteal: true, dontPHvsLHP: false, dontPHvsRHP: false, avoidPHInBlowouts: false, rememberFor4DefSub: true, pinchRunForDont: true },
+    // Chance - 1B, Stl: AA, 1L balance, contact hitter (.849 OPS)
+    { name: 'Chance, Frank', hand: 'R', position: '1B', balance: '1L', avoidLHP: false, avoidRHP: false, moreSacBunt: false, dontSacBunt: true, moreHitAndRun: true, dontHitAndRun: false, moreSteal: true, dontSteal: false, dontPHvsLHP: true, dontPHvsRHP: false, avoidPHInBlowouts: true, rememberFor4DefSub: false, pinchRunForDont: false },
+    // Chase - Bench 1B, Stl: AA, E balance, defensive sub
+    { name: 'Chase, Hal', hand: 'R', position: '1B', balance: 'E', avoidLHP: false, avoidRHP: false, moreSacBunt: false, dontSacBunt: false, moreHitAndRun: false, dontHitAndRun: false, moreSteal: true, dontSteal: false, dontPHvsLHP: false, dontPHvsRHP: false, avoidPHInBlowouts: false, rememberFor4DefSub: true, pinchRunForDont: false },
+    // Gordon - 2B, Stl: AA, 1L balance, elite speed (.777 OPS)
     { name: 'Gordon, Dee', hand: 'L', position: '2B', balance: '1L', avoidLHP: false, avoidRHP: false, moreSacBunt: false, dontSacBunt: true, moreHitAndRun: true, dontHitAndRun: false, moreSteal: true, dontSteal: false, dontPHvsLHP: false, dontPHvsRHP: true, avoidPHInBlowouts: true, rememberFor4DefSub: false, pinchRunForDont: false },
-    // Matsui - Switch hitter, speed, hit & run
+    // Matsui - 2B, Stl: AA, 1R balance, speed + contact
     { name: 'Matsui, Kaz', hand: 'S', position: '2B', balance: '1R', avoidLHP: false, avoidRHP: false, moreSacBunt: false, dontSacBunt: false, moreHitAndRun: true, dontHitAndRun: false, moreSteal: true, dontSteal: false, dontPHvsLHP: false, dontPHvsRHP: false, avoidPHInBlowouts: false, rememberFor4DefSub: false, pinchRunForDont: false },
-    // Lansford - Solid regular
+    // Lansford - 3B, Stl: A, E balance, solid regular
     { name: 'Lansford, Carney', hand: 'R', position: '3B', balance: 'E', avoidLHP: false, avoidRHP: false, moreSacBunt: false, dontSacBunt: false, moreHitAndRun: true, dontHitAndRun: false, moreSteal: false, dontSteal: false, dontPHvsLHP: false, dontPHvsRHP: false, avoidPHInBlowouts: false, rememberFor4DefSub: false, pinchRunForDont: false },
-    // O'Leary - Bench 3B, defensive sub
+    // O'Leary - Bench 3B, Stl: A, 1L balance, defensive sub
     { name: "O'Leary, Charley", hand: 'R', position: '3B', balance: '1L', avoidLHP: false, avoidRHP: false, moreSacBunt: false, dontSacBunt: false, moreHitAndRun: false, dontHitAndRun: false, moreSteal: false, dontSteal: false, dontPHvsLHP: false, dontPHvsRHP: false, avoidPHInBlowouts: false, rememberFor4DefSub: true, pinchRunForDont: false },
-    // Bowa - Elite SS defense, hit & run
+    // Bowa - SS, Stl: A, 1R balance, elite defense
     { name: 'Bowa, Larry', hand: 'S', position: 'SS', balance: '1R', avoidLHP: false, avoidRHP: false, moreSacBunt: false, dontSacBunt: false, moreHitAndRun: true, dontHitAndRun: false, moreSteal: false, dontSteal: false, dontPHvsLHP: false, dontPHvsRHP: false, avoidPHInBlowouts: false, rememberFor4DefSub: true, pinchRunForDont: false },
-    // Thomas - Power hitter, avoid sac bunt
-    { name: 'Thomas, Hawk', hand: 'R', position: 'LF', balance: '1R', avoidLHP: false, avoidRHP: false, moreSacBunt: false, dontSacBunt: true, moreHitAndRun: false, dontHitAndRun: false, moreSteal: false, dontSteal: true, dontPHvsLHP: true, dontPHvsRHP: false, avoidPHInBlowouts: true, rememberFor4DefSub: false, pinchRunForDont: false },
-    // Suzuki - Elite CF, speed, contact
+    // Thomas - LF, Stl: A, 1R balance, POWER (.467 SLG, 12 HR)
+    { name: 'Thomas, Hawk', hand: 'R', position: 'LF', balance: '1R', avoidLHP: false, avoidRHP: false, moreSacBunt: false, dontSacBunt: true, moreHitAndRun: false, dontHitAndRun: false, moreSteal: false, dontSteal: false, dontPHvsLHP: true, dontPHvsRHP: false, avoidPHInBlowouts: true, rememberFor4DefSub: false, pinchRunForDont: false },
+    // Suzuki - CF, Stl: AA, 1R balance, elite contact + speed
     { name: 'Suzuki, Ichiro', hand: 'L', position: 'CF', balance: '1R', avoidLHP: false, avoidRHP: false, moreSacBunt: false, dontSacBunt: true, moreHitAndRun: true, dontHitAndRun: false, moreSteal: true, dontSteal: false, dontPHvsLHP: false, dontPHvsRHP: true, avoidPHInBlowouts: true, rememberFor4DefSub: false, pinchRunForDont: false },
-    // McGee - Backup CF, defensive sub, speed
+    // McGee - Backup CF, Stl: AA, E balance, defensive sub + speed
     { name: 'McGee, Willie', hand: 'S', position: 'CF', balance: 'E', avoidLHP: false, avoidRHP: false, moreSacBunt: false, dontSacBunt: false, moreHitAndRun: true, dontHitAndRun: false, moreSteal: true, dontSteal: false, dontPHvsLHP: false, dontPHvsRHP: false, avoidPHInBlowouts: false, rememberFor4DefSub: true, pinchRunForDont: false },
-    // Gwynn - Elite contact, speed, hit & run
+    // Gwynn - RF, Stl: AA, 1R balance, elite contact + speed
     { name: 'Gwynn, Tony', hand: 'L', position: 'RF', balance: '1R', avoidLHP: false, avoidRHP: false, moreSacBunt: false, dontSacBunt: true, moreHitAndRun: true, dontHitAndRun: false, moreSteal: true, dontSteal: false, dontPHvsLHP: false, dontPHvsRHP: true, avoidPHInBlowouts: true, rememberFor4DefSub: false, pinchRunForDont: false },
-    // Washington - Bench OF
+    // Washington - Bench RF, Stl: A, 3R balance
     { name: 'Washington, Claudell', hand: 'L', position: 'RF', balance: '3R', avoidLHP: false, avoidRHP: false, moreSacBunt: false, dontSacBunt: false, moreHitAndRun: false, dontHitAndRun: false, moreSteal: false, dontSteal: false, dontPHvsLHP: false, dontPHvsRHP: false, avoidPHInBlowouts: false, rememberFor4DefSub: false, pinchRunForDont: false },
   ]);
 
@@ -77,7 +77,7 @@ export function HitterPreferencesPage() {
 
       <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
         <p className="text-sm text-blue-800 dark:text-blue-200">
-          <strong>Strategy Applied:</strong> Speed players (Gwynn, Suzuki, Gordon) set to steal/hit-and-run. Elite defenders (Rodriguez, Bowa, McGee) marked for defensive subs. Power hitters avoid sac bunts. Starters protected from pinch hitting in key matchups.
+          <strong>Strategy Applied:</strong> AA stealers (Gwynn, Suzuki, Gordon, Matsui, McGee, Chance, Chase) set to "More Steal". A stealers neutral. Only B stealers (Killefer) set to "Don't Steal". Elite defenders marked for defensive subs. Power hitters avoid sac bunts.
         </p>
       </div>
 
@@ -169,16 +169,19 @@ export function HitterPreferencesPage() {
         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Strategy Breakdown</h3>
         <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
           <div>
-            <strong>Speed/Contact (Gwynn, Suzuki, Gordon):</strong> Aggressive baserunning enabled - steal, hit-and-run. Protected from PH vs favorable matchups.
+            <strong>AA Stealers (Gwynn, Suzuki, Gordon, Matsui, McGee, Chance, Chase):</strong> "More Steal" enabled - elite base stealing ability. Hit-and-run capable.
           </div>
           <div>
-            <strong>Elite Defenders (Rodriguez, Bowa, McGee, Chase, O'Leary):</strong> Marked for defensive substitutions in late innings.
+            <strong>A Stealers (Rodriguez, Thomas, Bowa, Lansford, O'Leary, Washington):</strong> Good steal ratings but neutral settings - let game situation dictate.
           </div>
           <div>
-            <strong>Power Hitters (Thomas):</strong> Avoid sac bunts to maximize run production.
+            <strong>B Stealers (Killefer):</strong> "Don't Steal" - poor success rate, available for pinch running only.
           </div>
           <div>
-            <strong>Backup Catcher (Killefer):</strong> Available for pinch running - Rodriguez too valuable defensively.
+            <strong>Power Hitters (Rodriguez, Thomas, Chance):</strong> Avoid sac bunts to maximize run production. Protected from PH in favorable matchups.
+          </div>
+          <div>
+            <strong>Elite Defenders (Rodriguez C, Bowa SS, McGee CF, Chase 1B, O'Leary 3B, Killefer C):</strong> Marked for defensive substitutions with lead.
           </div>
           <div>
             <strong>Starters:</strong> Protected in blowouts to preserve health and avoid unnecessary injury risk.
