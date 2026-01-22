@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { useHitters } from '../hooks/useHitters';
 import { useScoringWeights } from '../hooks/useScoringWeights';
 import { calculateHitterStats } from '../utils/calculations';
@@ -30,29 +30,189 @@ export function LineupOptimizerPage() {
     .filter(h => h.roster)
     .map(h => calculateHitterStats(h, weights.hitter));
 
-  // Initial lineup vs LHSP (favor right-handed batters)
-  const [vsLHSPLineup] = useState<LineupSlot[]>([
-    { position: 1, playerId: '1', playerName: 'Rodriguez, I. (1999)', pos: 'C', def: '1(-5)e1', bal: '1', simBA: 0.332, simOBP: 0.356, simSLG: 0.558, realBA: 0.332, realOBP: 0.356, realSLG: 0.558, backup1: 'Killefer, B.', backup2: '', platoonPH: '' },
-    { position: 2, playerId: '2', playerName: 'Chance, F. (1906)', pos: '1B', def: '1e8', bal: '1', simBA: 0.319, simOBP: 0.419, simSLG: 0.430, realBA: 0.319, realOBP: 0.419, realSLG: 0.430, backup1: 'Chase, H.', backup2: '', platoonPH: '' },
-    { position: 3, playerId: '3', playerName: 'Matsui, K. (2007)', pos: '2B', def: '2e6', bal: '3', simBA: 0.288, simOBP: 0.342, simSLG: 0.405, realBA: 0.288, realOBP: 0.342, realSLG: 0.405, backup1: 'Gordon, D.', backup2: '', platoonPH: '' },
-    { position: 4, playerId: '4', playerName: 'Lansford, C. (1979)', pos: '3B', def: '2e8', bal: '1', simBA: 0.287, simOBP: 0.329, simSLG: 0.436, realBA: 0.287, realOBP: 0.329, realSLG: 0.436, backup1: "O'Leary, C.", backup2: '', platoonPH: '' },
-    { position: 5, playerId: '5', playerName: 'Bowa, L. (1978)', pos: 'SS', def: '1e10', bal: '1', simBA: 0.294, simOBP: 0.319, simSLG: 0.370, realBA: 0.294, realOBP: 0.319, realSLG: 0.370, backup1: '', backup2: '', platoonPH: '' },
-    { position: 6, playerId: '6', playerName: 'Thomas, H. (1924)', pos: 'LF', def: '1(-3)e5', bal: '1', simBA: 0.300, simOBP: 0.357, simSLG: 0.467, realBA: 0.300, realOBP: 0.357, realSLG: 0.467, backup1: '', backup2: '', platoonPH: '' },
-    { position: 7, playerId: '7', playerName: 'McGee, W. (1988)', pos: 'CF', def: '1(0)e12', bal: '1', simBA: 0.292, simOBP: 0.329, simSLG: 0.372, realBA: 0.292, realOBP: 0.329, realSLG: 0.372, backup1: '', backup2: '', platoonPH: '' },
-    { position: 8, playerId: '8', playerName: 'Weatherston, C. (1983)', pos: 'RF', def: '3(-3)e9', bal: '1', simBA: 0.278, simOBP: 0.322, simSLG: 0.413, realBA: 0.278, realOBP: 0.322, realSLG: 0.413, backup1: 'Gwynn, T.', backup2: '', platoonPH: '' },
-  ]);
+  // Helper to get defensive position string
+  const getDefensiveString = (hitter: HitterWithStats): string => {
+    if (!hitter.defensivePositions || hitter.defensivePositions.length === 0) {
+      return '';
+    }
+    const pos = hitter.defensivePositions[0];
+    let defStr = '';
+    if (pos.range) defStr += pos.range;
+    if (pos.arm) defStr += `(${pos.arm})`;
+    if (pos.error !== undefined) defStr += `e${pos.error}`;
+    return defStr;
+  };
 
-  // Initial lineup vs RHSP (can include left-handed batters)
-  const [vsRHSPLineup] = useState<LineupSlot[]>([
-    { position: 1, playerId: '1', playerName: 'Rodriguez, I. (1999)', pos: 'C', def: '1(-5)e1', bal: '1', simBA: 0.332, simOBP: 0.356, simSLG: 0.558, realBA: 0.332, realOBP: 0.356, realSLG: 0.558, backup1: 'Killefer, B.', backup2: '', platoonPH: '' },
-    { position: 2, playerId: '2', playerName: 'Chance, F. (1906)', pos: '1B', def: '1e8', bal: '1', simBA: 0.319, simOBP: 0.419, simSLG: 0.430, realBA: 0.319, realOBP: 0.419, realSLG: 0.430, backup1: 'Chase, H.', backup2: '', platoonPH: '' },
-    { position: 3, playerId: '9', playerName: 'Gordon, D. (2015)', pos: '2B', def: '1e6', bal: '1', simBA: 0.333, simOBP: 0.359, simSLG: 0.418, realBA: 0.333, realOBP: 0.359, realSLG: 0.418, backup1: 'Matsui, K.', backup2: '', platoonPH: '' },
-    { position: 4, playerId: '4', playerName: 'Lansford, C. (1979)', pos: '3B', def: '2e8', bal: '1', simBA: 0.287, simOBP: 0.329, simSLG: 0.436, realBA: 0.287, realOBP: 0.329, realSLG: 0.436, backup1: "O'Leary, C.", backup2: '', platoonPH: '' },
-    { position: 5, playerId: '5', playerName: 'Bowa, L. (1978)', pos: 'SS', def: '1e10', bal: '1', simBA: 0.294, simOBP: 0.319, simSLG: 0.370, realBA: 0.294, realOBP: 0.319, realSLG: 0.370, backup1: '', backup2: '', platoonPH: '' },
-    { position: 6, playerId: '10', playerName: 'Suzuki, I. (2007)', pos: 'CF', def: '1(-5)e1', bal: '1', simBA: 0.351, simOBP: 0.396, simSLG: 0.431, realBA: 0.351, realOBP: 0.396, realSLG: 0.431, backup1: '', backup2: '', platoonPH: '' },
-    { position: 7, playerId: '11', playerName: 'Gwynn, T. (1987)', pos: 'RF', def: '1(-2)e7', bal: '1', simBA: 0.370, simOBP: 0.447, simSLG: 0.511, realBA: 0.370, realOBP: 0.447, realSLG: 0.511, backup1: '', backup2: '', platoonPH: '' },
-    { position: 8, playerId: '6', playerName: 'Thomas, H. (1924)', pos: 'LF', def: '1(-3)e5', bal: '1', simBA: 0.300, simOBP: 0.357, simSLG: 0.467, realBA: 0.300, realOBP: 0.357, realSLG: 0.467, backup1: '', backup2: '', platoonPH: '' },
-  ]);
+  // Helper to determine if hitter is left-handed (check balance field)
+  const isLeftHanded = (hitter: HitterWithStats): boolean => {
+    // Balance field format: "L" for left, "R" for right, "S" for switch, or number for switch
+    return hitter.balance?.toUpperCase() === 'L';
+  };
+
+  // Helper to determine if hitter is switch hitter
+  const isSwitchHitter = (hitter: HitterWithStats): boolean => {
+    // Switch hitters have balance as "S" or a number (1-3)
+    const bal = hitter.balance?.toUpperCase();
+    return bal === 'S' || !isNaN(Number(hitter.balance));
+  };
+
+  // Calculate batting stats from raw data
+  const calculateBattingStats = (h: HitterWithStats) => {
+    const ba = h.ab > 0 ? h.h / h.ab : 0;
+    const obp = h.plateAppearances > 0 
+      ? (h.h + h.walks + h.hitByPitch) / h.plateAppearances 
+      : 0;
+    const totalBases = h.singles + (h.doubles * 2) + (h.triples * 3) + (h.homeRuns * 4);
+    const slg = h.ab > 0 ? totalBases / h.ab : 0;
+    return { ba, obp, slg };
+  };
+
+  // Optimize lineup using traditional baseball lineup construction + FP
+  const optimizeLineup = (availableHitters: HitterWithStats[]): HitterWithStats[] => {
+    if (availableHitters.length === 0) return [];
+
+    const sorted = [...availableHitters];
+    
+    // Calculate composite score for each hitter
+    const scoredHitters = sorted.map(h => {
+      const { ba, obp, slg } = calculateBattingStats(h);
+      const ops = obp + slg;
+      const fp = h.fantasyPoints || 0;
+      const sb = h.stolenBases || 0;
+      
+      return {
+        hitter: h,
+        ba,
+        obp,
+        slg,
+        ops,
+        fp,
+        sb,
+        // Leadoff score: OBP + speed
+        leadoffScore: obp * 1000 + sb * 2,
+        // Contact score: BA + OBP
+        contactScore: (ba + obp) * 500,
+        // Power score: SLG + HR
+        powerScore: slg * 1000 + (h.homeRuns || 0) * 5,
+        // Overall value: FP + OPS
+        overallScore: fp + ops * 100
+      };
+    });
+
+    // Sort by overall score first
+    scoredHitters.sort((a, b) => b.overallScore - a.overallScore);
+
+    const lineup: HitterWithStats[] = [];
+    const used = new Set<string>();
+
+    // 1. Leadoff: Best OBP + Speed
+    const leadoffCandidates = scoredHitters.filter(s => !used.has(s.hitter.id));
+    leadoffCandidates.sort((a, b) => b.leadoffScore - a.leadoffScore);
+    if (leadoffCandidates[0]) {
+      lineup.push(leadoffCandidates[0].hitter);
+      used.add(leadoffCandidates[0].hitter.id);
+    }
+
+    // 2. Second: Best contact hitter (high BA/OBP, can move runner)
+    const contactCandidates = scoredHitters.filter(s => !used.has(s.hitter.id));
+    contactCandidates.sort((a, b) => b.contactScore - a.contactScore);
+    if (contactCandidates[0]) {
+      lineup.push(contactCandidates[0].hitter);
+      used.add(contactCandidates[0].hitter.id);
+    }
+
+    // 3. Third: Best overall hitter (highest OPS + FP)
+    const bestOverall = scoredHitters.filter(s => !used.has(s.hitter.id));
+    bestOverall.sort((a, b) => b.overallScore - a.overallScore);
+    if (bestOverall[0]) {
+      lineup.push(bestOverall[0].hitter);
+      used.add(bestOverall[0].hitter.id);
+    }
+
+    // 4. Fourth (Cleanup): Most power
+    const powerCandidates = scoredHitters.filter(s => !used.has(s.hitter.id));
+    powerCandidates.sort((a, b) => b.powerScore - a.powerScore);
+    if (powerCandidates[0]) {
+      lineup.push(powerCandidates[0].hitter);
+      used.add(powerCandidates[0].hitter.id);
+    }
+
+    // 5-8: Fill remaining spots with best available by overall score
+    const remaining = scoredHitters.filter(s => !used.has(s.hitter.id));
+    remaining.sort((a, b) => b.overallScore - a.overallScore);
+    
+    for (const scored of remaining) {
+      if (lineup.length >= 8) break;
+      lineup.push(scored.hitter);
+      used.add(scored.hitter.id);
+    }
+
+    return lineup;
+  };
+
+  // Generate lineup vs LHSP (favor right-handed and switch hitters)
+  const vsLHSPLineup = useMemo((): LineupSlot[] => {
+    const eligible = hittersWithStats.filter(h => 
+      !isLeftHanded(h) || isSwitchHitter(h)
+    );
+    
+    const optimized = optimizeLineup(eligible);
+    
+    return optimized.map((hitter, idx) => {
+      const { ba, obp, slg } = calculateBattingStats(hitter);
+      return {
+        position: idx + 1,
+        playerId: hitter.id,
+        playerName: `${hitter.name} (${hitter.season})`,
+        pos: hitter.positions || '',
+        def: getDefensiveString(hitter),
+        bal: hitter.balance || '',
+        simBA: ba,
+        simOBP: obp,
+        simSLG: slg,
+        realBA: ba,
+        realOBP: obp,
+        realSLG: slg,
+        backup1: '',
+        backup2: '',
+        platoonPH: ''
+      };
+    });
+  }, [hittersWithStats]);
+
+  // Generate lineup vs RHSP (can include all hitters, favor left-handed)
+  const vsRHSPLineup = useMemo((): LineupSlot[] => {
+    // Give slight preference to left-handed batters by boosting their scores
+    const eligible = hittersWithStats.map(h => ({
+      ...h,
+      fantasyPoints: isLeftHanded(h) 
+        ? (h.fantasyPoints || 0) * 1.1  // 10% boost for lefties vs RHP
+        : h.fantasyPoints || 0
+    }));
+    
+    const optimized = optimizeLineup(eligible);
+    
+    return optimized.map((hitter, idx) => {
+      const { ba, obp, slg } = calculateBattingStats(hitter);
+      return {
+        position: idx + 1,
+        playerId: hitter.id,
+        playerName: `${hitter.name} (${hitter.season})`,
+        pos: hitter.positions || '',
+        def: getDefensiveString(hitter),
+        bal: hitter.balance || '',
+        simBA: ba,
+        simOBP: obp,
+        simSLG: slg,
+        realBA: ba,
+        realOBP: obp,
+        realSLG: slg,
+        backup1: '',
+        backup2: '',
+        platoonPH: ''
+      };
+    });
+  }, [hittersWithStats]);
 
   const renderLineupTable = (
     lineup: LineupSlot[],
