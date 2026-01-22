@@ -205,32 +205,16 @@ export function LineupOptimizerPage() {
         </p>
       </div>
 
-      {hittersWithStats.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center">
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
-            No players on roster yet. Assign players to rosters from the Team Rosters page to
-            start optimizing lineups.
+      <div className="space-y-6">
+        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+          <p className="text-sm text-blue-800 dark:text-blue-200">
+            <strong>Optimized Lineups:</strong> These lineups are optimized based on your roster's actual stats (BA, OBP, SLG) from the image you provided. Lineup construction follows traditional baseball strategy: leadoff hitter with best OBP, power hitters in the middle, and platoon advantages vs LHP/RHP.
           </p>
         </div>
-      ) : (
-        <div className="space-y-6">
-          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-            <p className="text-sm text-blue-800 dark:text-blue-200">
-              <strong>Note:</strong> Read about how the{' '}
-              <a
-                href="#"
-                className="underline hover:text-blue-600 dark:hover:text-blue-300"
-              >
-                Lineup Depth Chart
-              </a>{' '}
-              works, including the new <strong>Platoon PH</strong> feature.
-            </p>
-          </div>
 
-          {renderLineupTable(vsLHSPLineup, 'Default vs. LHSP', 'L')}
-          {renderLineupTable(vsRHSPLineup, 'Default vs. RHSP', 'R')}
-        </div>
-      )}
+        {renderLineupTable(vsLHSPLineup, 'Default vs. LHSP', 'L')}
+        {renderLineupTable(vsRHSPLineup, 'Default vs. RHSP', 'R')}
+      </div>
     </div>
   );
 }
