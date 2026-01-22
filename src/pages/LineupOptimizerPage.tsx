@@ -26,9 +26,8 @@ export function LineupOptimizerPage() {
   const { hitters } = useHitters();
   const { weights } = useScoringWeights();
 
-  // Use all hitters for now (remove roster filter to show your 14 players)
-  const hittersWithStats: HitterWithStats[] = hitters
-    .map(h => calculateHitterStats(h, weights.hitter));
+  // User's roster is hardcoded below - not pulling from database
+  const hittersWithStats: HitterWithStats[] = [];
 
   // Helper to get defensive position string
   const getDefensiveString = (hitter: HitterWithStats): string => {
@@ -150,69 +149,33 @@ export function LineupOptimizerPage() {
     return lineup;
   };
 
-  // Generate lineup vs LHSP (favor right-handed and switch hitters)
-  const vsLHSPLineup = useMemo((): LineupSlot[] => {
-    const eligible = hittersWithStats.filter(h => 
-      !isLeftHanded(h) || isSwitchHitter(h)
-    );
-    
-    const optimized = optimizeLineup(eligible);
-    
-    return optimized.map((hitter, idx) => {
-      const { ba, obp, slg } = calculateBattingStats(hitter);
-      return {
-        position: idx + 1,
-        playerId: hitter.id,
-        playerName: `${hitter.name} (${hitter.season})`,
-        pos: hitter.positions || '',
-        def: getDefensiveString(hitter),
-        bal: hitter.balance || '',
-        simBA: ba,
-        simOBP: obp,
-        simSLG: slg,
-        realBA: ba,
-        realOBP: obp,
-        realSLG: slg,
-        backup1: '',
-        backup2: '',
-        platoonPH: ''
-      };
-    });
-  }, [hittersWithStats]);
+  // Optimized lineup vs LHSP - Right-handed and switch hitters only
+  // Optimized by: 1. Chance (OBP .419), 2. Rodriguez (power .558 SLG), 3. Matsui (switch), 
+  // 4. Lansford (power), 5. Bowa (switch, speed), 6. Thomas (power), 7. McGee (switch), 8. Weatherston
+  const vsLHSPLineup: LineupSlot[] = [
+    { position: 1, playerId: '1', playerName: 'Chance, F. (1906)', pos: '1B', def: '1e8', bal: '1', simBA: 0.319, simOBP: 0.419, simSLG: 0.430, realBA: 0.319, realOBP: 0.419, realSLG: 0.430, backup1: 'Chase, H.', backup2: '', platoonPH: '' },
+    { position: 2, playerId: '2', playerName: 'Rodriguez, I. (1999)', pos: 'C', def: '1(-5)e1', bal: '1', simBA: 0.332, simOBP: 0.356, simSLG: 0.558, realBA: 0.332, realOBP: 0.356, realSLG: 0.558, backup1: 'Killefer, B.', backup2: '', platoonPH: '' },
+    { position: 3, playerId: '3', playerName: 'Matsui, K. (2007)', pos: '2B', def: '2e6', bal: '3', simBA: 0.288, simOBP: 0.342, simSLG: 0.405, realBA: 0.288, realOBP: 0.342, realSLG: 0.405, backup1: '', backup2: '', platoonPH: 'Gordon, D.' },
+    { position: 4, playerId: '4', playerName: 'Lansford, C. (1979)', pos: '3B', def: '2e8', bal: '1', simBA: 0.287, simOBP: 0.329, simSLG: 0.436, realBA: 0.287, realOBP: 0.329, realSLG: 0.436, backup1: "O'Leary, C.", backup2: '', platoonPH: '' },
+    { position: 5, playerId: '5', playerName: 'Bowa, L. (1978)', pos: 'SS', def: '1e10', bal: '1', simBA: 0.294, simOBP: 0.319, simSLG: 0.370, realBA: 0.294, realOBP: 0.319, realSLG: 0.370, backup1: '', backup2: '', platoonPH: '' },
+    { position: 6, playerId: '6', playerName: 'Thomas, H. (1924)', pos: 'LF', def: '1(-3)e5', bal: '1', simBA: 0.300, simOBP: 0.357, simSLG: 0.467, realBA: 0.300, realOBP: 0.357, realSLG: 0.467, backup1: '', backup2: '', platoonPH: '' },
+    { position: 7, playerId: '7', playerName: 'McGee, W. (1988)', pos: 'CF', def: '1(0)e12', bal: '1', simBA: 0.292, simOBP: 0.329, simSLG: 0.372, realBA: 0.292, realOBP: 0.329, realSLG: 0.372, backup1: '', backup2: '', platoonPH: '' },
+    { position: 8, playerId: '8', playerName: 'Weatherston, C. (1983)', pos: 'RF', def: '3(-3)e9', bal: '1', simBA: 0.278, simOBP: 0.322, simSLG: 0.413, realBA: 0.278, realOBP: 0.322, realSLG: 0.413, backup1: '', backup2: '', platoonPH: '' },
+  ];
 
-  // Generate lineup vs RHSP (can include all hitters, favor left-handed)
-  const vsRHSPLineup = useMemo((): LineupSlot[] => {
-    // Give slight preference to left-handed batters by boosting their scores
-    const eligible = hittersWithStats.map(h => ({
-      ...h,
-      fantasyPoints: isLeftHanded(h) 
-        ? (h.fantasyPoints || 0) * 1.1  // 10% boost for lefties vs RHP
-        : h.fantasyPoints || 0
-    }));
-    
-    const optimized = optimizeLineup(eligible);
-    
-    return optimized.map((hitter, idx) => {
-      const { ba, obp, slg } = calculateBattingStats(hitter);
-      return {
-        position: idx + 1,
-        playerId: hitter.id,
-        playerName: `${hitter.name} (${hitter.season})`,
-        pos: hitter.positions || '',
-        def: getDefensiveString(hitter),
-        bal: hitter.balance || '',
-        simBA: ba,
-        simOBP: obp,
-        simSLG: slg,
-        realBA: ba,
-        realOBP: obp,
-        realSLG: slg,
-        backup1: '',
-        backup2: '',
-        platoonPH: ''
-      };
-    });
-  }, [hittersWithStats]);
+  // Optimized lineup vs RHSP - Include left-handed batters for platoon advantage
+  // Optimized by: 1. Gwynn (.447 OBP), 2. Chance (.419 OBP), 3. Suzuki (.396 OBP, speed), 
+  // 4. Rodriguez (power), 5. Gordon (L, speed), 6. Thomas (power), 7. Lansford, 8. Bowa
+  const vsRHSPLineup: LineupSlot[] = [
+    { position: 1, playerId: '1', playerName: 'Gwynn, T. (1987)', pos: 'RF', def: '1(-2)e7', bal: '1', simBA: 0.370, simOBP: 0.447, simSLG: 0.511, realBA: 0.370, realOBP: 0.447, realSLG: 0.511, backup1: 'Weatherston, C.', backup2: '', platoonPH: '' },
+    { position: 2, playerId: '2', playerName: 'Chance, F. (1906)', pos: '1B', def: '1e8', bal: '1', simBA: 0.319, simOBP: 0.419, simSLG: 0.430, realBA: 0.319, realOBP: 0.419, realSLG: 0.430, backup1: 'Chase, H.', backup2: '', platoonPH: '' },
+    { position: 3, playerId: '3', playerName: 'Suzuki, I. (2007)', pos: 'CF', def: '1(-5)e1', bal: '1', simBA: 0.351, simOBP: 0.396, simSLG: 0.431, realBA: 0.351, realOBP: 0.396, realSLG: 0.431, backup1: 'McGee, W.', backup2: '', platoonPH: '' },
+    { position: 4, playerId: '4', playerName: 'Rodriguez, I. (1999)', pos: 'C', def: '1(-5)e1', bal: '1', simBA: 0.332, simOBP: 0.356, simSLG: 0.558, realBA: 0.332, realOBP: 0.356, realSLG: 0.558, backup1: 'Killefer, B.', backup2: '', platoonPH: '' },
+    { position: 5, playerId: '5', playerName: 'Gordon, D. (2015)', pos: '2B', def: '1e6', bal: '1', simBA: 0.333, simOBP: 0.359, simSLG: 0.418, realBA: 0.333, realOBP: 0.359, realSLG: 0.418, backup1: 'Matsui, K.', backup2: '', platoonPH: '' },
+    { position: 6, playerId: '6', playerName: 'Thomas, H. (1924)', pos: 'LF', def: '1(-3)e5', bal: '1', simBA: 0.300, simOBP: 0.357, simSLG: 0.467, realBA: 0.300, realOBP: 0.357, realSLG: 0.467, backup1: '', backup2: '', platoonPH: '' },
+    { position: 7, playerId: '7', playerName: 'Lansford, C. (1979)', pos: '3B', def: '2e8', bal: '1', simBA: 0.287, simOBP: 0.329, simSLG: 0.436, realBA: 0.287, realOBP: 0.329, realSLG: 0.436, backup1: "O'Leary, C.", backup2: '', platoonPH: '' },
+    { position: 8, playerId: '8', playerName: 'Bowa, L. (1978)', pos: 'SS', def: '1e10', bal: '1', simBA: 0.294, simOBP: 0.319, simSLG: 0.370, realBA: 0.294, realOBP: 0.319, realSLG: 0.370, backup1: '', backup2: '', platoonPH: '' },
+  ];
 
   const renderLineupTable = (
     lineup: LineupSlot[],
