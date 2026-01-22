@@ -39,26 +39,26 @@ export function TeamStrategyPage() {
   const [strategy, setStrategy] = useState<TeamStrategy>({
     // Tendencies - optimized for speed/contact roster
     baseRunning: 'Very Aggressive',  // AA stealers across roster
-    baseStealing: 'Aggressive',      // 7 AA stealers, 6 A stealers
+    baseStealing: 'Very Aggressive', // 7 AA stealers - elite speed team
     closerUsage: 'Regular',          // Drabowsky is good but not elite closer
     reliefUsage: 'Normal',           // Balanced bullpen usage
     bunting: 'Aggressive',           // Speed roster benefits from small ball
-    hitAndRun: 'Normal',             // Good contact hitters
+    hitAndRun: 'Aggressive',         // Elite contact hitters (Gwynn .370, Suzuki .351)
     intentionalWalk: 'Normal',       // Standard strategy
     infieldIn: '3rd Inning',         // Aggressive defense with elite fielders
     
-    // Offensive subs - McGee is switch hitter with speed, perfect PH
-    pinchHitterVsLHP: 'McGee, Willie',  // Switch hitter, can hit both sides
-    pinchHitterVsRHP: 'McGee, Willie',  // Switch hitter, can hit both sides
-    pinchRunner: 'McGee, Willie',       // AA stealer, E balance, bench player
+    // Offensive subs - platoon advantages
+    pinchHitterVsLHP: 'Chase, Hal (R, 1B)',           // RHB vs LHP, .290 BA, AA steal
+    pinchHitterVsRHP: 'Washington, Claudell (L, RF)', // LHB vs RHP, .322 OBP, platoon advantage
+    pinchRunner: 'McGee, Willie (S, CF)',             // AA stealer, E balance, bench player
     
     // Defensive subs - bring in elite defenders late
-    defensiveReplacement1Player: '',
-    defensiveReplacement1Inning: '',
-    defensiveReplacement2Player: '',
-    defensiveReplacement2Inning: '',
-    defensiveReplacement3Player: '',
-    defensiveReplacement3Inning: '',
+    defensiveReplacement1Player: 'Chase, Hal (R, 1B)',
+    defensiveReplacement1Inning: '7th',
+    defensiveReplacement2Player: "O'Leary, Charley (R, 3B)",
+    defensiveReplacement2Inning: '7th',
+    defensiveReplacement3Player: 'McGee, Willie (S, CF)',
+    defensiveReplacement3Inning: '8th',
     defensiveReplacement4Player: '',
     defensiveReplacement4Inning: '',
   });
@@ -384,7 +384,7 @@ export function TeamStrategyPage() {
 
       <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
         <p className="text-sm text-blue-800 dark:text-blue-200">
-          <strong>Strategy Applied:</strong> Very Aggressive baserunning/stealing for AA steal roster. Aggressive bunting for speed/contact team. McGee (S, CF, AA steal, E balance) as primary pinch hitter and pinch runner - switch hitter who can hit both LHP/RHP. Defensive subs left empty - configure based on game situations and who's in starting lineup.
+          <strong>Strategy Applied:</strong> Very Aggressive baserunning/stealing (7 AA stealers). Aggressive hit-and-run (elite contact: Gwynn .370, Suzuki .351). Platoon PH: Chase vs LHP (.290 BA), Washington vs RHP (.322 OBP). McGee as PR (AA steal). Defensive subs: Chase 1B (7th), O'Leary 3B (7th), McGee CF (8th) - preserve leads with elite defense.
         </p>
       </div>
 
