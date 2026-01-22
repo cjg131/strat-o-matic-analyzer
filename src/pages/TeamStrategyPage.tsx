@@ -53,11 +53,11 @@ export function TeamStrategyPage() {
     pinchRunner: 'McGee, Willie (S, CF)',             // AA stealer, E balance, bench player
     
     // Defensive subs - bring in elite defenders late
-    defensiveReplacement1Player: 'Chase, Hal (R, E) 1B',
+    defensiveReplacement1Player: 'Chase, Hal (R, 1B)',
     defensiveReplacement1Position: '1B',
-    defensiveReplacement2Player: "O'Leary, Charley (R, 1L) 3B,2B,SS,LF",
+    defensiveReplacement2Player: "O'Leary, Charley (R, 3B)",
     defensiveReplacement2Position: '3B',
-    defensiveReplacement3Player: 'McGee, Willie (S, E) CF',
+    defensiveReplacement3Player: 'McGee, Willie (S, CF)',
     defensiveReplacement3Position: 'LF',
     defensiveReplacement4Player: '',
     defensiveReplacement4Position: '',
