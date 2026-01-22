@@ -1,6 +1,4 @@
-import { useState, useMemo } from 'react';
-import { useHitters } from '../hooks/useHitters';
-import rosterData from '../../roster-assignments.json';
+import { useState } from 'react';
 
 interface Game {
   gameNumber: number;
@@ -18,41 +16,6 @@ interface GameDay {
 }
 
 export function GameStartersPage() {
-  const { hitters } = useHitters();
-
-  // Analyze opponent rosters to determine recommendations
-  const opponentRecommendations = useMemo(() => {
-    const opponents = ['Washington Capitals II', 'Forest City Grays', 'Northfield Retirees'];
-    const recommendations: Record<string, string> = {};
-    
-    opponents.forEach(teamName => {
-      const teamHitters = hitters.filter(h => h.roster === teamName);
-      
-      const balanceCount = { L: 0, R: 0, S: 0, E: 0 };
-      teamHitters.forEach(h => {
-        const balance = h.balance?.toUpperCase() || 'E';
-        if (balance.includes('L')) balanceCount.L++;
-        else if (balance.includes('R')) balanceCount.R++;
-        else if (balance.includes('S')) balanceCount.S++;
-        else balanceCount.E++;
-      });
-
-      // Determine recommendation
-      if (balanceCount.L > balanceCount.R) {
-        // More lefties = vulnerable to RHP
-        recommendations[teamName] = 'Clarkson, John (R, 1R) S9*';
-      } else if (balanceCount.R > balanceCount.L) {
-        // More righties = vulnerable to LHP
-        recommendations[teamName] = 'Cooper, Wilbur (L, E) S8';
-      } else {
-        // Balanced = use best available in rotation
-        recommendations[teamName] = '';
-      }
-    });
-    
-    return recommendations;
-  }, [hitters]);
-
   const [schedule] = useState<GameDay[]>([
     {
       date: 'Friday, 1/23',
