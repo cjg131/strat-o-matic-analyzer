@@ -9,6 +9,7 @@ import { TeamBuilderPage } from './pages/TeamBuilderPage';
 import { SeasonOverviewPage } from './pages/SeasonOverviewPage';
 import { HitterPreferencesPage } from './pages/HitterPreferencesPage';
 import { PitcherPreferencesPage } from './pages/PitcherPreferencesPage';
+import { TeamStrategyPage } from './pages/TeamStrategyPage';
 import { SeasonHittersPage } from './pages/SeasonHittersPage';
 import { SeasonPitchersPage } from './pages/SeasonPitchersPage';
 import { TeamRostersPage } from './pages/TeamRostersPage';
@@ -136,7 +137,8 @@ function App() {
               <Route path="/season" element={<ProtectedRoute><SeasonLayout /></ProtectedRoute>}>
                 <Route index element={<Navigate to="/season/hitter-preferences" replace />} />
                 <Route path="hitter-preferences" element={<HitterPreferencesPage />} />
-                <Route path="pitcher-preferences" element={<PitcherPreferencesPage />} />
+                <Route path="pitchstrategy" element={<TeamStrategyPage />} />
+                <Route path="team-er-preferences" element={<PitcherPreferencesPage />} />
                 <Route path="team-rosters" element={<TeamRostersPage />} />
                 <Route path="roster-import" element={<RosterImportPage />} />
                 <Route path="wanted-players" element={<WantedPlayersPage />} />
