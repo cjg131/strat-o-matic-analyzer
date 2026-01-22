@@ -26,8 +26,8 @@ export function LineupOptimizerPage() {
   const { hitters } = useHitters();
   const { weights } = useScoringWeights();
 
+  // Use all hitters for now (remove roster filter to show your 14 players)
   const hittersWithStats: HitterWithStats[] = hitters
-    .filter(h => h.roster)
     .map(h => calculateHitterStats(h, weights.hitter));
 
   // Helper to get defensive position string
