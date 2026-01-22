@@ -20,6 +20,16 @@ export function SeasonLayout() {
             Hitter Preferences
           </Link>
           <Link
+            to="/season/pitcher-preferences"
+            className={`px-4 py-2 rounded-md transition-colors ${
+              location.pathname === '/season/pitcher-preferences'
+                ? 'bg-primary-600 text-white'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            }`}
+          >
+            Pitcher Preferences
+          </Link>
+          <Link
             to="/season/wanted-players"
             className={`px-4 py-2 rounded-md transition-colors ${
               location.pathname === '/season/wanted-players'

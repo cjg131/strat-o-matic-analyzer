@@ -8,6 +8,7 @@ import { BallparksPage } from './pages/BallparksPage';
 import { TeamBuilderPage } from './pages/TeamBuilderPage';
 import { SeasonOverviewPage } from './pages/SeasonOverviewPage';
 import { HitterPreferencesPage } from './pages/HitterPreferencesPage';
+import { PitcherPreferencesPage } from './pages/PitcherPreferencesPage';
 import { SeasonHittersPage } from './pages/SeasonHittersPage';
 import { SeasonPitchersPage } from './pages/SeasonPitchersPage';
 import { TeamRostersPage } from './pages/TeamRostersPage';
