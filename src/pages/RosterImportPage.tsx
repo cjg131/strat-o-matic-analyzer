@@ -21,7 +21,10 @@ export function RosterImportPage() {
   const matchPlayerName = (rosterName: string, dbName: string, dbSeason: string): boolean => {
     // Extract last name, first initial, and year/NeL from roster name format: "LastName, F. (YYYY)" or "LastName, F. (NeL)"
     const rosterMatch = rosterName.match(/^([^,]+),\s*([A-Z])\.?\s*\(([^)]+)\)$/);
-    if (!rosterMatch) return false;
+    if (!rosterMatch) {
+      console.log('[Match Debug] Failed to parse roster name:', rosterName);
+      return false;
+    }
     
     const [, rosterLast, rosterFirstInitial, rosterYear] = rosterMatch;
     
@@ -35,13 +38,23 @@ export function RosterImportPage() {
     const rosterLastNorm = rosterLast.trim().replace(/\s+Jr\.?$/i, '').toLowerCase();
     const dbLastNorm = dbLastRaw.trim().replace(/\s+Jr\.?$/i, '').toLowerCase();
     
-    // Check if:
-    // 1. Last names match (case-insensitive, ignoring Jr/Jr.)
-    // 2. First name starts with the roster's first initial
-    // 3. Season/year matches (including "NeL" for Negro League players)
-    return rosterLastNorm === dbLastNorm && 
+    const matches = rosterLastNorm === dbLastNorm && 
            dbFirst.trim().toUpperCase().startsWith(rosterFirstInitial) && 
            dbSeason.trim() === rosterYear.trim();
+    
+    // Debug logging for failed matches
+    if (!matches && rosterLastNorm === dbLastNorm) {
+      console.log('[Match Debug] Close match failed:', {
+        rosterName,
+        dbName,
+        dbSeason,
+        rosterYear,
+        firstInitialMatch: dbFirst.trim().toUpperCase().startsWith(rosterFirstInitial),
+        seasonMatch: dbSeason.trim() === rosterYear.trim()
+      });
+    }
+    
+    return matches;
   };
 
   const importRosters = async () => {
