@@ -35,6 +35,7 @@ export function usePlayerCards() {
     file: File,
     playerName: string,
     playerType: 'hitter' | 'pitcher',
+    extractedStats?: any,
     playerId?: string
   ): Promise<string> => {
     try {
@@ -46,13 +47,26 @@ export function usePlayerCards() {
         reader.readAsDataURL(file);
       });
 
-      // Create Firestore document
+      // Create Firestore document with extracted stats
       const cardData: Omit<PlayerCard, 'id'> = {
         playerId: playerId || '',
         playerName,
         playerType,
         imageUrl,
         uploadedAt: new Date(),
+        // Add extracted stats if available
+        ...(extractedStats?.hitting && { 
+          hitting: extractedStats.hitting
+        }),
+        ...(extractedStats?.pitching && {
+          pitching: extractedStats.pitching
+        }),
+        ...(extractedStats?.defense && {
+          defense: { positions: extractedStats.defense }
+        }),
+        ...(extractedStats?.running && {
+          running: extractedStats.running
+        })
       };
 
       const docRef = await addDoc(collection(db, 'playerCards'), cardData);

@@ -3,6 +3,7 @@ import { Upload, Image as ImageIcon, Trash2, Eye, Clipboard } from 'lucide-react
 import { usePlayerCards } from '../hooks/usePlayerCards';
 import { useHitters } from '../hooks/useHitters';
 import { usePitchers } from '../hooks/usePitchers';
+import { extractCardStats } from '../utils/cardOCR';
 
 export function PlayerCardsPage() {
   const { playerCards, loading, uploadPlayerCard, deletePlayerCard } = usePlayerCards();
@@ -176,15 +177,19 @@ export function PlayerCardsPage() {
     try {
       const playerName = selectedPlayer || detectedName || 'Unknown Player';
       
-      // Upload card - OCR extraction temporarily disabled to fix loading issue
-      // Will re-enable after fixing module bundling
-      await uploadPlayerCard(selectedFile, playerName, playerType);
+      // Extract stats from card image
+      console.log('Extracting stats from card...');
+      const extractedStats = await extractCardStats(previewUrl);
+      console.log('Extracted stats:', extractedStats);
+      
+      // Upload card with extracted stats
+      await uploadPlayerCard(selectedFile, playerName, playerType, extractedStats);
       
       setSelectedFile(null);
       setSelectedPlayer('');
       setPreviewUrl(null);
       setDetectedName('');
-      alert('Player card uploaded successfully!');
+      alert('Player card uploaded successfully with extracted stats!');
     } catch (error: any) {
       console.error('Upload error:', error);
       alert(`Error uploading: ${error.message}`);
