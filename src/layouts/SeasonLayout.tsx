@@ -90,6 +90,16 @@ export function SeasonLayout() {
             Pitching Rotation
           </Link>
           <Link
+            to="/season/player-cards"
+            className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
+              isActive('/season/player-cards')
+                ? 'bg-primary-600 text-white'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            }`}
+          >
+            Player Cards
+          </Link>
+          <Link
             to="/season/roster-import"
             className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
               isActive('/season/roster-import')
