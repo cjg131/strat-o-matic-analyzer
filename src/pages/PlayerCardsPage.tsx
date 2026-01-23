@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Upload, Image as ImageIcon, Trash2, Eye } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Upload, Image as ImageIcon, Trash2, Eye, Clipboard } from 'lucide-react';
 import { usePlayerCards } from '../hooks/usePlayerCards';
 import { useHitters } from '../hooks/useHitters';
 import { usePitchers } from '../hooks/usePitchers';
@@ -16,16 +16,104 @@ export function PlayerCardsPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'hitter' | 'pitcher'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [detecting, setDetecting] = useState(false);
+  const [detectedName, setDetectedName] = useState<string>('');
+
+  useEffect(() => {
+    const handlePaste = async (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const blob = items[i].getAsFile();
+          if (blob) {
+            await processImage(blob);
+          }
+        }
+      }
+    };
+
+    document.addEventListener('paste', handlePaste);
+    return () => document.removeEventListener('paste', handlePaste);
+  }, []);
+
+  const processImage = async (file: File | Blob) => {
+    const imageFile = file instanceof File ? file : new File([file], 'pasted-image.png', { type: 'image/png' });
+    setSelectedFile(imageFile);
+    
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const dataUrl = reader.result as string;
+      setPreviewUrl(dataUrl);
+      await detectPlayerName(dataUrl);
+    };
+    reader.readAsDataURL(imageFile);
+  };
+
+  const detectPlayerName = async (imageUrl: string) => {
+    setDetecting(true);
+    try {
+      const Tesseract = (await import('tesseract.js')).default;
+      const { data: { text } } = await Tesseract.recognize(imageUrl, 'eng', {
+        logger: () => {}
+      });
+
+      const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+      
+      let detectedPlayerName = '';
+      
+      for (const line of lines) {
+        const nameMatch = line.match(/^([A-Z][a-z]+(?:,\s*[A-Z]\.?)?(?:\s+[A-Z][a-z]+)*)/);
+        if (nameMatch && nameMatch[1].length > 3) {
+          detectedPlayerName = nameMatch[1];
+        }
+      }
+
+      if (detectedPlayerName) {
+        setDetectedName(detectedPlayerName);
+        const allPlayers = [...hitters.map(h => h.name), ...pitchers.map(p => p.name)];
+        const matchedPlayer = findBestMatch(detectedPlayerName, allPlayers);
+        
+        if (matchedPlayer) {
+          setSelectedPlayer(matchedPlayer);
+          const isHitter = hitters.some(h => h.name === matchedPlayer);
+          setPlayerType(isHitter ? 'hitter' : 'pitcher');
+        }
+      }
+    } catch (error) {
+      console.error('OCR error:', error);
+    } finally {
+      setDetecting(false);
+    }
+  };
+
+  const findBestMatch = (detected: string, players: string[]): string | null => {
+    const normalizeForMatch = (str: string) => str.toLowerCase().replace(/[^a-z]/g, '');
+    const detectedNorm = normalizeForMatch(detected);
+    
+    for (const player of players) {
+      const playerNorm = normalizeForMatch(player);
+      if (playerNorm.includes(detectedNorm) || detectedNorm.includes(playerNorm)) {
+        return player;
+      }
+    }
+    
+    const detectedParts = detected.toLowerCase().split(/[,\s]+/);
+    for (const player of players) {
+      const playerLower = player.toLowerCase();
+      if (detectedParts.some(part => part.length > 2 && playerLower.includes(part))) {
+        return player;
+      }
+    }
+    
+    return null;
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      processImage(file);
     }
   };
 
@@ -97,6 +185,29 @@ export function PlayerCardsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left side - Upload form */}
           <div className="space-y-4">
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <Clipboard className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                    Paste from clipboard
+                  </p>
+                  <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                    Take a screenshot and press Cmd+V (Mac) or Ctrl+V (Windows) to paste it here. The player name will be automatically detected.
+                  </p>
+                  {detecting && (
+                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 font-medium">
+                      🔍 Detecting player name...
+                    </p>
+                  )}
+                  {detectedName && (
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-2 font-medium">
+                      ✓ Detected: {detectedName}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Player Type
@@ -116,18 +227,21 @@ export function PlayerCardsPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Select Player
+                Player Name {detectedName && <span className="text-green-600 dark:text-green-400 text-xs">(auto-detected)</span>}
               </label>
               <select
                 value={selectedPlayer}
                 onChange={(e) => setSelectedPlayer(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
-                <option value="">-- Select Player --</option>
+                <option value="">-- Select or confirm player --</option>
                 {allPlayers.map(name => (
                   <option key={name} value={name}>{name}</option>
                 ))}
               </select>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Auto-detected from image, or manually select if incorrect
+              </p>
             </div>
 
             <div>
