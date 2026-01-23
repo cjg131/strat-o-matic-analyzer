@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { db, storage } from '../config/firebase';
+import { db } from '../config/firebase';
 import { PlayerCard } from '../types/playerCard';
 
 export function usePlayerCards() {
@@ -39,13 +38,13 @@ export function usePlayerCards() {
     playerId?: string
   ): Promise<string> => {
     try {
-      // Upload image to Firebase Storage
-      const timestamp = Date.now();
-      const fileName = `player-cards/${playerType}/${playerName.replace(/[^a-zA-Z0-9]/g, '_')}_${timestamp}.${file.name.split('.').pop()}`;
-      const storageRef = ref(storage, fileName);
-      
-      await uploadBytes(storageRef, file);
-      const imageUrl = await getDownloadURL(storageRef);
+      // Convert image to base64 and store directly in Firestore
+      const reader = new FileReader();
+      const imageUrl = await new Promise<string>((resolve, reject) => {
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
       // Create Firestore document
       const cardData: Omit<PlayerCard, 'id'> = {
@@ -76,14 +75,7 @@ export function usePlayerCards() {
 
   const deletePlayerCard = async (cardId: string) => {
     try {
-      const card = playerCards.find(c => c.id === cardId);
-      if (!card) throw new Error('Card not found');
-
-      // Delete image from storage
-      const imageRef = ref(storage, card.imageUrl);
-      await deleteObject(imageRef);
-
-      // Delete Firestore document
+      // Delete Firestore document (image is stored as base64 in the document)
       await deleteDoc(doc(db, 'playerCards', cardId));
     } catch (err: any) {
       console.error('Error deleting player card:', err);
