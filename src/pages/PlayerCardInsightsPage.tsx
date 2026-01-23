@@ -201,6 +201,28 @@ export function PlayerCardInsightsPage() {
               </div>
             )}
           </div>
+          
+          {/* Debug Section - Show Raw Extracted Data */}
+          {playerCards.length > 0 && (
+            <div className="mt-6 bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-3">🔍 Debug: Extracted Data</h3>
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {playerCards.map(card => (
+                  <div key={card.id} className="border-b border-gray-200 dark:border-gray-600 pb-3">
+                    <p className="font-medium text-gray-900 dark:text-white mb-2">{card.playerName}</p>
+                    <pre className="text-xs text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 p-2 rounded overflow-x-auto">
+                      {JSON.stringify({
+                        defense: card.defense,
+                        running: card.running,
+                        hitting: card.hitting,
+                        pitching: card.pitching
+                      }, null, 2)}
+                    </pre>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
