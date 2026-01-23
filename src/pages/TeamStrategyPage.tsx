@@ -53,12 +53,14 @@ export function TeamStrategyPage() {
     pinchRunner: 'McGee, Willie (S, CF)',             // AA stealer, E balance, bench player
     
     // Defensive subs - bring in elite defenders late
-    defensiveReplacement1Player: 'Chase, Hal (R, 1B)',
-    defensiveReplacement1Position: '1B',
-    defensiveReplacement2Player: "O'Leary, Charley (R, 3B)",
-    defensiveReplacement2Position: '3B',
-    defensiveReplacement3Player: 'McGee, Willie (S, CF)',
-    defensiveReplacement3Position: 'LF',
+    // Only O'Leary at 3B needed - upgrades Lansford (2e8) to better range
+    // All other positions already have elite defense (Rodriguez 1e1 C, Chance 1e8 1B, Bowa 1e10 SS, Suzuki 1e1 CF, Gwynn 1e7 RF, Thomas 1e5 LF)
+    defensiveReplacement1Player: "O'Leary, Charley (R, 3B)",
+    defensiveReplacement1Position: '3B',
+    defensiveReplacement2Player: '',
+    defensiveReplacement2Position: '',
+    defensiveReplacement3Player: '',
+    defensiveReplacement3Position: '',
     defensiveReplacement4Player: '',
     defensiveReplacement4Position: '',
   });
