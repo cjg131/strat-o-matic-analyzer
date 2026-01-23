@@ -185,33 +185,50 @@ function extractDefense(text: string): { [position: string]: any } | undefined {
 }
 
 function extractHittingColumns(text: string): any {
-  // Look for hitting result patterns
-  // Columns are typically labeled with numbers or "vs LEFTY PITCHERS" / "vs RIGHTY PITCHERS"
+  // Look for hitting result patterns in the card
+  // The chart has results like: "1-10 HR", "#2-HR", "11-20 SI**", etc.
   
   const hitting: any = {
     vsLefty: { column1: [], column2: [], column3: [] },
-    vsRighty: { column4: [], column5: [], column6: [] }
+    vsRighty: { column4: [], column5: [], column6: [] },
+    rawText: text // Store raw text for debugging
   };
   
-  // This is a simplified extraction - in practice, you'd need more sophisticated
-  // parsing based on the exact card layout
-  const lines = text.split('\n');
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  
+  // Look for common hitting results
+  const resultPatterns = [
+    /(\d+-\d+)\s+(HR|SI|DO|TR|HOMERUN|SINGLE|DOUBLE|TRIPLE)/gi,
+    /(#\d+-?HR|#\d+-?SI)/gi,
+    /(\d+-\d+)\s+([a-z]{2,3})\([a-z0-9+]+\)/gi, // e.g., "1-10 fly(rf)B"
+    /(\d+-\d+)\s+([a-z]{2})\*+/gi, // e.g., "5-HR**"
+    /(lineout|flyout|strikeout|walk|gb|fly)/gi
+  ];
+  
+  let foundResults = 0;
   
   for (const line of lines) {
-    // Look for result patterns with dice rolls (e.g., "1-10 HR", "11-15 SI")
-    const resultMatch = line.match(/(\d+-\d+)\s+([A-Z]+)/);
-    if (resultMatch) {
-      // This would need more logic to determine which column
-      // For now, this is a placeholder
+    for (const pattern of resultPatterns) {
+      const matches = line.matchAll(pattern);
+      for (const match of matches) {
+        foundResults++;
+        // Store the full match for now
+        // We'll need the user to verify which column each result belongs to
+        if (line.toLowerCase().includes('lefty') || line.toLowerCase().includes('vs.l')) {
+          hitting.vsLefty.column1.push(match[0]);
+        } else if (line.toLowerCase().includes('righty') || line.toLowerCase().includes('vs.r')) {
+          hitting.vsRighty.column4.push(match[0]);
+        }
+      }
     }
   }
   
-  // Return undefined if no columns found
-  if (hitting.vsLefty.column1.length === 0 && hitting.vsRighty.column4.length === 0) {
-    return undefined;
+  // Return the hitting data if we found any results
+  if (foundResults > 0) {
+    return hitting;
   }
   
-  return hitting;
+  return undefined;
 }
 
 function extractPitchingColumns(text: string): any {
