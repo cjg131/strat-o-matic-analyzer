@@ -167,7 +167,7 @@ export function PlayerCardsPage() {
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) {
+    if (!selectedFile || !previewUrl) {
       alert('Please select or paste an image');
       return;
     }
@@ -175,13 +175,21 @@ export function PlayerCardsPage() {
     setUploading(true);
     try {
       const playerName = selectedPlayer || detectedName || 'Unknown Player';
-      await uploadPlayerCard(selectedFile, playerName, playerType);
+      
+      // Extract stats from card image
+      const { extractCardStats } = await import('../utils/cardOCR');
+      const extractedStats = await extractCardStats(previewUrl);
+      
+      // Upload card with extracted stats
+      await uploadPlayerCard(selectedFile, playerName, playerType, extractedStats);
+      
       setSelectedFile(null);
       setSelectedPlayer('');
       setPreviewUrl(null);
       setDetectedName('');
-      alert('Player card uploaded successfully!');
+      alert('Player card uploaded successfully with extracted stats!');
     } catch (error: any) {
+      console.error('Upload error:', error);
       alert(`Error uploading: ${error.message}`);
     } finally {
       setUploading(false);
