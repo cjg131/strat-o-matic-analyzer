@@ -99,13 +99,23 @@ export function PlayerCardsPage() {
         const displayName = detectedYear ? `${detectedPlayerName} (${detectedYear})` : detectedPlayerName;
         setDetectedName(displayName);
         
-        const allPlayers = [...hitters.map(h => h.name), ...pitchers.map(p => p.name)];
-        const matchedPlayer = findBestMatch(detectedPlayerName, allPlayers);
+        // Search in hitters first
+        const hitterNames = hitters.map(h => h.name);
+        const matchedHitter = findBestMatch(detectedPlayerName, hitterNames);
         
-        if (matchedPlayer) {
-          setSelectedPlayer(matchedPlayer);
-          const isHitter = hitters.some(h => h.name === matchedPlayer);
-          setPlayerType(isHitter ? 'hitter' : 'pitcher');
+        if (matchedHitter) {
+          setPlayerType('hitter');
+          // Use setTimeout to ensure state update completes
+          setTimeout(() => setSelectedPlayer(matchedHitter), 0);
+        } else {
+          // Search in pitchers
+          const pitcherNames = pitchers.map(p => p.name);
+          const matchedPitcher = findBestMatch(detectedPlayerName, pitcherNames);
+          
+          if (matchedPitcher) {
+            setPlayerType('pitcher');
+            setTimeout(() => setSelectedPlayer(matchedPitcher), 0);
+          }
         }
       }
     } catch (error) {
