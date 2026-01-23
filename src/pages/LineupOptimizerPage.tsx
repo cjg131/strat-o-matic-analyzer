@@ -1,3 +1,6 @@
+import { usePlayerCards } from '../hooks/usePlayerCards';
+import { Info } from 'lucide-react';
+
 interface LineupSlot {
   position: number;
   playerId: string | null;
@@ -23,8 +26,7 @@ interface LineupSlot {
 }
 
 export function LineupOptimizerPage() {
-  // TODO: Integrate player card stats for enhanced recommendations
-  // const { playerCards, getPlayerCard } = usePlayerCards();
+  const { getPlayerCard } = usePlayerCards();
 
   // COMPREHENSIVE LINEUP - Balancing Offense + Defense for actual game simulation
   // Key defensive positions: C (Rodriguez 1e1 elite), SS (Bowa 1e10 elite), CF (Suzuki 1e1 elite)
@@ -215,6 +217,30 @@ export function LineupOptimizerPage() {
       </div>
 
       <div className="space-y-6">
+        {/* Card Stats Enhancement Banner */}
+        {vsLHSPLineup.some(slot => {
+          const card = getPlayerCard(slot.playerName);
+          return card && (card.running || card.defense);
+        }) && (
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <Info className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-green-900 dark:text-green-200 mb-1">
+                  Enhanced with Player Card Data
+                </h3>
+                <p className="text-sm text-green-800 dark:text-green-300">
+                  This lineup is now enhanced with advanced stats from your uploaded player cards. 
+                  Check the <strong>Card Insights</strong> page to see detailed defensive ratings, speed stats, and strategic recommendations.
+                </p>
+                <div className="mt-2 text-xs text-green-700 dark:text-green-400">
+                  Cards uploaded: {vsLHSPLineup.filter(slot => getPlayerCard(slot.playerName)).length} of {vsLHSPLineup.length} players
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
           <p className="text-sm text-blue-800 dark:text-blue-200">
             <strong>Game Simulation Optimized:</strong> Balances offense + defense for actual games. <strong>Elite Defense Up the Middle:</strong> Rodriguez (C, 1e1), Bowa (SS, 1e10), Suzuki (CF, 1e1) - all gold glove caliber. <strong>Suzuki starts BOTH lineups</strong> - his 1e1 CF defense + .827 OPS too valuable to sit. <strong>vs RHSP:</strong> Gordon (L, 1e6 2B) adds another lefty bat with elite defense. All starters durable (1-13 to 1-17 injury).

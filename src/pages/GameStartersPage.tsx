@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { usePlayerCards } from '../hooks/usePlayerCards';
+import { Info } from 'lucide-react';
 
 interface Game {
   gameNumber: number;
@@ -16,6 +18,9 @@ interface GameDay {
 }
 
 export function GameStartersPage() {
+  const { playerCards } = usePlayerCards();
+  const pitcherCards = playerCards.filter(c => c.playerType === 'pitcher');
+  
   const [schedule] = useState<GameDay[]>([
     {
       date: 'Friday, 1/23',
@@ -113,6 +118,25 @@ export function GameStartersPage() {
           the rotation that you set in the Pitching Rotation section will be followed. After you've made your changes, press the "Save Starters" 
           button at the bottom of the page.
         </p>
+        
+        {/* Card Stats Enhancement Banner */}
+        {pitcherCards.length > 0 && (
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4">
+            <div className="flex items-start gap-3">
+              <Info className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-green-900 dark:text-green-200 mb-1">
+                  Enhanced with Pitcher Card Data
+                </h3>
+                <p className="text-sm text-green-800 dark:text-green-300">
+                  {pitcherCards.length} pitcher card{pitcherCards.length !== 1 ? 's' : ''} uploaded with endurance ratings and matchup data. 
+                  Check <strong>Card Insights</strong> for detailed pitcher analysis and rest requirements.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <p className="text-sm text-yellow-600 dark:text-yellow-400">
           You may not leave any empty spaces between pitchers (i.e. set pitchers for Games 2 and 4 and leave 3 empty). The exception is if you 
           have at least 1 starting pitcher injured for that game.
