@@ -55,23 +55,50 @@ export function PlayerCardsPage() {
     setDetecting(true);
     try {
       const Tesseract = (await import('tesseract.js')).default;
-      const { data: { text } } = await Tesseract.recognize(imageUrl, 'eng', {
+      
+      const img = new Image();
+      img.src = imageUrl;
+      await new Promise((resolve) => { img.onload = resolve; });
+      
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      
+      const topHeight = Math.min(150, img.height * 0.15);
+      canvas.width = img.width;
+      canvas.height = topHeight;
+      
+      ctx.drawImage(img, 0, 0, img.width, topHeight, 0, 0, img.width, topHeight);
+      
+      const croppedImageUrl = canvas.toDataURL();
+      
+      const { data: { text } } = await Tesseract.recognize(croppedImageUrl, 'eng', {
         logger: () => {}
       });
 
       const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
       
       let detectedPlayerName = '';
+      let detectedYear = '';
       
       for (const line of lines) {
-        const nameMatch = line.match(/^([A-Z][a-z]+(?:,\s*[A-Z]\.?)?(?:\s+[A-Z][a-z]+)*)/);
-        if (nameMatch && nameMatch[1].length > 3) {
-          detectedPlayerName = nameMatch[1];
+        const nameYearMatch = line.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s*\((\d{4})\)/i);
+        if (nameYearMatch) {
+          detectedPlayerName = nameYearMatch[1].trim();
+          detectedYear = nameYearMatch[2];
+          break;
+        }
+        
+        const nameOnlyMatch = line.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/);
+        if (nameOnlyMatch && nameOnlyMatch[1].length > 5 && !detectedPlayerName) {
+          detectedPlayerName = nameOnlyMatch[1].trim();
         }
       }
 
       if (detectedPlayerName) {
-        setDetectedName(detectedPlayerName);
+        const displayName = detectedYear ? `${detectedPlayerName} (${detectedYear})` : detectedPlayerName;
+        setDetectedName(displayName);
+        
         const allPlayers = [...hitters.map(h => h.name), ...pitchers.map(p => p.name)];
         const matchedPlayer = findBestMatch(detectedPlayerName, allPlayers);
         
