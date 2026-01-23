@@ -20,6 +20,7 @@ import { WantedPlayersPage } from './pages/WantedPlayersPage';
 import { LineupOptimizerPage } from './pages/LineupOptimizerPage';
 import { PitchingRotationPage } from './pages/PitchingRotationPage';
 import { PlayerCardsPage } from './pages/PlayerCardsPage';
+import { PlayerCardInsightsPage } from './pages/PlayerCardInsightsPage';
 import { PreDraftLayout } from './layouts/PreDraftLayout';
 import { SeasonLayout } from './layouts/SeasonLayout';
 import { Login } from './components/Login';
@@ -150,6 +151,7 @@ function App() {
                 <Route path="lineup-optimizer" element={<LineupOptimizerPage />} />
                 <Route path="pitching-rotation" element={<PitchingRotationPage />} />
                 <Route path="player-cards" element={<PlayerCardsPage />} />
+                <Route path="player-card-insights" element={<PlayerCardInsightsPage />} />
                 <Route path="hitters" element={<SeasonHittersPage />} />
                 <Route path="pitchers" element={<SeasonPitchersPage />} />
                 <Route path="overview" element={<SeasonOverviewPage />} />

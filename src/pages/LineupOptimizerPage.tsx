@@ -14,9 +14,17 @@ interface LineupSlot {
   backup1: string;
   backup2: string;
   platoonPH: string;
+  cardStats?: {
+    stealRating?: string;
+    runRating?: string;
+    bunting?: string;
+    defenseRatings?: string;
+  };
 }
 
 export function LineupOptimizerPage() {
+  // TODO: Integrate player card stats for enhanced recommendations
+  // const { playerCards, getPlayerCard } = usePlayerCards();
 
   // COMPREHENSIVE LINEUP - Balancing Offense + Defense for actual game simulation
   // Key defensive positions: C (Rodriguez 1e1 elite), SS (Bowa 1e10 elite), CF (Suzuki 1e1 elite)
