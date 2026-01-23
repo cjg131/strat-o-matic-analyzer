@@ -116,20 +116,32 @@ export function PlayerCardsPage() {
   };
 
   const findBestMatch = (detected: string, players: string[]): string | null => {
-    const normalizeForMatch = (str: string) => str.toLowerCase().replace(/[^a-z]/g, '');
-    const detectedNorm = normalizeForMatch(detected);
+    const detectedLower = detected.toLowerCase();
+    const detectedParts = detectedLower.split(/\s+/);
     
-    for (const player of players) {
-      const playerNorm = normalizeForMatch(player);
-      if (playerNorm.includes(detectedNorm) || detectedNorm.includes(playerNorm)) {
-        return player;
-      }
-    }
+    // Extract last name (usually first word for "FirstName LastName" format)
+    const detectedLastName = detectedParts[detectedParts.length - 1];
+    const detectedFirstName = detectedParts[0];
+    const detectedFirstInitial = detectedFirstName ? detectedFirstName[0] : '';
     
-    const detectedParts = detected.toLowerCase().split(/[,\s]+/);
     for (const player of players) {
       const playerLower = player.toLowerCase();
-      if (detectedParts.some(part => part.length > 2 && playerLower.includes(part))) {
+      
+      // Check for "LastName, F." format matching "FirstName LastName"
+      if (playerLower.includes(detectedLastName)) {
+        // Check if first initial matches
+        if (detectedFirstInitial && playerLower.includes(detectedFirstInitial + '.')) {
+          return player;
+        }
+        // Or if full first name is in the player string
+        if (detectedFirstName && playerLower.includes(detectedFirstName)) {
+          return player;
+        }
+      }
+      
+      // Fallback: check if last name is prominent in both
+      const playerParts = playerLower.split(/[,\s]+/);
+      if (playerParts[0] === detectedLastName || playerParts.some(part => part === detectedLastName)) {
         return player;
       }
     }
