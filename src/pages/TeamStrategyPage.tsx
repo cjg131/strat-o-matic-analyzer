@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { usePlayerCards } from '../hooks/usePlayerCards';
-import { Info } from 'lucide-react';
 
 interface TeamStrategy {
   // Tendencies
@@ -30,9 +28,6 @@ interface TeamStrategy {
 }
 
 export function TeamStrategyPage() {
-  const { playerCards } = usePlayerCards();
-  const hitterCards = playerCards.filter(c => c.playerType === 'hitter');
-  
   // Based on roster analysis:
   // - Elite speed: Gwynn (AA), Suzuki (AA), Gordon (AA), Matsui (AA), McGee (AA), Chance (AA), Chase (AA)
   // - Power: Thomas (12 HR), Rodriguez (35 HR)
