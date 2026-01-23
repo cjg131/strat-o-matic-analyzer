@@ -176,18 +176,15 @@ export function PlayerCardsPage() {
     try {
       const playerName = selectedPlayer || detectedName || 'Unknown Player';
       
-      // Extract stats from card image
-      const { extractCardStats } = await import('../utils/cardOCR');
-      const extractedStats = await extractCardStats(previewUrl);
-      
-      // Upload card with extracted stats
-      await uploadPlayerCard(selectedFile, playerName, playerType, extractedStats);
+      // Upload card - OCR extraction temporarily disabled to fix loading issue
+      // Will re-enable after fixing module bundling
+      await uploadPlayerCard(selectedFile, playerName, playerType);
       
       setSelectedFile(null);
       setSelectedPlayer('');
       setPreviewUrl(null);
       setDetectedName('');
-      alert('Player card uploaded successfully with extracted stats!');
+      alert('Player card uploaded successfully!');
     } catch (error: any) {
       console.error('Upload error:', error);
       alert(`Error uploading: ${error.message}`);
