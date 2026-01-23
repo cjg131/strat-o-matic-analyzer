@@ -167,17 +167,19 @@ export function PlayerCardsPage() {
   };
 
   const handleUpload = async () => {
-    if (!selectedFile || !selectedPlayer) {
-      alert('Please select a file and player');
+    if (!selectedFile) {
+      alert('Please select or paste an image');
       return;
     }
 
     setUploading(true);
     try {
-      await uploadPlayerCard(selectedFile, selectedPlayer, playerType);
+      const playerName = selectedPlayer || detectedName || 'Unknown Player';
+      await uploadPlayerCard(selectedFile, playerName, playerType);
       setSelectedFile(null);
       setSelectedPlayer('');
       setPreviewUrl(null);
+      setDetectedName('');
       alert('Player card uploaded successfully!');
     } catch (error: any) {
       alert(`Error uploading: ${error.message}`);
@@ -276,20 +278,20 @@ export function PlayerCardsPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Player Name {detectedName && <span className="text-green-600 dark:text-green-400 text-xs">(auto-detected)</span>}
+                Player Name (Optional) {detectedName && <span className="text-green-600 dark:text-green-400 text-xs">(auto-detected)</span>}
               </label>
               <select
                 value={selectedPlayer}
                 onChange={(e) => setSelectedPlayer(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
-                <option value="">-- Select or confirm player --</option>
+                <option value="">-- Optional: Select player to link card --</option>
                 {allPlayers.map(name => (
                   <option key={name} value={name}>{name}</option>
                 ))}
               </select>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Auto-detected from image, or manually select if incorrect
+                You can upload now and link to a player later
               </p>
             </div>
 
@@ -307,7 +309,7 @@ export function PlayerCardsPage() {
 
             <button
               onClick={handleUpload}
-              disabled={!selectedFile || !selectedPlayer || uploading}
+              disabled={!selectedFile || uploading}
               className="w-full px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
               {uploading ? 'Uploading...' : 'Upload Player Card'}
