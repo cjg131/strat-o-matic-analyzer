@@ -185,6 +185,9 @@ export function processHittersFromRawData(jsonData: any[]): ImportResult<Hitter>
         stolenBases: parseInt(normalizedRow.stolenbases || normalizedRow.sb || '0') || 0,
         caughtStealing: parseInt(normalizedRow.caughtstealing || normalizedRow.cs || '0') || 0,
         games: parseInt(normalizedRow.games || normalizedRow.g || '0') || 0,
+        ba: parseFloat(normalizedRow.ba || normalizedRow.avg || normalizedRow.battingaverage || '0') || undefined,
+        obp: parseFloat(normalizedRow.obp || normalizedRow.onbasepercentage || '0') || undefined,
+        slg: parseFloat(normalizedRow.slg || normalizedRow.slugging || normalizedRow.sluggingpercentage || '0') || undefined,
       };
 
       hitters.push(hitter);
