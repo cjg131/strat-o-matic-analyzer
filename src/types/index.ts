@@ -31,6 +31,9 @@ export interface Hitter {
   caughtStealing: number;
   plateAppearances: number;
   games: number;
+  ba?: number; // Batting Average
+  obp?: number; // On-Base Percentage
+  slg?: number; // Slugging Percentage
 }
 
 export interface HitterWithStats extends Hitter {

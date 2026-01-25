@@ -46,6 +46,9 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWa
     pa: 70,
     ab: 70,
     h: 60,
+    ba: 70,
+    obp: 70,
+    slg: 70,
     singles: 60,
     doubles: 60,
     triples: 60,
@@ -571,6 +574,18 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWa
                 <SortButton field="h" label="H" />
                 <ResizeHandle columnKey="h" />
               </th>
+              <th data-column-key="ba" style={{ width: getColumnWidth('ba') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="ba" label="BA" />
+                <ResizeHandle columnKey="ba" />
+              </th>
+              <th data-column-key="obp" style={{ width: getColumnWidth('obp') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="obp" label="OBP" />
+                <ResizeHandle columnKey="obp" />
+              </th>
+              <th data-column-key="slg" style={{ width: getColumnWidth('slg') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="slg" label="SLG" />
+                <ResizeHandle columnKey="slg" />
+              </th>
               <th data-column-key="singles" style={{ width: getColumnWidth('singles') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="singles" label="1B" />
                 <ResizeHandle columnKey="singles" />
@@ -685,6 +700,9 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWa
                 <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300">{hitter.plateAppearances}</td>
                 <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300">{hitter.ab}</td>
                 <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300">{hitter.h}</td>
+                <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300 font-semibold">{hitter.ba ? hitter.ba.toFixed(3) : '-'}</td>
+                <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300 font-semibold">{hitter.obp ? hitter.obp.toFixed(3) : '-'}</td>
+                <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300 font-semibold">{hitter.slg ? hitter.slg.toFixed(3) : '-'}</td>
                 <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300">{hitter.singles}</td>
                 <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300">{hitter.doubles}</td>
                 <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300">{hitter.triples}</td>

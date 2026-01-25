@@ -6,6 +6,36 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
+    // Allow authenticated users to access hitters collection
+    match /hitters/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Allow authenticated users to access pitchers collection
+    match /pitchers/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Allow authenticated users to access ballparks collection
+    match /ballparks/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Allow authenticated users to access playerCards collection
+    match /playerCards/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Allow authenticated users to access teamRosters collection
+    match /teamRosters/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Allow authenticated users to access wantedPlayers collection
+    match /wantedPlayers/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
     // Deny all other access
     match /{document=**} {
       allow read, write: if false;
