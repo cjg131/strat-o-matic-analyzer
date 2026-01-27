@@ -5,8 +5,22 @@ import rosterData from '../../roster-assignments.json';
  * Matches players by name and year in format "LastName, Initial (Year)"
  */
 export function assignRosterToPlayer(playerName: string, year: string): string | undefined {
-  // Format the player identifier to match roster format: "LastName, I. (Year)"
-  const playerIdentifier = `${playerName} (${year})`;
+  // Parse the player name to extract last name and first initial
+  // Handle formats like "Ruth, Babe" or "Ruth, B." or "Ruth, B"
+  const nameParts = playerName.split(',').map(p => p.trim());
+  if (nameParts.length < 2) {
+    return undefined; // Can't match without proper format
+  }
+  
+  const lastName = nameParts[0].trim();
+  const firstName = nameParts[1].trim();
+  const firstInitial = firstName.charAt(0).toUpperCase();
+  
+  // Create matching patterns
+  // Pattern 1: "LastName, I. (Year)" - roster format with period
+  // Pattern 2: "LastName, I (Year)" - roster format without period
+  const pattern1 = `${lastName}, ${firstInitial}. (${year})`.toLowerCase();
+  const pattern2 = `${lastName}, ${firstInitial} (${year})`.toLowerCase();
   
   // Search through all rosters
   for (const [rosterName, rosterPlayers] of Object.entries(rosterData.rosters)) {
@@ -17,16 +31,28 @@ export function assignRosterToPlayer(playerName: string, year: string): string |
     ];
     
     // Check if this player is on this roster
-    // Use flexible matching to handle slight variations in formatting
     const isOnRoster = allPlayers.some(rosterPlayer => {
-      // Normalize both strings for comparison
-      const normalizedRosterPlayer = rosterPlayer.toLowerCase().replace(/\s+/g, ' ').trim();
-      const normalizedPlayerIdentifier = playerIdentifier.toLowerCase().replace(/\s+/g, ' ').trim();
+      const normalizedRosterPlayer = rosterPlayer.toLowerCase().trim();
       
-      // Check if the roster player string contains the player identifier
-      // This handles cases where the roster might have "LastName, F. (1999)" and we're looking for "LastName, F (1999)"
-      return normalizedRosterPlayer.includes(normalizedPlayerIdentifier) || 
-             normalizedPlayerIdentifier.includes(normalizedRosterPlayer);
+      // Try exact match with both patterns
+      if (normalizedRosterPlayer === pattern1 || normalizedRosterPlayer === pattern2) {
+        return true;
+      }
+      
+      // Also try matching just the name part before the year
+      const rosterNamePart = normalizedRosterPlayer.split('(')[0].trim();
+      const pattern1NamePart = pattern1.split('(')[0].trim();
+      const pattern2NamePart = pattern2.split('(')[0].trim();
+      
+      if (rosterNamePart === pattern1NamePart || rosterNamePart === pattern2NamePart) {
+        // If name matches, also check year
+        const yearMatch = normalizedRosterPlayer.match(/\((\d{4})\)/);
+        if (yearMatch && yearMatch[1] === year) {
+          return true;
+        }
+      }
+      
+      return false;
     });
     
     if (isOnRoster) {
