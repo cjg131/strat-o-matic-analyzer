@@ -9,6 +9,7 @@ import { calculateHitterStats } from '../utils/calculations';
 import { importHittersFromFile, exportHittersToExcel } from '../utils/importData';
 import { saveRawImportData } from '../services/firestore';
 import { assignRosterToPlayer } from '../utils/rosterAssignment';
+import { diagnoseRosterMismatches } from '../utils/rosterDiagnostic';
 import type { HitterWithStats } from '../types';
 
 export function SeasonHittersPage() {
@@ -94,7 +95,11 @@ export function SeasonHittersPage() {
       return;
     }
 
-    if (!confirm('This will update all hitter rosters based on roster-assignments.json. Continue?')) {
+    // Run diagnostic first
+    console.log('\n🔍 Running roster diagnostic...\n');
+    diagnoseRosterMismatches(hitters);
+
+    if (!confirm('This will update all hitter rosters based on roster-assignments.json. Check console for diagnostic. Continue?')) {
       return;
     }
 
