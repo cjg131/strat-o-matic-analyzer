@@ -6,15 +6,22 @@ import rosterData from '../../roster-assignments.json';
  */
 export function assignRosterToPlayer(playerName: string, year: string): string | undefined {
   // Parse the player name to extract last name and first initial
-  // Handle formats like "Ruth, Babe" or "Ruth, B." or "Ruth, B"
+  // Handle formats like "Ruth, Babe" or "Ruth, B." or "Ruth, B" or "Griffey Jr, Ken"
   const nameParts = playerName.split(',').map(p => p.trim());
   if (nameParts.length < 2) {
+    console.warn(`[Roster Assignment] Invalid name format: "${playerName}"`);
     return undefined; // Can't match without proper format
   }
   
-  const lastName = nameParts[0].trim();
+  let lastName = nameParts[0].trim();
   const firstName = nameParts[1].trim();
   const firstInitial = firstName.charAt(0).toUpperCase();
+  
+  // Handle suffixes like "Jr", "Sr", "III" in last name
+  // e.g., "Griffey Jr" should match "Griffey Jr, K. (1997)"
+  const lastNameLower = lastName.toLowerCase();
+  const hasSuffix = lastNameLower.includes(' jr') || lastNameLower.includes(' sr') || 
+                    lastNameLower.includes(' iii') || lastNameLower.includes(' ii');
   
   // Create matching patterns
   // Pattern 1: "LastName, I. (Year)" - roster format with period
@@ -36,6 +43,7 @@ export function assignRosterToPlayer(playerName: string, year: string): string |
       
       // Try exact match with both patterns
       if (normalizedRosterPlayer === pattern1 || normalizedRosterPlayer === pattern2) {
+        console.log(`[Roster Assignment] ✓ Exact match: "${playerName}" (${year}) → ${rosterName}`);
         return true;
       }
       
@@ -45,10 +53,16 @@ export function assignRosterToPlayer(playerName: string, year: string): string |
       const pattern2NamePart = pattern2.split('(')[0].trim();
       
       if (rosterNamePart === pattern1NamePart || rosterNamePart === pattern2NamePart) {
-        // If name matches, also check year
-        const yearMatch = normalizedRosterPlayer.match(/\((\d{4})\)/);
-        if (yearMatch && yearMatch[1] === year) {
-          return true;
+        // If name matches, check year (handle both regular years and "NeL")
+        const yearMatch = normalizedRosterPlayer.match(/\(([\w]+)\)/);
+        if (yearMatch) {
+          const rosterYear = yearMatch[1];
+          // Match if years are the same, or if roster has "nel" and player year is "NeL"
+          if (rosterYear === year.toLowerCase() || 
+              (rosterYear === 'nel' && year.toLowerCase() === 'nel')) {
+            console.log(`[Roster Assignment] ✓ Name+Year match: "${playerName}" (${year}) → ${rosterName}`);
+            return true;
+          }
         }
       }
       
@@ -59,6 +73,10 @@ export function assignRosterToPlayer(playerName: string, year: string): string |
       return rosterName;
     }
   }
+  
+  // Log unmatched players for debugging
+  console.log(`[Roster Assignment] ✗ No match found for: "${playerName}" (${year})`);
+  console.log(`  Tried patterns: "${pattern1}" and "${pattern2}"`);
   
   // Player not found on any roster - they're a free agent
   return undefined;
