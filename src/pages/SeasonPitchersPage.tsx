@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Upload, Download } from 'lucide-react';
+import { Upload, Download, RefreshCw } from 'lucide-react';
 import { usePitchers } from '../hooks/usePitchers';
 import { useScoringWeights } from '../hooks/useScoringWeights';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,14 +8,16 @@ import { PitchersTable } from '../components/PitchersTable';
 import { calculatePitcherStats } from '../utils/calculations';
 import { importPitchersFromFile, exportPitchersToExcel } from '../utils/importData';
 import { saveRawImportData } from '../services/firestore';
+import { assignRosterToPlayer } from '../utils/rosterAssignment';
 import type { PitcherWithStats } from '../types';
 
 export function SeasonPitchersPage() {
-  const { pitchers, addMultiplePitchers } = usePitchers();
+  const { pitchers, addMultiplePitchers, updatePitcher } = usePitchers();
   const { weights } = useScoringWeights();
   const { currentUser } = useAuth();
   const { addPlayer, isPlayerWanted } = useWantedPlayers();
   const [importing, setImporting] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const pitchersWithStats: PitcherWithStats[] = pitchers.map((pitcher) =>
@@ -85,6 +87,39 @@ export function SeasonPitchersPage() {
     }
   };
 
+  const handleSyncRosters = async () => {
+    if (!currentUser) {
+      alert('You must be logged in to sync rosters');
+      return;
+    }
+
+    if (!confirm('This will update all pitcher rosters based on roster-assignments.json. Continue?')) {
+      return;
+    }
+
+    setSyncing(true);
+    try {
+      let updatedCount = 0;
+      
+      for (const pitcher of pitchers) {
+        const assignedRoster = assignRosterToPlayer(pitcher.name, pitcher.season);
+        const newRoster = assignedRoster || '';
+        
+        // Only update if roster changed
+        if (pitcher.roster !== newRoster) {
+          await updatePitcher(pitcher.id, { ...pitcher, roster: newRoster });
+          updatedCount++;
+        }
+      }
+      
+      alert(`Successfully synced rosters! Updated ${updatedCount} pitcher(s).`);
+    } catch (err) {
+      alert(`Failed to sync rosters: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const handleExport = () => {
     if (pitchers.length === 0) {
       alert('No pitchers to export');
@@ -112,6 +147,14 @@ export function SeasonPitchersPage() {
             onChange={handleImport}
             className="hidden"
           />
+          <button
+            onClick={handleSyncRosters}
+            disabled={syncing || pitchers.length === 0}
+            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50"
+          >
+            <RefreshCw className="h-5 w-5" />
+            {syncing ? 'Syncing...' : 'Sync Rosters'}
+          </button>
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={importing}
