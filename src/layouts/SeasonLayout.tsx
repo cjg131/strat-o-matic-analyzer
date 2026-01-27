@@ -5,160 +5,48 @@ export function SeasonLayout() {
 
   const isActive = (path: string) => location.pathname === path;
 
+  const tabs = [
+    // Player Data
+    { path: '/season/hitters', label: 'Hitters' },
+    { path: '/season/pitchers', label: 'Pitchers' },
+    { path: '/season/team-rosters', label: 'Team Rosters' },
+    
+    // Team Management
+    { path: '/season/hitter-preferences', label: 'Hitter Preferences' },
+    { path: '/season/pitcher-preferences', label: 'Pitcher Preferences' },
+    { path: '/season/team-strategy', label: 'Team Strategy' },
+    
+    // Analysis & Planning
+    { path: '/season/opponent-analysis', label: 'Opponent Analysis' },
+    { path: '/season/game-starters', label: 'Game Starters' },
+    { path: '/season/wanted-players', label: 'Wanted Players' },
+    
+    // Optimization Tools
+    { path: '/season/lineup-optimizer', label: 'Lineup Optimizer' },
+    { path: '/season/pitching-rotation', label: 'Pitching Rotation' },
+    
+    // Player Cards
+    { path: '/season/player-cards', label: 'Player Cards' },
+    { path: '/season/player-card-insights', label: 'Card Insights' },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
-        <nav className="flex space-x-2 overflow-x-auto">
-          <Link
-            to="/season/hitter-preferences"
-            className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
-              isActive('/season/hitter-preferences')
-                ? 'bg-primary-600 text-white'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            Hitter Preferences
-          </Link>
-          <Link
-            to="/season/pitcher-preferences"
-            className={`px-4 py-2 rounded-md transition-colors ${
-              location.pathname === '/season/pitcher-preferences'
-                ? 'bg-primary-600 text-white'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            Pitcher Preferences
-          </Link>
-          <Link
-            to="/season/team-strategy"
-            className={`px-4 py-2 rounded-md transition-colors ${
-              location.pathname === '/season/team-strategy'
-                ? 'bg-primary-600 text-white'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            Team Strategy
-          </Link>
-          <Link
-            to="/season/opponent-analysis"
-            className={`px-4 py-2 rounded-md transition-colors ${
-              location.pathname === '/season/opponent-analysis'
-                ? 'bg-primary-600 text-white'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            Opponent Analysis
-          </Link>
-          <Link
-            to="/season/game-starters"
-            className={`px-4 py-2 rounded-md transition-colors ${
-              location.pathname === '/season/game-starters'
-                ? 'bg-primary-600 text-white'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            Game Starters
-          </Link>
-          <Link
-            to="/season/wanted-players"
-            className={`px-4 py-2 rounded-md transition-colors ${
-              location.pathname === '/season/wanted-players'
-                ? 'bg-primary-600 text-white'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            Wanted Players
-          </Link>
-          <Link
-            to="/season/lineup-optimizer"
-            className={`px-4 py-2 rounded-md transition-colors ${
-              location.pathname === '/season/lineup-optimizer'
-                ? 'bg-primary-600 text-white'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            Lineup Optimizer
-          </Link>
-          <Link
-            to="/season/pitching-rotation"
-            className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
-              isActive('/season/pitching-rotation')
-                ? 'bg-primary-600 text-white'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            Pitching Rotation
-          </Link>
-          <Link
-            to="/season/player-cards"
-            className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
-              isActive('/season/player-cards')
-                ? 'bg-primary-600 text-white'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            Player Cards
-          </Link>
-          <Link
-            to="/season/player-card-insights"
-            className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
-              isActive('/season/player-card-insights')
-                ? 'bg-primary-600 text-white'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            Card Insights
-          </Link>
-          <Link
-            to="/season/roster-import"
-            className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
-              isActive('/season/roster-import')
-                ? 'bg-primary-600 text-white'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            Roster Import
-          </Link>
-          <Link
-            to="/season/hitters"
-            className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
-              isActive('/season/hitters')
-                ? 'bg-primary-600 text-white'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            Hitters
-          </Link>
-          <Link
-            to="/season/pitchers"
-            className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
-              isActive('/season/pitchers')
-                ? 'bg-primary-600 text-white'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            Pitchers
-          </Link>
-          <Link
-            to="/season/team-rosters"
-            className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
-              isActive('/season/team-rosters')
-                ? 'bg-primary-600 text-white'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            Team Rosters
-          </Link>
-          <Link
-            to="/season/overview"
-            className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
-              isActive('/season/overview')
-                ? 'bg-primary-600 text-white'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            Overview
-          </Link>
+        <nav className="flex flex-wrap gap-2">
+          {tabs.map((tab) => (
+            <Link
+              key={tab.path}
+              to={tab.path}
+              className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
+                isActive(tab.path)
+                  ? 'bg-primary-600 text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              {tab.label}
+            </Link>
+          ))}
         </nav>
       </div>
       
