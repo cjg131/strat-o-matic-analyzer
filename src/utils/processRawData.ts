@@ -1,5 +1,6 @@
 import type { Hitter, Pitcher } from '../types';
 import type { ImportResult } from './importData';
+import { assignRosterToPlayer } from './rosterAssignment';
 
 function normalizeHeader(header: string): string {
   return header.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
@@ -139,11 +140,15 @@ export function processHittersFromRawData(jsonData: any[]): ImportResult<Hitter>
         fieldingError = defensivePositions[0].error;
       }
 
+      const playerName = String(name);
+      const season = String(normalizedRow.yr || normalizedRow.year || normalizedRow.season || '');
+      
       const hitter: Hitter = {
         id: crypto.randomUUID(),
-        name: String(name),
-        season: String(normalizedRow.yr || normalizedRow.year || normalizedRow.season || ''),
+        name: playerName,
+        season,
         team: normalizedRow.team || normalizedRow.tm || '',
+        roster: assignRosterToPlayer(playerName, season) || '',
         positions,
         defensivePositions,
         salary: parseFloat(normalizedRow.salary || normalizedRow.sal || normalizedRow.price || '0') || 0,
@@ -232,11 +237,15 @@ export function processPitchersFromRawData(jsonData: any[]): ImportResult<Pitche
         }
       }
 
+      const playerName = String(name);
+      const season = String(normalizedRow.yr || normalizedRow.year || normalizedRow.season || '');
+      
       const pitcher: Pitcher = {
         id: crypto.randomUUID(),
-        name: String(name),
-        season: String(normalizedRow.yr || normalizedRow.year || normalizedRow.season || ''),
+        name: playerName,
+        season,
         team: normalizedRow.team || normalizedRow.tm || '',
+        roster: assignRosterToPlayer(playerName, season) || '',
         salary: parseFloat(normalizedRow.salary || normalizedRow.sal || normalizedRow.price || '0') || 0,
         inningsPitched: parseFloat(normalizedRow.inningspitched || normalizedRow.ip || '0') || 0,
         strikeouts: parseInt(normalizedRow.strikeouts || normalizedRow.k || normalizedRow.so || '0') || 0,
