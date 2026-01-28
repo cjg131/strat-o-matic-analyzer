@@ -51,19 +51,33 @@ function getPrimaryPosition(positions: string[] | string): string {
 
 // Helper to get platoon advantage score
 function getPlatoonScore(batterBalance: string, pitcherHand: 'L' | 'R'): number {
-  // Balance: L = left-handed, R = right-handed, S = switch, E = even
-  const batter = batterBalance?.charAt(0)?.toUpperCase() || 'E';
+  // Balance format: "1R", "9L", "E", "S" (number indicates platoon strength)
+  if (!batterBalance) return 1.0;
+  
+  const balanceUpper = batterBalance.toUpperCase();
+  
+  // Extract the letter (L, R, S, or E)
+  const match = balanceUpper.match(/([LRSE])/);
+  if (!match) return 1.0;
+  
+  const batter = match[1];
   
   if (batter === 'S') return 1.1; // Switch hitters always have advantage
   if (batter === 'E') return 1.0; // Even split, no advantage
   
+  // Extract platoon strength (1-9, where 9 is strongest platoon split)
+  const strengthMatch = balanceUpper.match(/(\d+)/);
+  const strength = strengthMatch ? parseInt(strengthMatch[1]) : 5;
+  
   // L batter vs R pitcher = advantage
   // R batter vs L pitcher = advantage
   if ((batter === 'L' && pitcherHand === 'R') || (batter === 'R' && pitcherHand === 'L')) {
-    return 1.15; // Platoon advantage
+    // Platoon advantage: stronger split = bigger advantage
+    return 1.0 + (strength * 0.02); // 1R = 1.02x, 9R = 1.18x
   }
   
-  return 0.85; // Platoon disadvantage
+  // Wrong platoon: stronger split = bigger disadvantage
+  return 1.0 - (strength * 0.02); // 1R vs LHP = 0.98x, 9R vs LHP = 0.82x
 }
 
 // Helper to optimize lineup order based on stats and platoon matchup
