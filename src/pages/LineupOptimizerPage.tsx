@@ -80,20 +80,36 @@ function getPlatoonScore(batterBalance: string, pitcherHand: 'L' | 'R'): number 
   return 1.0 - (strength * 0.02); // 1R vs LHP = 0.98x, 9R vs LHP = 0.82x
 }
 
-// Helper to check if player can play position
-function canPlayPosition(hitter: HitterWithStats, position: string): boolean {
-  const positions: string | string[] = hitter.positions;
-  const positionUpper = position.toUpperCase();
+// Helper to get defensive rating for a position (lower is better)
+function getDefensiveRating(hitter: HitterWithStats, position: string): number {
+  if (!hitter.defensivePositions || !Array.isArray(hitter.defensivePositions)) {
+    return 999; // No defensive data
+  }
   
-  if (typeof positions === 'string') {
-    // Handle both "SS" and "ss" by converting to uppercase
-    return positions.toUpperCase().includes(positionUpper);
+  const posLower = position.toLowerCase();
+  const defPos = hitter.defensivePositions.find(dp => dp.position === posLower);
+  
+  if (!defPos) return 999; // Can't play this position
+  
+  // Lower is better: range (1 best, 5 worst) + error (lower better)
+  // Weight range more heavily as it's more important
+  return (defPos.range * 2) + defPos.error;
+}
+
+// Helper to get player's best position from available positions
+function getBestPosition(hitter: HitterWithStats, availablePositions: string[]): string | null {
+  let bestPos = null;
+  let bestRating = 999;
+  
+  for (const pos of availablePositions) {
+    const rating = getDefensiveRating(hitter, pos);
+    if (rating < bestRating) {
+      bestRating = rating;
+      bestPos = pos;
+    }
   }
-  if (Array.isArray(positions)) {
-    // Handle array of positions
-    return (positions as string[]).some(p => p.toUpperCase() === positionUpper);
-  }
-  return false;
+  
+  return bestPos;
 }
 
 // Helper to optimize lineup order based on stats and platoon matchup
@@ -112,32 +128,51 @@ function optimizeLineupOrder(hitters: HitterWithStats[], pitcherHand: 'L' | 'R')
     return bPlatoonOPS - aPlatoonOPS;
   });
   
-  // Build lineup ensuring all positions are covered
-  // Priority order: C, SS, CF (most important defensive positions first)
-  const positionPriority = ['C', 'SS', 'CF', '2B', '3B', '1B', 'LF', 'RF'];
-  const selectedPlayers: HitterWithStats[] = [];
-  const usedPlayers = new Set<string>();
+  // Build lineup ensuring all positions are covered with best defenders
+  const allPositions = ['C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
+  const playerAssignments = new Map<string, string>(); // playerId -> position
   const filledPositions = new Set<string>();
   
-  // First pass: fill positions in priority order with best available players
+  // Strategy: For each position, find the best defender who can play it
+  // Priority order: C, SS, CF (most important defensive positions first)
+  const positionPriority = ['C', 'SS', 'CF', '2B', '3B', '1B', 'LF', 'RF'];
+  
   for (const position of positionPriority) {
-    const bestForPosition = sorted.find(h => 
-      !usedPlayers.has(h.id) && canPlayPosition(h, position)
-    );
+    // Find best defender for this position among unassigned players
+    let bestPlayer: HitterWithStats | null = null;
+    let bestDefRating = 999;
     
-    if (bestForPosition) {
-      selectedPlayers.push(bestForPosition);
-      usedPlayers.add(bestForPosition.id);
+    for (const player of sorted) {
+      if (playerAssignments.has(player.id)) continue; // Already assigned
+      
+      const defRating = getDefensiveRating(player, position);
+      if (defRating < bestDefRating) {
+        bestDefRating = defRating;
+        bestPlayer = player;
+      }
+    }
+    
+    if (bestPlayer) {
+      playerAssignments.set(bestPlayer.id, position);
       filledPositions.add(position);
     }
   }
   
-  // If we don't have 8 players yet, fill remaining spots with best available
+  // Get the assigned players in order of their offensive value
+  const selectedPlayers = sorted.filter(h => playerAssignments.has(h.id));
+  
+  // If we don't have 8 players, add best remaining
   while (selectedPlayers.length < 8 && selectedPlayers.length < sorted.length) {
-    const nextBest = sorted.find(h => !usedPlayers.has(h.id));
+    const nextBest = sorted.find(h => !playerAssignments.has(h.id));
     if (nextBest) {
       selectedPlayers.push(nextBest);
-      usedPlayers.add(nextBest.id);
+      // Assign to best available position
+      const openPositions = allPositions.filter(p => !filledPositions.has(p));
+      const bestPos = getBestPosition(nextBest, openPositions);
+      if (bestPos) {
+        playerAssignments.set(nextBest.id, bestPos);
+        filledPositions.add(bestPos);
+      }
     } else {
       break;
     }
