@@ -1,5 +1,9 @@
 import { usePlayerCards } from '../hooks/usePlayerCards';
+import { useHitters } from '../hooks/useHitters';
+import { useScoringWeights } from '../hooks/useScoringWeights';
+import { calculateHitterStats } from '../utils/calculations';
 import { Info } from 'lucide-react';
+import type { HitterWithStats } from '../types';
 
 interface LineupSlot {
   position: number;
@@ -25,37 +29,94 @@ interface LineupSlot {
   };
 }
 
+// Helper to get primary position from positions array
+function getPrimaryPosition(positions: string[] | string): string {
+  if (!positions) return 'DH';
+  
+  // Handle string input
+  if (typeof positions === 'string') {
+    return positions || 'DH';
+  }
+  
+  // Handle array input
+  if (positions.length === 0) return 'DH';
+  
+  // Prioritize defensive positions: C, SS, CF, 2B, 3B, 1B, LF, RF
+  const priority = ['C', 'SS', 'CF', '2B', '3B', '1B', 'LF', 'RF', 'DH'];
+  for (const pos of priority) {
+    if (positions.includes(pos)) return pos;
+  }
+  return positions[0];
+}
+
+// Helper to optimize lineup order based on stats
+function optimizeLineupOrder(hitters: HitterWithStats[]): HitterWithStats[] {
+  // Filter to only rostered players (Manhattan WOW Award Stars)
+  const roster = hitters.filter(h => h.roster === 'Manhattan WOW Award Stars');
+  
+  if (roster.length === 0) return [];
+  
+  // Sort by OBP for top of order, then by SLG for power
+  const sorted = [...roster].sort((a, b) => {
+    const aOBP = a.obp || 0;
+    const bOBP = b.obp || 0;
+    const aSLG = a.slg || 0;
+    const bSLG = b.slg || 0;
+    
+    // High OBP at top
+    if (Math.abs(aOBP - bOBP) > 0.05) return bOBP - aOBP;
+    // Then by power
+    return bSLG - aSLG;
+  });
+  
+  return sorted;
+}
+
 export function LineupOptimizerPage() {
   const { getPlayerCard } = usePlayerCards();
-
-  // COMPREHENSIVE LINEUP - Balancing Offense + Defense for actual game simulation
-  // Key defensive positions: C (Rodriguez 1e1 elite), SS (Bowa 1e10 elite), CF (Suzuki 1e1 elite)
-  // Suzuki MUST start both lineups - elite 1e1 CF defense + .827 OPS
+  const { hitters } = useHitters();
+  const { weights } = useScoringWeights();
   
-  // vs LHSP - Suzuki's defense too valuable to sit, even as lefty vs lefty
-  const vsLHSPLineup: LineupSlot[] = [
-    { position: 1, playerId: '1', playerName: 'Suzuki, I. (2007)', pos: 'CF', def: '1(-5)e1', bal: '1', simBA: 0.351, simOBP: 0.396, simSLG: 0.431, realBA: 0.431, realOBP: 0.434, realSLG: 0.529, backup1: 'McGee, W.', backup2: '', platoonPH: '' },
-    { position: 2, playerId: '2', playerName: 'Gwynn, T. (1987)', pos: 'RF', def: '1(-2)e7', bal: '1', simBA: 0.370, simOBP: 0.447, simSLG: 0.511, realBA: 0.370, realOBP: 0.400, realSLG: 0.511, backup1: '', backup2: '', platoonPH: '' },
-    { position: 3, playerId: '3', playerName: 'Rodriguez, I. (1999)', pos: 'C', def: '1(-5)e1', bal: '1', simBA: 0.332, simOBP: 0.356, simSLG: 0.558, realBA: 0.346, realOBP: 0.346, realSLG: 0.481, backup1: 'Killefer, B.', backup2: '', platoonPH: '' },
-    { position: 4, playerId: '4', playerName: 'Chance, F. (1906)', pos: '1B', def: '1e8', bal: '1', simBA: 0.319, simOBP: 0.419, simSLG: 0.430, realBA: 0.361, realOBP: 0.489, realSLG: 0.472, backup1: 'Chase, H.', backup2: '', platoonPH: '' },
-    { position: 5, playerId: '5', playerName: 'Thomas, H. (1924)', pos: 'LF', def: '1(-3)e5', bal: '1', simBA: 0.300, simOBP: 0.357, simSLG: 0.467, realBA: 0.267, realOBP: 0.333, realSLG: 0.556, backup1: '', backup2: '', platoonPH: '' },
-    { position: 6, playerId: '6', playerName: 'Lansford, C. (1979)', pos: '3B', def: '2e8', bal: '1', simBA: 0.287, simOBP: 0.329, simSLG: 0.436, realBA: 0.296, realOBP: 0.347, realSLG: 0.477, backup1: "O'Leary, C.", backup2: '', platoonPH: '' },
-    { position: 7, playerId: '7', playerName: 'Chase, H. (1910)', pos: '2B', def: '1e16', bal: '1', simBA: 0.288, simOBP: 0.342, simSLG: 0.405, realBA: 0.322, realOBP: 0.200, realSLG: 0.444, backup1: 'Scales, T.', backup2: '', platoonPH: '' },
-    { position: 8, playerId: '8', playerName: 'Bowa, L. (1978)', pos: 'SS', def: '1e10', bal: '1', simBA: 0.294, simOBP: 0.319, simSLG: 0.370, realBA: 0.175, realOBP: 0.233, realSLG: 0.175, backup1: '', backup2: '', platoonPH: '' },
-  ];
-
-  // vs RHSP - Elite defense at C/SS/CF, add lefty bats while maintaining defense
-  // Suzuki (1e1 CF defense) provides L bat + elite gloves
-  const vsRHSPLineup: LineupSlot[] = [
-    { position: 1, playerId: '1', playerName: 'Suzuki, I. (2007)', pos: 'CF', def: '1(-5)e1', bal: '1', simBA: 0.351, simOBP: 0.396, simSLG: 0.431, realBA: 0.431, realOBP: 0.434, realSLG: 0.529, backup1: 'McGee, W.', backup2: '', platoonPH: '' },
-    { position: 2, playerId: '2', playerName: 'Gwynn, T. (1987)', pos: 'RF', def: '1(-2)e7', bal: '1', simBA: 0.370, simOBP: 0.447, simSLG: 0.511, realBA: 0.370, realOBP: 0.400, realSLG: 0.511, backup1: '', backup2: '', platoonPH: '' },
-    { position: 3, playerId: '3', playerName: 'Rodriguez, I. (1999)', pos: 'C', def: '1(-5)e1', bal: '1', simBA: 0.332, simOBP: 0.356, simSLG: 0.558, realBA: 0.346, realOBP: 0.346, realSLG: 0.481, backup1: 'Killefer, B.', backup2: '', platoonPH: '' },
-    { position: 4, playerId: '4', playerName: 'Chance, F. (1906)', pos: '1B', def: '1e8', bal: '1', simBA: 0.319, simOBP: 0.419, simSLG: 0.430, realBA: 0.361, realOBP: 0.489, realSLG: 0.472, backup1: 'Chase, H.', backup2: '', platoonPH: '' },
-    { position: 5, playerId: '5', playerName: 'Thomas, H. (1924)', pos: 'LF', def: '1(-3)e5', bal: '1', simBA: 0.300, simOBP: 0.357, simSLG: 0.467, realBA: 0.267, realOBP: 0.333, realSLG: 0.556, backup1: '', backup2: '', platoonPH: '' },
-    { position: 6, playerId: '6', playerName: 'Lansford, C. (1979)', pos: '3B', def: '2e8', bal: '1', simBA: 0.287, simOBP: 0.329, simSLG: 0.436, realBA: 0.296, realOBP: 0.347, realSLG: 0.477, backup1: "O'Leary, C.", backup2: '', platoonPH: '' },
-    { position: 7, playerId: '7', playerName: 'Chase, H. (1910)', pos: '2B', def: '1e16', bal: '1', simBA: 0.288, simOBP: 0.342, simSLG: 0.405, realBA: 0.322, realOBP: 0.200, realSLG: 0.444, backup1: 'Scales, T.', backup2: '', platoonPH: '' },
-    { position: 8, playerId: '8', playerName: 'Bowa, L. (1978)', pos: 'SS', def: '1e10', bal: '1', simBA: 0.294, simOBP: 0.319, simSLG: 0.370, realBA: 0.175, realOBP: 0.233, realSLG: 0.175, backup1: '', backup2: '', platoonPH: '' },
-  ];
+  // Calculate stats for all hitters
+  const hittersWithStats: HitterWithStats[] = hitters.map((hitter) =>
+    calculateHitterStats(hitter, weights.hitter)
+  );
+  
+  // Get optimized lineup
+  const optimizedHitters = optimizeLineupOrder(hittersWithStats);
+  
+  // Convert to LineupSlot format - get defensive position string
+  const getDefString = (defPositions: any): string => {
+    if (!defPositions) return '';
+    if (typeof defPositions === 'string') return defPositions;
+    if (Array.isArray(defPositions) && defPositions.length > 0) {
+      return defPositions[0].position || '';
+    }
+    return '';
+  };
+  
+  const createLineup = (hittersList: HitterWithStats[]): LineupSlot[] => {
+    return hittersList.slice(0, 8).map((h, idx) => ({
+      position: idx + 1,
+      playerId: h.id,
+      playerName: h.name,
+      pos: getPrimaryPosition(h.positions),
+      def: getDefString(h.defensivePositions),
+      bal: h.balance || '1',
+      simBA: 0,
+      simOBP: 0,
+      simSLG: 0,
+      realBA: h.ba || 0,
+      realOBP: h.obp || 0,
+      realSLG: h.slg || 0,
+      backup1: '',
+      backup2: '',
+      platoonPH: ''
+    }));
+  };
+  
+  const vsLHSPLineup = createLineup(optimizedHitters);
+  const vsRHSPLineup = createLineup(optimizedHitters);
 
   const renderLineupTable = (
     lineup: LineupSlot[],
