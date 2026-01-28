@@ -80,6 +80,18 @@ function getPlatoonScore(batterBalance: string, pitcherHand: 'L' | 'R'): number 
   return 1.0 - (strength * 0.02); // 1R vs LHP = 0.98x, 9R vs LHP = 0.82x
 }
 
+// Helper to check if player can play position
+function canPlayPosition(hitter: HitterWithStats, position: string): boolean {
+  const positions: string | string[] = hitter.positions;
+  if (typeof positions === 'string') {
+    return positions.includes(position);
+  }
+  if (Array.isArray(positions)) {
+    return (positions as string[]).includes(position);
+  }
+  return false;
+}
+
 // Helper to optimize lineup order based on stats and platoon matchup
 function optimizeLineupOrder(hitters: HitterWithStats[], pitcherHand: 'L' | 'R'): HitterWithStats[] {
   // Filter to only rostered players (Manhattan WOW Award Stars)
@@ -87,11 +99,8 @@ function optimizeLineupOrder(hitters: HitterWithStats[], pitcherHand: 'L' | 'R')
   
   if (roster.length === 0) return [];
   
-  // Traditional lineup construction with platoon consideration:
-  // 1-2: Best OBP (table setters)
-  // 3-5: Best power (SLG) - run producers
-  // 6-7: Contact/speed
-  // 8: Weakest hitter (or best defensive player)
+  // Required positions for a valid lineup
+  const requiredPositions = ['C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
   
   // Sort all by OPS adjusted for platoon advantage
   const sorted = [...roster].sort((a, b) => {
@@ -102,8 +111,36 @@ function optimizeLineupOrder(hitters: HitterWithStats[], pitcherHand: 'L' | 'R')
     return bPlatoonOPS - aPlatoonOPS;
   });
   
-  // Get top 8 hitters (considering platoon)
-  const top8 = sorted.slice(0, 8);
+  // Build lineup ensuring all positions are covered
+  const selectedPlayers: HitterWithStats[] = [];
+  const usedPlayers = new Set<string>();
+  const filledPositions = new Set<string>();
+  
+  // First pass: fill required positions with best available players
+  for (const position of requiredPositions) {
+    const bestForPosition = sorted.find(h => 
+      !usedPlayers.has(h.id) && canPlayPosition(h, position)
+    );
+    
+    if (bestForPosition) {
+      selectedPlayers.push(bestForPosition);
+      usedPlayers.add(bestForPosition.id);
+      filledPositions.add(position);
+    }
+  }
+  
+  // If we don't have 8 players yet, fill remaining spots with best available
+  while (selectedPlayers.length < 8 && selectedPlayers.length < sorted.length) {
+    const nextBest = sorted.find(h => !usedPlayers.has(h.id));
+    if (nextBest) {
+      selectedPlayers.push(nextBest);
+      usedPlayers.add(nextBest.id);
+    } else {
+      break;
+    }
+  }
+  
+  const top8 = selectedPlayers;
   
   // Now arrange them in optimal batting order
   const lineup: HitterWithStats[] = [];
