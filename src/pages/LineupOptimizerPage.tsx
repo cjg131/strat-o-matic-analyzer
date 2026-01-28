@@ -49,40 +49,67 @@ function getPrimaryPosition(positions: string[] | string): string {
   return positions[0];
 }
 
-// Helper to optimize lineup order based on stats
-function optimizeLineupOrder(hitters: HitterWithStats[]): HitterWithStats[] {
+// Helper to get platoon advantage score
+function getPlatoonScore(batterBalance: string, pitcherHand: 'L' | 'R'): number {
+  // Balance: L = left-handed, R = right-handed, S = switch, E = even
+  const batter = batterBalance?.charAt(0)?.toUpperCase() || 'E';
+  
+  if (batter === 'S') return 1.1; // Switch hitters always have advantage
+  if (batter === 'E') return 1.0; // Even split, no advantage
+  
+  // L batter vs R pitcher = advantage
+  // R batter vs L pitcher = advantage
+  if ((batter === 'L' && pitcherHand === 'R') || (batter === 'R' && pitcherHand === 'L')) {
+    return 1.15; // Platoon advantage
+  }
+  
+  return 0.85; // Platoon disadvantage
+}
+
+// Helper to optimize lineup order based on stats and platoon matchup
+function optimizeLineupOrder(hitters: HitterWithStats[], pitcherHand: 'L' | 'R'): HitterWithStats[] {
   // Filter to only rostered players (Manhattan WOW Award Stars)
   const roster = hitters.filter(h => h.roster === 'Manhattan WOW Award Stars');
   
   if (roster.length === 0) return [];
   
-  // Traditional lineup construction:
+  // Traditional lineup construction with platoon consideration:
   // 1-2: Best OBP (table setters)
   // 3-5: Best power (SLG) - run producers
   // 6-7: Contact/speed
   // 8: Weakest hitter (or best defensive player)
   
-  // Sort all by OPS (OBP + SLG) as overall value metric
+  // Sort all by OPS adjusted for platoon advantage
   const sorted = [...roster].sort((a, b) => {
     const aOPS = (a.obp || 0) + (a.slg || 0);
     const bOPS = (b.obp || 0) + (b.slg || 0);
-    return bOPS - aOPS;
+    const aPlatoonOPS = aOPS * getPlatoonScore(a.balance, pitcherHand);
+    const bPlatoonOPS = bOPS * getPlatoonScore(b.balance, pitcherHand);
+    return bPlatoonOPS - aPlatoonOPS;
   });
   
-  // Get top 8 hitters
+  // Get top 8 hitters (considering platoon)
   const top8 = sorted.slice(0, 8);
   
   // Now arrange them in optimal batting order
   const lineup: HitterWithStats[] = [];
   
-  // Find best OBP guys for 1-2 spots
-  const byOBP = [...top8].sort((a, b) => (b.obp || 0) - (a.obp || 0));
+  // Find best OBP guys for 1-2 spots (with platoon adjustment)
+  const byOBP = [...top8].sort((a, b) => {
+    const aAdj = (a.obp || 0) * getPlatoonScore(a.balance, pitcherHand);
+    const bAdj = (b.obp || 0) * getPlatoonScore(b.balance, pitcherHand);
+    return bAdj - aAdj;
+  });
   lineup.push(byOBP[0]); // 1st - Best OBP
   lineup.push(byOBP[1]); // 2nd - 2nd best OBP
   
-  // Find best power guys for 3-5 spots
+  // Find best power guys for 3-5 spots (with platoon adjustment)
   const remaining = top8.filter(h => !lineup.includes(h));
-  const bySLG = [...remaining].sort((a, b) => (b.slg || 0) - (a.slg || 0));
+  const bySLG = [...remaining].sort((a, b) => {
+    const aAdj = (a.slg || 0) * getPlatoonScore(a.balance, pitcherHand);
+    const bAdj = (b.slg || 0) * getPlatoonScore(b.balance, pitcherHand);
+    return bAdj - aAdj;
+  });
   lineup.push(bySLG[0]); // 3rd - Best power
   lineup.push(bySLG[1]); // 4th - 2nd best power
   lineup.push(bySLG[2]); // 5th - 3rd best power
@@ -103,9 +130,6 @@ export function LineupOptimizerPage() {
   const hittersWithStats: HitterWithStats[] = hitters.map((hitter) =>
     calculateHitterStats(hitter, weights.hitter)
   );
-  
-  // Get optimized lineup
-  const optimizedHitters = optimizeLineupOrder(hittersWithStats);
   
   // Convert to LineupSlot format - get defensive position string
   const getDefString = (defPositions: any): string => {
@@ -137,8 +161,12 @@ export function LineupOptimizerPage() {
     }));
   };
   
-  const vsLHSPLineup = createLineup(optimizedHitters);
-  const vsRHSPLineup = createLineup(optimizedHitters);
+  // Get optimized lineups for each pitcher handedness
+  const vsLHSPHitters = optimizeLineupOrder(hittersWithStats, 'L');
+  const vsRHSPHitters = optimizeLineupOrder(hittersWithStats, 'R');
+  
+  const vsLHSPLineup = createLineup(vsLHSPHitters);
+  const vsRHSPLineup = createLineup(vsRHSPHitters);
 
   const renderLineupTable = (
     lineup: LineupSlot[],
