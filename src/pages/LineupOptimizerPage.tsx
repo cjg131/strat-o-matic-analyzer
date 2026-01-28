@@ -83,11 +83,15 @@ function getPlatoonScore(batterBalance: string, pitcherHand: 'L' | 'R'): number 
 // Helper to check if player can play position
 function canPlayPosition(hitter: HitterWithStats, position: string): boolean {
   const positions: string | string[] = hitter.positions;
+  const positionUpper = position.toUpperCase();
+  
   if (typeof positions === 'string') {
-    return positions.includes(position);
+    // Handle both "SS" and "ss" by converting to uppercase
+    return positions.toUpperCase().includes(positionUpper);
   }
   if (Array.isArray(positions)) {
-    return (positions as string[]).includes(position);
+    // Handle array of positions
+    return (positions as string[]).some(p => p.toUpperCase() === positionUpper);
   }
   return false;
 }
