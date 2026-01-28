@@ -212,9 +212,21 @@ export function LineupOptimizerPage() {
     }));
   };
   
+  // Debug: Log roster players and their positions
+  const rosterPlayers = hittersWithStats.filter(h => h.roster === 'Manhattan WOW Award Stars');
+  console.log('Roster players:', rosterPlayers.map(h => ({
+    name: h.name,
+    positions: h.positions,
+    positionsType: typeof h.positions,
+    defensivePositions: h.defensivePositions
+  })));
+  
   // Get optimized lineups for each pitcher handedness
   const vsLHSPHitters = optimizeLineupOrder(hittersWithStats, 'L');
   const vsRHSPHitters = optimizeLineupOrder(hittersWithStats, 'R');
+  
+  console.log('vs LHSP lineup:', vsLHSPHitters.map(h => ({ name: h.name, positions: h.positions })));
+  console.log('vs RHSP lineup:', vsRHSPHitters.map(h => ({ name: h.name, positions: h.positions })));
   
   const vsLHSPLineup = createLineup(vsLHSPHitters);
   const vsRHSPLineup = createLineup(vsRHSPHitters);
