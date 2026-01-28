@@ -103,9 +103,6 @@ function optimizeLineupOrder(hitters: HitterWithStats[], pitcherHand: 'L' | 'R')
   
   if (roster.length === 0) return [];
   
-  // Required positions for a valid lineup
-  const requiredPositions = ['C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
-  
   // Sort all by OPS adjusted for platoon advantage
   const sorted = [...roster].sort((a, b) => {
     const aOPS = (a.obp || 0) + (a.slg || 0);
@@ -116,12 +113,14 @@ function optimizeLineupOrder(hitters: HitterWithStats[], pitcherHand: 'L' | 'R')
   });
   
   // Build lineup ensuring all positions are covered
+  // Priority order: C, SS, CF (most important defensive positions first)
+  const positionPriority = ['C', 'SS', 'CF', '2B', '3B', '1B', 'LF', 'RF'];
   const selectedPlayers: HitterWithStats[] = [];
   const usedPlayers = new Set<string>();
   const filledPositions = new Set<string>();
   
-  // First pass: fill required positions with best available players
-  for (const position of requiredPositions) {
+  // First pass: fill positions in priority order with best available players
+  for (const position of positionPriority) {
     const bestForPosition = sorted.find(h => 
       !usedPlayers.has(h.id) && canPlayPosition(h, position)
     );
