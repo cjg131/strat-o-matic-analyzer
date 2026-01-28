@@ -56,20 +56,42 @@ function optimizeLineupOrder(hitters: HitterWithStats[]): HitterWithStats[] {
   
   if (roster.length === 0) return [];
   
-  // Sort by OBP for top of order, then by SLG for power
+  // Traditional lineup construction:
+  // 1-2: Best OBP (table setters)
+  // 3-5: Best power (SLG) - run producers
+  // 6-7: Contact/speed
+  // 8: Weakest hitter (or best defensive player)
+  
+  // Sort all by OPS (OBP + SLG) as overall value metric
   const sorted = [...roster].sort((a, b) => {
-    const aOBP = a.obp || 0;
-    const bOBP = b.obp || 0;
-    const aSLG = a.slg || 0;
-    const bSLG = b.slg || 0;
-    
-    // High OBP at top
-    if (Math.abs(aOBP - bOBP) > 0.05) return bOBP - aOBP;
-    // Then by power
-    return bSLG - aSLG;
+    const aOPS = (a.obp || 0) + (a.slg || 0);
+    const bOPS = (b.obp || 0) + (b.slg || 0);
+    return bOPS - aOPS;
   });
   
-  return sorted;
+  // Get top 8 hitters
+  const top8 = sorted.slice(0, 8);
+  
+  // Now arrange them in optimal batting order
+  const lineup: HitterWithStats[] = [];
+  
+  // Find best OBP guys for 1-2 spots
+  const byOBP = [...top8].sort((a, b) => (b.obp || 0) - (a.obp || 0));
+  lineup.push(byOBP[0]); // 1st - Best OBP
+  lineup.push(byOBP[1]); // 2nd - 2nd best OBP
+  
+  // Find best power guys for 3-5 spots
+  const remaining = top8.filter(h => !lineup.includes(h));
+  const bySLG = [...remaining].sort((a, b) => (b.slg || 0) - (a.slg || 0));
+  lineup.push(bySLG[0]); // 3rd - Best power
+  lineup.push(bySLG[1]); // 4th - 2nd best power
+  lineup.push(bySLG[2]); // 5th - 3rd best power
+  
+  // Remaining spots 6-8
+  const final = top8.filter(h => !lineup.includes(h));
+  lineup.push(...final);
+  
+  return lineup;
 }
 
 export function LineupOptimizerPage() {
