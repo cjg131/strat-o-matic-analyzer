@@ -1,3 +1,5 @@
+import { usePitchers } from '../hooks/usePitchers';
+
 interface RotationSlot {
   position: number;
   pitcherName: string;
@@ -11,20 +13,82 @@ interface RotationSlot {
   so: number;
 }
 
+interface Reliever {
+  name: string;
+  hand: string;
+  endurance: string;
+  era: number;
+  ip: number;
+}
+
 export function PitchingRotationPage() {
-  // Optimized 5-man rotation based on ERA, WHIP, IP, and Endurance
-  // 1. Cooper (1.87 ERA, S8) - Ace
-  // 2. Johnson (2.56 ERA, S8*) - #2 starter
-  // 3. Clarkson (2.76 ERA, S9*) - #3 starter, most IP
-  // 4. Fraser (3.81 ERA, S9*) - #4 starter
-  // 5. Thurston (3.80 ERA, S9*/R3) - #5 starter, can swing
-  const rotation: RotationSlot[] = [
-    { position: 1, pitcherName: 'Cooper, W. (1916)', hand: 'L', endurance: 'S8', wins: 12, losses: 11, era: 1.87, whip: 1.07, ip: 246.0, so: 111 },
-    { position: 2, pitcherName: 'Johnson, S. (1916)', hand: 'R', endurance: 'S8*', wins: 31, losses: 13, era: 2.56, whip: 1.26, ip: 366.0, so: 131 },
-    { position: 3, pitcherName: 'Clarkson, J. (1888)', hand: 'R', endurance: 'S9*', wins: 33, losses: 20, era: 2.76, whip: 1.17, ip: 483.1, so: 223 },
-    { position: 4, pitcherName: 'Fraser, C. (1901)', hand: 'R', endurance: 'S9*', wins: 22, losses: 16, era: 3.81, whip: 1.44, ip: 331.0, so: 110 },
-    { position: 5, pitcherName: 'Thurston, S. (1924)', hand: 'R', endurance: 'S9*/R3', wins: 20, losses: 14, era: 3.80, whip: 1.34, ip: 291.0, so: 37 },
-  ];
+  const { pitchers } = usePitchers();
+  
+  // Filter to Manhattan WOW Award Stars roster
+  const rosterPitchers = pitchers.filter(p => p.roster === 'Manhattan WOW Award Stars');
+  
+  // Separate starters and relievers based on endurance rating
+  const starters = rosterPitchers.filter(p => {
+    const end = p.endurance?.toUpperCase() || '';
+    return end.includes('S'); // Has starter rating (S8, S9, etc)
+  });
+  
+  const relievers = rosterPitchers.filter(p => {
+    const end = p.endurance?.toUpperCase() || '';
+    return !end.includes('S') || end.includes('R'); // Pure relievers or swing men
+  });
+  
+  // Calculate ERA and WHIP for each pitcher
+  const calculateERA = (p: any) => {
+    if (!p.inningsPitched || p.inningsPitched === 0) return 999;
+    return (p.earnedRuns * 9) / p.inningsPitched;
+  };
+  
+  const calculateWHIP = (p: any) => {
+    if (!p.inningsPitched || p.inningsPitched === 0) return 999;
+    return (p.walks + p.hitsAllowed) / p.inningsPitched;
+  };
+  
+  const calculateWins = (p: any) => {
+    // Estimate wins based on games started and ERA (simplified)
+    if (!p.gamesStarted) return 0;
+    const era = calculateERA(p);
+    if (era < 3.0) return Math.floor(p.gamesStarted * 0.65);
+    if (era < 4.0) return Math.floor(p.gamesStarted * 0.50);
+    return Math.floor(p.gamesStarted * 0.35);
+  };
+  
+  const calculateLosses = (p: any) => {
+    if (!p.gamesStarted) return 0;
+    const wins = calculateWins(p);
+    return Math.max(0, p.gamesStarted - wins - Math.floor(p.gamesStarted * 0.15));
+  };
+  
+  // Sort starters by ERA (lower is better)
+  const sortedStarters = [...starters].sort((a, b) => calculateERA(a) - calculateERA(b));
+  
+  // Build rotation (top 5 starters)
+  const rotation: RotationSlot[] = sortedStarters.slice(0, 5).map((p, idx) => ({
+    position: idx + 1,
+    pitcherName: `${p.name} (${p.season})`,
+    hand: p.throwingArm || 'R',
+    endurance: p.endurance || '',
+    wins: calculateWins(p),
+    losses: calculateLosses(p),
+    era: calculateERA(p),
+    whip: calculateWHIP(p),
+    ip: p.inningsPitched || 0,
+    so: p.strikeouts || 0
+  }));
+  
+  // Build bullpen list
+  const bullpen: Reliever[] = relievers.map(p => ({
+    name: `${p.name} (${p.season})`,
+    hand: p.throwingArm || 'R',
+    endurance: p.endurance || '',
+    era: calculateERA(p),
+    ip: p.inningsPitched || 0
+  }));
 
   return (
     <div className="space-y-6">
@@ -133,28 +197,20 @@ export function PitchingRotationPage() {
         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
           Bullpen (Relievers)
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-            <p className="text-sm font-semibold text-gray-900 dark:text-white">Earnshaw, G. (1930)</p>
-            <p className="text-xs text-gray-600 dark:text-gray-400">R, S8*/R4 - 4.44 ERA, 296.0 IP</p>
+        {bullpen.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {bullpen.map((reliever, idx) => (
+              <div key={idx} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">{reliever.name}</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  {reliever.hand}, {reliever.endurance} - {reliever.era.toFixed(2)} ERA, {reliever.ip.toFixed(1)} IP
+                </p>
+              </div>
+            ))}
           </div>
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-            <p className="text-sm font-semibold text-gray-900 dark:text-white">Drabowsky, M. (1966)</p>
-            <p className="text-xs text-gray-600 dark:text-gray-400">R, R4 - 2.81 ERA, 96.0 IP</p>
-          </div>
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-            <p className="text-sm font-semibold text-gray-900 dark:text-white">Fisher, B. (1986)</p>
-            <p className="text-xs text-gray-600 dark:text-gray-400">R, R2 - 4.93 ERA, 96.2 IP</p>
-          </div>
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-            <p className="text-sm font-semibold text-gray-900 dark:text-white">Laroche, D. (1979)</p>
-            <p className="text-xs text-gray-600 dark:text-gray-400">L, R2 - 5.57 ERA, 85.2 IP</p>
-          </div>
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-            <p className="text-sm font-semibold text-gray-900 dark:text-white">Mooney, J. (1934)</p>
-            <p className="text-xs text-gray-600 dark:text-gray-400">L, R4 - 5.47 ERA, 82.1 IP</p>
-          </div>
-        </div>
+        ) : (
+          <p className="text-gray-600 dark:text-gray-400">No relievers found on roster</p>
+        )}
       </div>
 
       <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
