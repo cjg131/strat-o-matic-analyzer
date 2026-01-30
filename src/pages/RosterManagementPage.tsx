@@ -176,13 +176,20 @@ export function RosterManagementPage() {
       
       // Update all hitters with new roster assignments
       console.log(`Updating ${hitters.length} hitters...`);
+      console.log('Sample hitters to check:', hitters.slice(0, 5).map(h => `${h.name} (${h.season})`));
+      
       for (const hitter of hitters) {
         try {
           const assignedRoster = assignRosterToPlayer(hitter.name, hitter.season, assignments);
           const newRoster = assignedRoster || '';
           
+          // Log all checks for debugging
+          if (hitter.name.toLowerCase().includes('ensberg')) {
+            console.log(`🔍 Found Ensberg! Name: "${hitter.name}", Season: "${hitter.season}", Current Roster: "${hitter.roster}", Assigned Roster: "${assignedRoster}"`);
+          }
+          
           if (hitter.roster !== newRoster) {
-            console.log(`Updating ${hitter.name}: "${hitter.roster}" → "${newRoster}"`);
+            console.log(`Updating ${hitter.name} (${hitter.season}): "${hitter.roster}" → "${newRoster}"`);
             await updateHitter(hitter.id, { ...hitter, roster: newRoster });
             hitterUpdates++;
           }
