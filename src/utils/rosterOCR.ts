@@ -40,8 +40,12 @@ export function parseRosterText(text: string): RosterData {
     throw new Error('No text found in image');
   }
 
+  console.log(`[parseRosterText] Total OCR lines: ${lines.length}`);
+  console.log(`[parseRosterText] First 10 lines:`, lines.slice(0, 10));
+
   // First line is typically the team name
   const teamName = lines[0];
+  console.log(`[parseRosterText] Team name: "${teamName}"`);
   
   // Remaining lines are player names
   // Filter out common headers and non-player text
@@ -54,10 +58,13 @@ export function parseRosterText(text: string): RosterData {
         lower.includes('salary') ||
         lower.includes('total') ||
         lower.length < 3) {
+      console.log(`[parseRosterText] Skipping header/label: "${line}"`);
       return false;
     }
     return true;
   });
+  
+  console.log(`[parseRosterText] Player lines after filtering: ${playerLines.length}`);
 
   // Separate hitters and pitchers
   // Look for section markers or assume first half are hitters
