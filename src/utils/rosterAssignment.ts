@@ -23,6 +23,14 @@ export function assignRosterToPlayer(playerName: string, year: string, customRos
   // Use custom roster data if provided, otherwise use default
   const dataToUse = customRosterData || rosterData;
   
+  // DEBUG: Log what we're working with
+  console.log(`[DEBUG] Trying to match: "${playerName}" (${year})`);
+  console.log(`[DEBUG] Parsed as: lastName="${lastName}", firstName="${firstName}", initial="${firstInitial}"`);
+  console.log(`[DEBUG] Using ${customRosterData ? 'CUSTOM' : 'DEFAULT'} roster data`);
+  if (customRosterData) {
+    console.log(`[DEBUG] Custom data structure:`, Object.keys(dataToUse));
+  }
+  
   // Search through all rosters
   for (const [rosterName, rosterPlayers] of Object.entries(dataToUse.rosters)) {
     // Check both hitters and pitchers arrays
@@ -32,13 +40,21 @@ export function assignRosterToPlayer(playerName: string, year: string, customRos
       ...(players.pitchers || [])
     ];
     
+    console.log(`[DEBUG] Checking roster "${rosterName}" with ${allPlayers.length} players`);
+    if (allPlayers.length > 0) {
+      console.log(`[DEBUG] Sample roster players:`, allPlayers.slice(0, 3));
+    }
+    
     // Check if this player is on this roster
     const isOnRoster = allPlayers.some(rosterPlayer => {
       const normalizedRosterPlayer = rosterPlayer.toLowerCase().trim();
       
       // Extract components from roster player: "LastName, I. (Year)" or "LastName, FirstName (Year)"
       const rosterMatch = normalizedRosterPlayer.match(/^([^,]+),\s*([^(]+)\s*\(([^)]+)\)/);
-      if (!rosterMatch) return false;
+      if (!rosterMatch) {
+        console.log(`[DEBUG] Regex failed for roster player: "${rosterPlayer}"`);
+        return false;
+      }
       
       const rosterLastName = rosterMatch[1].trim();
       const rosterFirstPart = rosterMatch[2].trim();
