@@ -89,37 +89,40 @@ export function parseRosterText(text: string): RosterData {
  * Extract all player names from a single OCR line that may contain multiple players
  * Example input: "Cash .00M Flick, E. (1905) I L RF 6.36M Cash .07M Harper, B. (2015)"
  * Should extract: ["Flick, E. (1905)", "Harper, B. (2015)"]
+ * 
+ * Also handles team abbreviation prefixes like "M Jenkins, F. (1968)" -> "Jenkins, F. (1968)"
  */
 function extractAllPlayersFromLine(rawLine: string): string[] {
   const players: string[] = [];
-  
+
   console.log(`[extractAllPlayersFromLine] Input: "${rawLine}"`);
-  
+
   // Remove common OCR artifacts
   let cleaned = rawLine
     .replace(/[|]/g, 'I')
     .replace(/[`']/g, "'")
     .trim();
-  
-  // Global regex to find ALL occurrences of player pattern: "LastName, I. (Year)"
-  // This will match multiple players in the same line
-  const regex = /([A-Za-z'\-\s]+),\s*([A-Z]\.?)\s*\((\d{4})\)/g;
-  
+
+  // Global regex to find ALL occurrences of player pattern
+  // Handles optional team prefix: "M LastName, I. (Year)" or "LastName, I. (Year)"
+  // The (?:[A-Z]\s+)? part matches an optional single letter followed by space (team abbreviation)
+  const regex = /(?:[A-Z]\s+)?([A-Za-z'\-\s]+),\s*([A-Z]\.?)\s*\((\d{4})\)/g;
+
   let match;
   while ((match = regex.exec(cleaned)) !== null) {
     const lastName = match[1].trim();
     const initial = match[2].replace('.', '').trim();
     const year = match[3];
-    
+
     const result = `${lastName}, ${initial}. (${year})`;
     console.log(`[extractAllPlayersFromLine] Found player: "${result}"`);
     players.push(result);
   }
-  
+
   if (players.length === 0) {
     console.log(`[extractAllPlayersFromLine] ❌ No players found in: "${rawLine}"`);
   }
-  
+
   return players;
 }
 
