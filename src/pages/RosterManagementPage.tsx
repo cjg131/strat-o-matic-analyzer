@@ -193,26 +193,38 @@ export function RosterManagementPage() {
       await saveRosterAssignments(currentUser!.uid, assignments);
       console.log('✅ Roster assignments saved to Firestore');
       
+      // STEP 1: Clear ALL roster assignments (set everyone to FA)
+      console.log('🧹 STEP 1: Clearing all roster assignments...');
+      let clearedCount = 0;
+      
+      for (const hitter of hitters) {
+        if (hitter.roster && hitter.roster !== '') {
+          await updateHitter(hitter.id, { ...hitter, roster: '' });
+          clearedCount++;
+        }
+      }
+      
+      for (const pitcher of pitchers) {
+        if (pitcher.roster && pitcher.roster !== '') {
+          await updatePitcher(pitcher.id, { ...pitcher, roster: '' });
+          clearedCount++;
+        }
+      }
+      
+      console.log(`✅ Cleared ${clearedCount} roster assignments`);
+      
+      // STEP 2: Assign new rosters from OCR data
+      console.log('� STEP 2: Assigning new rosters from OCR data...');
       let hitterUpdates = 0;
       let pitcherUpdates = 0;
-      
-      // Update all hitters with new roster assignments
-      console.log(`Updating ${hitters.length} hitters...`);
-      console.log('Sample hitters to check:', hitters.slice(0, 5).map(h => `${h.name} (${h.season})`));
       
       for (const hitter of hitters) {
         try {
           const assignedRoster = assignRosterToPlayer(hitter.name, hitter.season, assignments);
-          const newRoster = assignedRoster || '';
           
-          // Log all checks for debugging
-          if (hitter.name.toLowerCase().includes('ensberg')) {
-            console.log(`🔍 Found Ensberg! Name: "${hitter.name}", Season: "${hitter.season}", Current Roster: "${hitter.roster}", Assigned Roster: "${assignedRoster}"`);
-          }
-          
-          if (hitter.roster !== newRoster) {
-            console.log(`Updating ${hitter.name} (${hitter.season}): "${hitter.roster}" → "${newRoster}"`);
-            await updateHitter(hitter.id, { ...hitter, roster: newRoster });
+          if (assignedRoster) {
+            console.log(`Assigning ${hitter.name} (${hitter.season}) → "${assignedRoster}"`);
+            await updateHitter(hitter.id, { ...hitter, roster: assignedRoster });
             hitterUpdates++;
           }
         } catch (err) {
@@ -220,16 +232,13 @@ export function RosterManagementPage() {
         }
       }
       
-      // Update all pitchers with new roster assignments
-      console.log(`Updating ${pitchers.length} pitchers...`);
       for (const pitcher of pitchers) {
         try {
           const assignedRoster = assignRosterToPlayer(pitcher.name, pitcher.season, assignments);
-          const newRoster = assignedRoster || '';
           
-          if (pitcher.roster !== newRoster) {
-            console.log(`Updating ${pitcher.name}: "${pitcher.roster}" → "${newRoster}"`);
-            await updatePitcher(pitcher.id, { ...pitcher, roster: newRoster });
+          if (assignedRoster) {
+            console.log(`Assigning ${pitcher.name} (${pitcher.season}) → "${assignedRoster}"`);
+            await updatePitcher(pitcher.id, { ...pitcher, roster: assignedRoster });
             pitcherUpdates++;
           }
         } catch (err) {
