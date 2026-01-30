@@ -72,17 +72,21 @@ export function assignRosterToPlayer(playerName: string, year: string, customRos
       // Roster could have "m." or "m" (initial) or "morgan" (full name)
       // Database has full first name like "Morgan"
       const rosterFirstInitial = rosterFirstPart.charAt(0);
+      const rosterFirstCleaned = rosterFirstPart.replace('.', '').trim();
       const dbFirstInitial = firstInitial.toLowerCase();
+      const dbFirstName = firstName.toLowerCase();
+      
+      console.log(`[DEBUG] Comparing: roster="${rosterFirstPart}" (initial="${rosterFirstInitial}", cleaned="${rosterFirstCleaned}") vs DB="${firstName}" (initial="${dbFirstInitial}")`);
       
       // Match if:
       // 1. First initials match (handles "M." or "M" in roster vs "Morgan" in DB)
       // 2. OR full first names match (handles "Morgan" in both)
-      if (rosterFirstInitial === dbFirstInitial || 
-          rosterFirstPart.replace('.', '').trim() === firstName.toLowerCase()) {
-        console.log(`[Roster Assignment] ✓ Match: "${playerName}" (${year}) → ${rosterName} (roster has "${rosterPlayer}")`);
+      if (rosterFirstInitial === dbFirstInitial || rosterFirstCleaned === dbFirstName) {
+        console.log(`[Roster Assignment] ✅ MATCH FOUND: "${playerName}" (${year}) → ${rosterName} (roster has "${rosterPlayer}")`);
         return true;
       }
       
+      console.log(`[DEBUG] No match: "${rosterFirstInitial}" !== "${dbFirstInitial}" AND "${rosterFirstCleaned}" !== "${dbFirstName}"`);
       return false;
     });
     
