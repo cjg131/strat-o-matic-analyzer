@@ -209,7 +209,10 @@ export function RosterManagementPage() {
       }
       
       console.log(`✅ Roster sync complete: ${hitterUpdates} hitters, ${pitcherUpdates} pitchers updated`);
-      alert(`Rosters synced successfully!\n${hitterUpdates} hitters and ${pitcherUpdates} pitchers updated.\n\nYour team management tabs (Lineup Optimizer, Pitching Rotation, etc.) are now updated with your Manhattan WOW Award Stars roster.`);
+      alert(`Rosters synced successfully!\n${hitterUpdates} hitters and ${pitcherUpdates} pitchers updated.\n\nThe page will now reload to show your updated rosters across all tabs.`);
+      
+      // Reload the page to ensure all tabs reflect the updated rosters
+      window.location.reload();
     } catch (error) {
       console.error('Failed to sync rosters:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
