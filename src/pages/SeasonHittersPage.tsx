@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Upload, Download, RefreshCw } from 'lucide-react';
+import { Upload, Download } from 'lucide-react';
 import { useHitters } from '../hooks/useHitters';
 import { useScoringWeights } from '../hooks/useScoringWeights';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,8 +8,6 @@ import { HittersTable } from '../components/HittersTable';
 import { calculateHitterStats } from '../utils/calculations';
 import { importHittersFromFile, exportHittersToExcel } from '../utils/importData';
 import { saveRawImportData } from '../services/firestore';
-import { assignRosterToPlayer } from '../utils/rosterAssignment';
-import { diagnoseRosterMismatches } from '../utils/rosterDiagnostic';
 import type { HitterWithStats, HitterScoringWeights } from '../types';
 
 const HITTER_PRESETS: Record<string, { name: string; weights: HitterScoringWeights }> = {
@@ -44,12 +42,11 @@ const HITTER_PRESETS: Record<string, { name: string; weights: HitterScoringWeigh
 };
 
 export function SeasonHittersPage() {
-  const { hitters, addMultipleHitters, updateHitter } = useHitters();
+  const { hitters, addMultipleHitters } = useHitters();
   const { weights, updateWeights } = useScoringWeights();
   const { currentUser } = useAuth();
   const { addPlayer, isPlayerWanted } = useWantedPlayers();
   const [importing, setImporting] = useState(false);
-  const [syncing, setSyncing] = useState(false);
   const [useNormalized, setUseNormalized] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState('balanced');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -134,43 +131,6 @@ export function SeasonHittersPage() {
     }
   };
 
-  const handleSyncRosters = async () => {
-    if (!currentUser) {
-      alert('You must be logged in to sync rosters');
-      return;
-    }
-
-    // Run diagnostic first
-    console.log('\n🔍 Running roster diagnostic...\n');
-    diagnoseRosterMismatches(hitters);
-
-    if (!confirm('This will update all hitter rosters based on roster-assignments.json. Check console for diagnostic. Continue?')) {
-      return;
-    }
-
-    setSyncing(true);
-    try {
-      let updatedCount = 0;
-      
-      for (const hitter of hitters) {
-        const assignedRoster = assignRosterToPlayer(hitter.name, hitter.season);
-        const newRoster = assignedRoster || '';
-        
-        // Only update if roster changed
-        if (hitter.roster !== newRoster) {
-          await updateHitter(hitter.id, { ...hitter, roster: newRoster });
-          updatedCount++;
-        }
-      }
-      
-      alert(`Successfully synced rosters! Updated ${updatedCount} hitter(s).`);
-    } catch (err) {
-      alert(`Failed to sync rosters: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    } finally {
-      setSyncing(false);
-    }
-  };
-
   const handleExport = () => {
     if (hittersWithStats.length === 0) {
       alert('No hitters to export');
@@ -198,14 +158,6 @@ export function SeasonHittersPage() {
             onChange={handleImport}
             className="hidden"
           />
-          <button
-            onClick={handleSyncRosters}
-            disabled={syncing || hitters.length === 0}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50"
-          >
-            <RefreshCw className="h-5 w-5" />
-            {syncing ? 'Syncing...' : 'Sync Rosters'}
-          </button>
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={importing}
