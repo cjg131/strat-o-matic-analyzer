@@ -166,17 +166,15 @@ export async function processRosterImages(imageFiles: File[]): Promise<RosterDat
  * Convert roster data to the format expected by roster-assignments.json
  */
 export function convertToRosterAssignments(rosterDataList: RosterData[]): Record<string, any> {
-  const assignments: Record<string, any> = {};
+  const rosters: Record<string, any> = {};
   
   for (const rosterData of rosterDataList) {
-    const teamKey = rosterData.teamName.toLowerCase().replace(/\s+/g, '-');
-    
-    assignments[teamKey] = {
-      teamName: rosterData.teamName,
+    // Use the exact team name as the key (matching roster-assignments.json format)
+    rosters[rosterData.teamName] = {
       hitters: rosterData.hitters,
       pitchers: rosterData.pitchers
     };
   }
   
-  return assignments;
+  return { rosters };
 }

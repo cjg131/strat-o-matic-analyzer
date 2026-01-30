@@ -163,31 +163,48 @@ export function RosterManagementPage() {
 
   const syncRostersToDatabase = async (assignments: Record<string, any>) => {
     try {
+      console.log('🔄 Starting roster sync to database...');
+      console.log('Assignments:', assignments);
+      
       // Save roster assignments to Firestore
+      console.log('Saving roster assignments to Firestore...');
       await saveRosterAssignments(currentUser!.uid, assignments);
+      console.log('✅ Roster assignments saved to Firestore');
       
       let hitterUpdates = 0;
       let pitcherUpdates = 0;
       
       // Update all hitters with new roster assignments
+      console.log(`Updating ${hitters.length} hitters...`);
       for (const hitter of hitters) {
-        const assignedRoster = assignRosterToPlayer(hitter.name, hitter.season, assignments);
-        const newRoster = assignedRoster || '';
-        
-        if (hitter.roster !== newRoster) {
-          await updateHitter(hitter.id, { ...hitter, roster: newRoster });
-          hitterUpdates++;
+        try {
+          const assignedRoster = assignRosterToPlayer(hitter.name, hitter.season, assignments);
+          const newRoster = assignedRoster || '';
+          
+          if (hitter.roster !== newRoster) {
+            console.log(`Updating ${hitter.name}: "${hitter.roster}" → "${newRoster}"`);
+            await updateHitter(hitter.id, { ...hitter, roster: newRoster });
+            hitterUpdates++;
+          }
+        } catch (err) {
+          console.error(`Failed to update hitter ${hitter.name}:`, err);
         }
       }
       
       // Update all pitchers with new roster assignments
+      console.log(`Updating ${pitchers.length} pitchers...`);
       for (const pitcher of pitchers) {
-        const assignedRoster = assignRosterToPlayer(pitcher.name, pitcher.season, assignments);
-        const newRoster = assignedRoster || '';
-        
-        if (pitcher.roster !== newRoster) {
-          await updatePitcher(pitcher.id, { ...pitcher, roster: newRoster });
-          pitcherUpdates++;
+        try {
+          const assignedRoster = assignRosterToPlayer(pitcher.name, pitcher.season, assignments);
+          const newRoster = assignedRoster || '';
+          
+          if (pitcher.roster !== newRoster) {
+            console.log(`Updating ${pitcher.name}: "${pitcher.roster}" → "${newRoster}"`);
+            await updatePitcher(pitcher.id, { ...pitcher, roster: newRoster });
+            pitcherUpdates++;
+          }
+        } catch (err) {
+          console.error(`Failed to update pitcher ${pitcher.name}:`, err);
         }
       }
       
@@ -195,7 +212,8 @@ export function RosterManagementPage() {
       alert(`Rosters synced successfully!\n${hitterUpdates} hitters and ${pitcherUpdates} pitchers updated.\n\nYour team management tabs (Lineup Optimizer, Pitching Rotation, etc.) are now updated with your Manhattan WOW Award Stars roster.`);
     } catch (error) {
       console.error('Failed to sync rosters:', error);
-      alert('Roster assignments extracted but failed to sync to database. You can manually sync from Season Hitters/Pitchers pages.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Roster assignments extracted but failed to sync to database.\n\nError: ${errorMessage}\n\nYou can manually sync from Season Hitters/Pitchers pages.`);
     }
   };
 
