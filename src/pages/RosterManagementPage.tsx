@@ -165,6 +165,28 @@ export function RosterManagementPage() {
     try {
       console.log('🔄 Starting roster sync to database...');
       console.log('Assignments:', assignments);
+      console.log('Assignments structure:', JSON.stringify(assignments, null, 2));
+      
+      // Check if assignments has rosters
+      if (!assignments.rosters) {
+        console.error('❌ ERROR: assignments.rosters is undefined!');
+        alert('Error: No roster data found in OCR results. Please check the console for details.');
+        return;
+      }
+      
+      const rosterNames = Object.keys(assignments.rosters);
+      console.log(`Found ${rosterNames.length} rosters:`, rosterNames);
+      
+      // Log sample data from each roster
+      for (const rosterName of rosterNames) {
+        const roster = assignments.rosters[rosterName];
+        console.log(`Roster "${rosterName}":`, {
+          hitters: roster.hitters?.length || 0,
+          pitchers: roster.pitchers?.length || 0,
+          sampleHitters: roster.hitters?.slice(0, 3),
+          samplePitchers: roster.pitchers?.slice(0, 3)
+        });
+      }
       
       // Save roster assignments to Firestore
       console.log('Saving roster assignments to Firestore...');
