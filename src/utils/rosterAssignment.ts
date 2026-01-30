@@ -20,12 +20,6 @@ export function assignRosterToPlayer(playerName: string, year: string, customRos
   const firstName = nameParts[1].trim();
   const firstInitial = firstName.charAt(0).toUpperCase();
   
-  // Create matching patterns
-  // Pattern 1: "LastName, I. (Year)" - roster format with period
-  // Pattern 2: "LastName, I (Year)" - roster format without period
-  const pattern1 = `${lastName}, ${firstInitial}. (${year})`.toLowerCase();
-  const pattern2 = `${lastName}, ${firstInitial} (${year})`.toLowerCase();
-  
   // Use custom roster data if provided, otherwise use default
   const dataToUse = customRosterData || rosterData;
   
@@ -42,29 +36,35 @@ export function assignRosterToPlayer(playerName: string, year: string, customRos
     const isOnRoster = allPlayers.some(rosterPlayer => {
       const normalizedRosterPlayer = rosterPlayer.toLowerCase().trim();
       
-      // Try exact match with both patterns
-      if (normalizedRosterPlayer === pattern1 || normalizedRosterPlayer === pattern2) {
-        console.log(`[Roster Assignment] ✓ Exact match: "${playerName}" (${year}) → ${rosterName}`);
+      // Extract components from roster player: "LastName, I. (Year)" or "LastName, FirstName (Year)"
+      const rosterMatch = normalizedRosterPlayer.match(/^([^,]+),\s*([^(]+)\s*\(([^)]+)\)/);
+      if (!rosterMatch) return false;
+      
+      const rosterLastName = rosterMatch[1].trim();
+      const rosterFirstPart = rosterMatch[2].trim();
+      const rosterYear = rosterMatch[3].trim();
+      
+      // Check if last names match
+      if (rosterLastName !== lastName.toLowerCase()) return false;
+      
+      // Check if years match (handle both regular years and "NeL")
+      const yearMatches = rosterYear === year.toLowerCase() || 
+                         (rosterYear === 'nel' && year.toLowerCase() === 'nel');
+      if (!yearMatches) return false;
+      
+      // Check first name/initial match
+      // Roster could have "m." or "m" (initial) or "morgan" (full name)
+      // Database has full first name like "Morgan"
+      const rosterFirstInitial = rosterFirstPart.charAt(0);
+      const dbFirstInitial = firstInitial.toLowerCase();
+      
+      // Match if:
+      // 1. First initials match (handles "M." or "M" in roster vs "Morgan" in DB)
+      // 2. OR full first names match (handles "Morgan" in both)
+      if (rosterFirstInitial === dbFirstInitial || 
+          rosterFirstPart.replace('.', '').trim() === firstName.toLowerCase()) {
+        console.log(`[Roster Assignment] ✓ Match: "${playerName}" (${year}) → ${rosterName} (roster has "${rosterPlayer}")`);
         return true;
-      }
-      
-      // Also try matching just the name part before the year
-      const rosterNamePart = normalizedRosterPlayer.split('(')[0].trim();
-      const pattern1NamePart = pattern1.split('(')[0].trim();
-      const pattern2NamePart = pattern2.split('(')[0].trim();
-      
-      if (rosterNamePart === pattern1NamePart || rosterNamePart === pattern2NamePart) {
-        // If name matches, check year (handle both regular years and "NeL")
-        const yearMatch = normalizedRosterPlayer.match(/\(([\w]+)\)/);
-        if (yearMatch) {
-          const rosterYear = yearMatch[1];
-          // Match if years are the same, or if roster has "nel" and player year is "NeL"
-          if (rosterYear === year.toLowerCase() || 
-              (rosterYear === 'nel' && year.toLowerCase() === 'nel')) {
-            console.log(`[Roster Assignment] ✓ Name+Year match: "${playerName}" (${year}) → ${rosterName}`);
-            return true;
-          }
-        }
       }
       
       return false;
@@ -77,7 +77,8 @@ export function assignRosterToPlayer(playerName: string, year: string, customRos
   
   // Log unmatched players for debugging
   console.log(`[Roster Assignment] ✗ No match found for: "${playerName}" (${year})`);
-  console.log(`  Tried patterns: "${pattern1}" and "${pattern2}"`);
+  console.log(`  Database has: "${lastName}, ${firstName}"`);
+  console.log(`  Looking for: "${lastName}, ${firstInitial}. (${year})" or "${lastName}, ${firstInitial} (${year})"`);
   
   // Player not found on any roster - they're a free agent
   return undefined;
