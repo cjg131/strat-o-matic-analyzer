@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Upload, CheckCircle, AlertCircle, Loader2, Users } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Upload, CheckCircle, AlertCircle, Loader2, Clipboard } from 'lucide-react';
 import { useHitters } from '../hooks/useHitters';
 import { usePitchers } from '../hooks/usePitchers';
 import { processRosterImages, convertToRosterAssignments, type RosterData } from '../utils/rosterOCR';
@@ -22,6 +22,31 @@ export function RosterManagementPage() {
     { id: 'roster3', file: null, preview: null, status: 'pending' },
   ]);
   const [processing, setProcessing] = useState(false);
+
+  // Handle clipboard paste for images
+  useEffect(() => {
+    const handlePaste = async (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const blob = items[i].getAsFile();
+          if (blob) {
+            // Find first empty slot
+            const emptyIndex = rosterImages.findIndex(r => r.file === null);
+            if (emptyIndex !== -1) {
+              const file = new File([blob], `roster-${emptyIndex + 1}.png`, { type: 'image/png' });
+              handleImageUpload(emptyIndex, file);
+            }
+          }
+        }
+      }
+    };
+
+    document.addEventListener('paste', handlePaste);
+    return () => document.removeEventListener('paste', handlePaste);
+  }, [rosterImages]);
 
   const handleImageUpload = (index: number, file: File) => {
     const reader = new FileReader();
@@ -140,13 +165,14 @@ export function RosterManagementPage() {
 
       <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
         <div className="flex items-start gap-3">
-          <Users className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+          <Clipboard className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
           <div className="flex-1">
             <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1">
               How to use Roster Management
             </h3>
             <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
-              <li>Upload up to 3 roster images (screenshots of your team rosters)</li>
+              <li><strong>Copy & Paste:</strong> Take screenshots and paste them directly (Ctrl/Cmd+V)</li>
+              <li><strong>Or Upload:</strong> Click the upload boxes to select images from your computer</li>
               <li>The system will automatically extract team names and player assignments</li>
               <li>Rosters will be synced to the database and appear in Season Hitters/Pitchers pages</li>
               <li>Supported formats: JPG, PNG, WEBP</li>
