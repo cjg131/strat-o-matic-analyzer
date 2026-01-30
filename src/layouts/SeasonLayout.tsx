@@ -7,9 +7,9 @@ export function SeasonLayout() {
 
   const tabs = [
     // Player Data
+    { path: '/season/roster-management', label: 'Roster Management' },
     { path: '/season/hitters', label: 'Hitters' },
     { path: '/season/pitchers', label: 'Pitchers' },
-    { path: '/season/roster-management', label: 'Roster Management' },
     
     // Team Management
     { path: '/season/hitter-preferences', label: 'Hitter Preferences' },
