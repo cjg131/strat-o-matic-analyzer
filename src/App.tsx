@@ -21,6 +21,7 @@ import { LineupOptimizerPage } from './pages/LineupOptimizerPage';
 import { PitchingRotationPage } from './pages/PitchingRotationPage';
 import { PlayerCardsPage } from './pages/PlayerCardsPage';
 import { PlayerCardInsightsPage } from './pages/PlayerCardInsightsPage';
+import { RosterManagementPage } from './pages/RosterManagementPage';
 import { PreDraftLayout } from './layouts/PreDraftLayout';
 import { SeasonLayout } from './layouts/SeasonLayout';
 import { Login } from './components/Login';
@@ -147,6 +148,7 @@ function App() {
                 <Route path="game-starters" element={<GameStartersPage />} />
                 <Route path="team-rosters" element={<TeamRostersPage />} />
                 <Route path="roster-import" element={<RosterImportPage />} />
+                <Route path="roster-management" element={<RosterManagementPage />} />
                 <Route path="wanted-players" element={<WantedPlayersPage />} />
                 <Route path="lineup-optimizer" element={<LineupOptimizerPage />} />
                 <Route path="pitching-rotation" element={<PitchingRotationPage />} />
