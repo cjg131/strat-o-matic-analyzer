@@ -220,7 +220,7 @@ export function RosterManagementPage() {
       
       for (const hitter of hitters) {
         try {
-          const assignedRoster = assignRosterToPlayer(hitter.name, hitter.season, assignments);
+          const assignedRoster = assignRosterToPlayer(hitter.name, hitter.season);
           
           if (assignedRoster) {
             console.log(`Assigning ${hitter.name} (${hitter.season}) → "${assignedRoster}"`);
@@ -234,7 +234,7 @@ export function RosterManagementPage() {
       
       for (const pitcher of pitchers) {
         try {
-          const assignedRoster = assignRosterToPlayer(pitcher.name, pitcher.season, assignments);
+          const assignedRoster = assignRosterToPlayer(pitcher.name, pitcher.season);
           
           if (assignedRoster) {
             console.log(`Assigning ${pitcher.name} (${pitcher.season}) → "${assignedRoster}"`);
