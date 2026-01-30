@@ -125,22 +125,54 @@ function cleanPlayerName(rawName: string): string | null {
 
   console.log(`[cleanPlayerName] Input: "${rawName}"`);
 
-  // Match pattern: "LastName, Initial(s) (Year)" 
-  // This should capture: "Ensberg, M. (2005)" from "Ensberg, M. (2005) R 3B 5.48M"
-  const match = cleaned.match(/^([A-Za-z'\s]+),\s*([A-Z]\.?)\s*\((\d{4})\)/);
+  // Try multiple patterns to match different OCR variations
+  
+  // Pattern 1: "LastName, Initial(s) (Year)" - most common
+  // Examples: "Ensberg, M. (2005)", "Rodriguez, I. (1999)"
+  let match = cleaned.match(/^([A-Za-z'\-\s]+),\s*([A-Z]\.?)\s*\((\d{4})\)/);
   
   if (match) {
     const lastName = match[1].trim();
-    const initial = match[2].replace('.', '').trim(); // Remove period if present
+    const initial = match[2].replace('.', '').trim();
     const year = match[3];
     
     const result = `${lastName}, ${initial}. (${year})`;
-    console.log(`[cleanPlayerName] Matched! Output: "${result}"`);
+    console.log(`[cleanPlayerName] Pattern 1 matched! Output: "${result}"`);
+    return result;
+  }
+
+  // Pattern 2: Handle names with Jr, Sr, etc.
+  // Example: "Griffey Jr, K. (1989)"
+  match = cleaned.match(/^([A-Za-z'\-\s]+(?:Jr|Sr|II|III)?),\s*([A-Z]\.?)\s*\((\d{4})\)/i);
+  
+  if (match) {
+    const lastName = match[1].trim();
+    const initial = match[2].replace('.', '').trim();
+    const year = match[3];
+    
+    const result = `${lastName}, ${initial}. (${year})`;
+    console.log(`[cleanPlayerName] Pattern 2 matched! Output: "${result}"`);
+    return result;
+  }
+
+  // Pattern 3: Handle multiple initials
+  // Example: "Smith, J.R. (1995)"
+  match = cleaned.match(/^([A-Za-z'\-\s]+),\s*([A-Z]\.?[A-Z]?\.?)\s*\((\d{4})\)/);
+  
+  if (match) {
+    const lastName = match[1].trim();
+    let initials = match[2].replace(/\./g, '').trim();
+    // Take only first initial
+    const initial = initials.charAt(0);
+    const year = match[3];
+    
+    const result = `${lastName}, ${initial}. (${year})`;
+    console.log(`[cleanPlayerName] Pattern 3 matched! Output: "${result}"`);
     return result;
   }
 
   // If no match, log and return null
-  console.log(`[cleanPlayerName] No match found for: "${rawName}"`);
+  console.log(`[cleanPlayerName] ❌ No match found for: "${rawName}"`);
   return null;
 }
 
