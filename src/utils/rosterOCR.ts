@@ -28,7 +28,8 @@ export async function extractTextFromImage(imageFile: File): Promise<string> {
 
 /**
  * Parse extracted OCR text to identify team name and player lists
- * Expected format: Team name at top, followed by player names
+ * Expected format: Division header at top, then multiple teams with their rosters
+ * Each roster image contains an entire division with 4 teams
  */
 export function parseRosterText(text: string): RosterData {
   const lines = text
@@ -41,78 +42,46 @@ export function parseRosterText(text: string): RosterData {
   }
 
   console.log(`[parseRosterText] Total OCR lines: ${lines.length}`);
-  console.log(`[parseRosterText] First 10 lines:`, lines.slice(0, 10));
+  console.log(`[parseRosterText] First 20 lines:`, lines.slice(0, 20));
 
-  // First line is typically the team name
-  const teamName = lines[0];
-  console.log(`[parseRosterText] Team name: "${teamName}"`);
+  // The first line is typically the division name (e.g., "East Division")
+  // We need to extract ALL teams from this division
+  // For now, we'll treat the entire image as one combined roster
+  // and extract all players, letting the team name be the division name
   
-  // Remaining lines are player names
-  // Filter out common headers and non-player text
-  const playerLines = lines.slice(1).filter(line => {
-    const lower = line.toLowerCase();
-    // Skip common headers and labels
-    if (lower.includes('hitter') || 
-        lower.includes('pitcher') ||
-        lower.includes('position') ||
-        lower.includes('salary') ||
-        lower.includes('total') ||
-        lower.length < 3) {
-      console.log(`[parseRosterText] Skipping header/label: "${line}"`);
-      return false;
-    }
-    return true;
-  });
+  const divisionName = lines[0];
+  console.log(`[parseRosterText] Division: "${divisionName}"`);
   
-  console.log(`[parseRosterText] Player lines after filtering: ${playerLines.length}`);
-
-  // Separate hitters and pitchers
-  // Look for section markers or assume first half are hitters
-  const hitters: string[] = [];
-  const pitchers: string[] = [];
+  // Extract ALL players from all lines
+  const allPlayers: string[] = [];
   
-  let currentSection: 'hitters' | 'pitchers' = 'hitters';
-  
-  for (const line of playerLines) {
+  for (const line of lines.slice(1)) {
     const lower = line.toLowerCase();
     
-    // Check for section markers
-    if (lower.includes('pitcher') || lower.includes('pitching')) {
-      currentSection = 'pitchers';
+    // Skip headers and labels
+    if (lower.includes('pitcher') && lower.includes('total') ||
+        lower.includes('hitter') && lower.includes('total') ||
+        lower.includes('roster total') ||
+        lower.includes('cash') ||
+        lower.includes('total value') ||
+        lower.length < 10) {
       continue;
     }
     
-    // Extract ALL players from this line (may contain multiple players in multi-column format)
-    const cleanNames = extractAllPlayersFromLine(line);
-    for (const cleanName of cleanNames) {
-      if (currentSection === 'hitters') {
-        hitters.push(cleanName);
-      } else {
-        pitchers.push(cleanName);
-      }
-    }
+    // Extract all players from this line
+    const players = extractAllPlayersFromLine(line);
+    allPlayers.push(...players);
   }
+  
+  console.log(`[parseRosterText] Total players extracted: ${allPlayers.length}`);
+  console.log(`[parseRosterText] Sample players:`, allPlayers.slice(0, 10));
 
-  // If no section markers found, try to split by position
-  // Assume players with 'P' position are pitchers
-  if (pitchers.length === 0 && hitters.length > 0) {
-    const allPlayers = [...hitters];
-    hitters.length = 0;
-    
-    for (const player of allPlayers) {
-      // Simple heuristic: if name contains position indicators
-      if (player.match(/\bP\b/i)) {
-        pitchers.push(player);
-      } else {
-        hitters.push(player);
-      }
-    }
-  }
-
+  // For now, return all players as hitters (we'll separate them later based on position)
+  // The team name will be the division name
   return {
-    teamName,
-    hitters,
-    pitchers
+    teamName: divisionName,
+    hitters: allPlayers,
+    pitchers: []
   };
 }
 
