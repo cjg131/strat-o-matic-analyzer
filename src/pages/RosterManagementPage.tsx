@@ -346,11 +346,10 @@ export function RosterManagementPage() {
             <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
             <div>
               <h3 className="text-sm font-semibold text-green-900 dark:text-green-100 mb-1">
-                Rosters Updated Successfully!
+                Rosters Processed Successfully!
               </h3>
               <p className="text-sm text-green-800 dark:text-green-200">
-                Your roster assignments have been updated. Go to Season Hitters or Season Pitchers
-                and click "Sync Rosters" to apply the changes to your database.
+                Your roster assignments have been extracted and saved. All team management tabs (Lineup Optimizer, Pitching Rotation, Hitter/Pitcher Preferences, Team Strategy) will automatically update with your Manhattan WOW Award Stars roster.
               </p>
             </div>
           </div>
