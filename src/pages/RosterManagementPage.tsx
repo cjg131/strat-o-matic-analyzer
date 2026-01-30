@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react';
 import { Upload, CheckCircle, AlertCircle, Loader2, Clipboard } from 'lucide-react';
 import { useHitters } from '../hooks/useHitters';
 import { usePitchers } from '../hooks/usePitchers';
+import { useAuth } from '../contexts/AuthContext';
 import { processRosterImages, convertToRosterAssignments, type RosterData } from '../utils/rosterOCR';
+import { assignRosterToPlayer } from '../utils/rosterAssignment';
+import { saveRosterAssignments } from '../services/firestore';
 
 interface RosterImage {
   id: string;
@@ -14,8 +17,9 @@ interface RosterImage {
 }
 
 export function RosterManagementPage() {
-  const { hitters } = useHitters();
-  const { pitchers } = usePitchers();
+  const { hitters, updateHitter } = useHitters();
+  const { pitchers, updatePitcher } = usePitchers();
+  const { currentUser } = useAuth();
   const [rosterImages, setRosterImages] = useState<RosterImage[]>([
     { id: 'roster1', file: null, preview: null, status: 'pending' },
     { id: 'roster2', file: null, preview: null, status: 'pending' },
@@ -114,9 +118,16 @@ export function RosterManagementPage() {
         return updated;
       });
 
-      // Generate and download roster-assignments.json
+      // Generate roster assignments
       const assignments = convertToRosterAssignments(results);
+      
+      // Download roster-assignments.json
       downloadRosterAssignments(assignments);
+      
+      // Auto-sync rosters to database if user is logged in
+      if (currentUser) {
+        await syncRostersToDatabase(assignments);
+      }
 
     } catch (error) {
       // Mark all processing images as error
@@ -148,6 +159,44 @@ export function RosterManagementPage() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const syncRostersToDatabase = async (assignments: Record<string, any>) => {
+    try {
+      // Save roster assignments to Firestore
+      await saveRosterAssignments(currentUser!.uid, assignments);
+      
+      let hitterUpdates = 0;
+      let pitcherUpdates = 0;
+      
+      // Update all hitters with new roster assignments
+      for (const hitter of hitters) {
+        const assignedRoster = assignRosterToPlayer(hitter.name, hitter.season, assignments);
+        const newRoster = assignedRoster || '';
+        
+        if (hitter.roster !== newRoster) {
+          await updateHitter(hitter.id, { ...hitter, roster: newRoster });
+          hitterUpdates++;
+        }
+      }
+      
+      // Update all pitchers with new roster assignments
+      for (const pitcher of pitchers) {
+        const assignedRoster = assignRosterToPlayer(pitcher.name, pitcher.season, assignments);
+        const newRoster = assignedRoster || '';
+        
+        if (pitcher.roster !== newRoster) {
+          await updatePitcher(pitcher.id, { ...pitcher, roster: newRoster });
+          pitcherUpdates++;
+        }
+      }
+      
+      console.log(`✅ Roster sync complete: ${hitterUpdates} hitters, ${pitcherUpdates} pitchers updated`);
+      alert(`Rosters synced successfully!\n${hitterUpdates} hitters and ${pitcherUpdates} pitchers updated.\n\nYour team management tabs (Lineup Optimizer, Pitching Rotation, etc.) are now updated with your Manhattan WOW Award Stars roster.`);
+    } catch (error) {
+      console.error('Failed to sync rosters:', error);
+      alert('Roster assignments extracted but failed to sync to database. You can manually sync from Season Hitters/Pitchers pages.');
+    }
   };
 
   const canProcess = rosterImages.some(r => r.file !== null) && !processing;

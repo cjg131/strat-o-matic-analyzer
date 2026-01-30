@@ -12,6 +12,15 @@ import {
 import { db } from '../config/firebase';
 import type { Hitter, Pitcher, TeamRoster, ScoringWeights, Ballpark } from '../types';
 
+// Roster Assignments
+export const saveRosterAssignments = async (userId: string, assignments: Record<string, any>): Promise<void> => {
+  const assignmentsRef = doc(db, getUserPath(userId, 'roster-assignments'), 'current');
+  await setDoc(assignmentsRef, sanitizeData({ 
+    rosters: assignments.rosters,
+    updatedAt: new Date().toISOString()
+  }));
+};
+
 // Collection paths for user data
 const getUserPath = (userId: string, collectionName: string) => {
   return `users/${userId}/${collectionName}`;

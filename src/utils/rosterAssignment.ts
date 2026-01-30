@@ -3,8 +3,11 @@ import rosterData from '../../roster-assignments.json';
 /**
  * Assigns roster names to players based on the roster-assignments.json file
  * Matches players by name and year in format "LastName, Initial (Year)"
+ * @param playerName - Player name in format "LastName, FirstName"
+ * @param year - Player season year
+ * @param customRosterData - Optional custom roster data to use instead of default file
  */
-export function assignRosterToPlayer(playerName: string, year: string): string | undefined {
+export function assignRosterToPlayer(playerName: string, year: string, customRosterData?: any): string | undefined {
   // Parse the player name to extract last name and first initial
   // Handle formats like "Ruth, Babe" or "Ruth, B." or "Ruth, B" or "Griffey Jr, Ken"
   const nameParts = playerName.split(',').map(p => p.trim());
@@ -23,12 +26,16 @@ export function assignRosterToPlayer(playerName: string, year: string): string |
   const pattern1 = `${lastName}, ${firstInitial}. (${year})`.toLowerCase();
   const pattern2 = `${lastName}, ${firstInitial} (${year})`.toLowerCase();
   
+  // Use custom roster data if provided, otherwise use default
+  const dataToUse = customRosterData || rosterData;
+  
   // Search through all rosters
-  for (const [rosterName, rosterPlayers] of Object.entries(rosterData.rosters)) {
+  for (const [rosterName, rosterPlayers] of Object.entries(dataToUse.rosters)) {
     // Check both hitters and pitchers arrays
+    const players = rosterPlayers as { hitters?: string[]; pitchers?: string[] };
     const allPlayers = [
-      ...(rosterPlayers.hitters || []),
-      ...(rosterPlayers.pitchers || [])
+      ...(players.hitters || []),
+      ...(players.pitchers || [])
     ];
     
     // Check if this player is on this roster
