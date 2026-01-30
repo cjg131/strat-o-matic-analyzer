@@ -111,35 +111,37 @@ export function parseRosterText(text: string): RosterData {
 
 /**
  * Clean up player name by removing extra characters, positions, etc.
+ * Expected input format from roster table: "LastName, I. (Year)" or "LastName, I. (Year) Position Salary"
+ * Examples: 
+ *   "Ensberg, M. (2005) R 3B 5.48M"
+ *   "Rodriguez, I. (1999) R C 6.55M"
  */
 function cleanPlayerName(rawName: string): string | null {
   // Remove common OCR artifacts
   let cleaned = rawName
     .replace(/[|]/g, 'I') // Replace pipes with I
-    .replace(/[`']/g, '') // Remove quotes
+    .replace(/[`']/g, "'") // Normalize quotes
     .trim();
 
-  // Remove position indicators (C, 1B, 2B, etc.)
-  cleaned = cleaned.replace(/\b(C|1B|2B|3B|SS|LF|CF|RF|OF|DH|P)\b/gi, '').trim();
+  console.log(`[cleanPlayerName] Input: "${rawName}"`);
+
+  // Match pattern: "LastName, Initial(s) (Year)" 
+  // This should capture: "Ensberg, M. (2005)" from "Ensberg, M. (2005) R 3B 5.48M"
+  const match = cleaned.match(/^([A-Za-z'\s]+),\s*([A-Z]\.?)\s*\((\d{4})\)/);
   
-  // Remove salary amounts (e.g., $3,500)
-  cleaned = cleaned.replace(/\$[\d,]+/g, '').trim();
-  
-  // Remove year indicators (e.g., (1927), '27)
-  cleaned = cleaned.replace(/\(?\d{4}\)?/g, '').trim();
-  cleaned = cleaned.replace(/'\d{2}/g, '').trim();
-  
-  // Must have at least a comma (Last, First format)
-  if (!cleaned.includes(',') && !cleaned.includes(' ')) {
-    return null;
+  if (match) {
+    const lastName = match[1].trim();
+    const initial = match[2].replace('.', '').trim(); // Remove period if present
+    const year = match[3];
+    
+    const result = `${lastName}, ${initial}. (${year})`;
+    console.log(`[cleanPlayerName] Matched! Output: "${result}"`);
+    return result;
   }
 
-  // Basic validation: should look like a name
-  if (cleaned.length < 3 || cleaned.length > 50) {
-    return null;
-  }
-
-  return cleaned;
+  // If no match, log and return null
+  console.log(`[cleanPlayerName] No match found for: "${rawName}"`);
+  return null;
 }
 
 /**
