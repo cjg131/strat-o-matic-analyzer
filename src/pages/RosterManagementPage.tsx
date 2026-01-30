@@ -247,10 +247,11 @@ export function RosterManagementPage() {
       }
       
       console.log(`✅ Roster sync complete: ${hitterUpdates} hitters, ${pitcherUpdates} pitchers updated`);
-      alert(`Rosters synced successfully!\n${hitterUpdates} hitters and ${pitcherUpdates} pitchers updated.\n\nThe page will now reload to show your updated rosters across all tabs.`);
+      alert(`Rosters synced successfully!\n${hitterUpdates} hitters and ${pitcherUpdates} pitchers updated.\n\nCheck the console for detailed logs. Refresh the page manually to see updated rosters.`);
       
       // Reload the page to ensure all tabs reflect the updated rosters
-      window.location.reload();
+      // TEMPORARILY DISABLED FOR DEBUGGING - UNCOMMENT AFTER FIXING OCR
+      // window.location.reload();
     } catch (error) {
       console.error('Failed to sync rosters:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
