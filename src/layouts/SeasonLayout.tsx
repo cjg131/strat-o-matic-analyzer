@@ -9,7 +9,6 @@ export function SeasonLayout() {
     // Player Data
     { path: '/season/hitters', label: 'Hitters' },
     { path: '/season/pitchers', label: 'Pitchers' },
-    { path: '/season/team-rosters', label: 'Team Rosters' },
     { path: '/season/roster-management', label: 'Roster Management' },
     
     // Team Management
