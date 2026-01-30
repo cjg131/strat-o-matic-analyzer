@@ -9,6 +9,7 @@ interface PitchersTableProps {
   onDelete: (id: string) => void;
   onAddToTeam?: (pitcher: PitcherWithStats) => void;
   onAddToWanted?: (pitcher: PitcherWithStats) => void;
+  showRoster?: boolean; // Show roster column and FA filter (default: false for pre-draft, true for season)
 }
 
 type SortField = keyof PitcherWithStats;
@@ -46,12 +47,13 @@ function compareEndurance(a: string, b: string): number {
   return 0;
 }
 
-export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddToWanted }: PitchersTableProps) {
+export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddToWanted, showRoster = false }: PitchersTableProps) {
   const [sortField, setSortField] = useState<SortField>('fantasyPoints');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [searchTerm, setSearchTerm] = useState('');
   const [pitcherType, setPitcherType] = useState<'all' | 'starter' | 'reliever'>('all');
   const [throwingArm, setThrowingArm] = useState<'all' | 'L' | 'R'>('all');
+  const [rosterFilter, setRosterFilter] = useState('');
   const [enduranceFilter, setEnduranceFilter] = useState<string>('all');
   const [minSalary, setMinSalary] = useState<string>('');
   const [maxSalary, setMaxSalary] = useState<string>('');
@@ -60,6 +62,7 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddTo
     name: 180,
     season: 80,
     team: 80,
+    roster: 80,
     salary: 100,
     endurance: 70,
     throwingArm: 50,
@@ -195,6 +198,14 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddTo
       });
     }
 
+    if (showRoster && rosterFilter) {
+      if (rosterFilter === 'FA') {
+        filtered = filtered.filter((p) => !p.roster || p.roster === '');
+      } else {
+        filtered = filtered.filter((p) => p.roster === rosterFilter);
+      }
+    }
+
     if (minSalary) {
       const min = parseFloat(minSalary) * 1000;
       if (!isNaN(min)) {
@@ -230,7 +241,7 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddTo
         ? aStr.localeCompare(bStr)
         : bStr.localeCompare(aStr);
     });
-  }, [pitchers, sortField, sortDirection, searchTerm, pitcherType, throwingArm, enduranceFilter, minSalary, maxSalary]);
+  }, [pitchers, sortField, sortDirection, searchTerm, pitcherType, throwingArm, rosterFilter, enduranceFilter, minSalary, maxSalary, showRoster]);
 
   const SortButton = ({ field, label }: { field: SortField; label: string }) => (
     <button
@@ -281,6 +292,17 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddTo
           <option value="R">Right-Handed</option>
         </select>
 
+        {showRoster && (
+          <select
+            value={rosterFilter}
+            onChange={(e) => setRosterFilter(e.target.value)}
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+            <option value="">All Rosters</option>
+            <option value="FA">FA - Free Agents</option>
+          </select>
+        )}
+
         <select
           value={enduranceFilter}
           onChange={(e) => setEnduranceFilter(e.target.value)}
@@ -327,6 +349,12 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddTo
                 <SortButton field="team" label="Team" />
                 <ResizeHandle columnKey="team" />
               </th>
+              {showRoster && (
+                <th data-column-key="roster" style={{ width: getColumnWidth('roster') }} className="px-3 py-2 text-left relative border-r border-gray-300 dark:border-gray-600">
+                  <SortButton field="roster" label="Roster" />
+                  <ResizeHandle columnKey="roster" />
+                </th>
+              )}
               <th data-column-key="salary" style={{ width: getColumnWidth('salary') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="salary" label="Salary" />
                 <ResizeHandle columnKey="salary" />
@@ -423,6 +451,9 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddTo
                 <td className="px-3 py-2 text-gray-900 dark:text-white font-medium sticky left-0 bg-white dark:bg-gray-900 z-10">{pitcher.name}</td>
                 <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{pitcher.season}</td>
                 <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{pitcher.team || '-'}</td>
+                {showRoster && (
+                  <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{pitcher.roster || 'FA'}</td>
+                )}
                 <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300 font-mono whitespace-nowrap">{formatCurrency(pitcher.salary)}</td>
                 <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">{pitcher.endurance || '-'}</td>
                 <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300 font-semibold">{pitcher.throwingArm || '-'}</td>

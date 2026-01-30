@@ -179,6 +179,7 @@ export function SeasonPitchersPage() {
           pitchers={pitchersWithStats}
           onEdit={() => {}}
           onDelete={() => {}}
+          showRoster={true}
           onAddToWanted={handleAddToWanted}
         />
       </div>

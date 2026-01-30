@@ -9,16 +9,18 @@ interface HittersTableProps {
   onDelete: (id: string) => void;
   onAddToTeam?: (hitter: HitterWithStats) => void;
   onAddToWanted?: (hitter: HitterWithStats) => void;
+  showRoster?: boolean; // Show roster column and FA filter (default: false for pre-draft, true for season)
 }
 
 type SortField = keyof HitterWithStats;
 type SortDirection = 'asc' | 'desc';
 
-export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWanted }: HittersTableProps) {
+export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWanted, showRoster = false }: HittersTableProps) {
   const [sortField, setSortField] = useState<SortField>('fantasyPoints');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [searchTerm, setSearchTerm] = useState('');
   const [positionFilter, setPositionFilter] = useState('');
+  const [rosterFilter, setRosterFilter] = useState('');
   const [minSalary, setMinSalary] = useState<string>('');
   const [maxSalary, setMaxSalary] = useState<string>('');
   const [stlFilter, setStlFilter] = useState('');
@@ -32,6 +34,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWa
     name: 180,
     season: 80,
     team: 80,
+    roster: 80,
     positions: 100,
     salary: 100,
     balance: 60,
@@ -142,6 +145,14 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWa
           h.team?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           h.season.includes(searchTerm)
       );
+    }
+
+    if (showRoster && rosterFilter) {
+      if (rosterFilter === 'FA') {
+        filtered = filtered.filter((h) => !h.roster || h.roster === '');
+      } else {
+        filtered = filtered.filter((h) => h.roster === rosterFilter);
+      }
     }
 
     if (positionFilter) {
@@ -306,7 +317,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWa
         ? aStr.localeCompare(bStr)
         : bStr.localeCompare(aStr);
     });
-  }, [hitters, searchTerm, positionFilter, minSalary, maxSalary, sortField, sortDirection, stlFilter, runFilter, rangeFilter, armFilter, errorFilter, tFilter]);
+  }, [hitters, searchTerm, positionFilter, rosterFilter, minSalary, maxSalary, sortField, sortDirection, stlFilter, runFilter, rangeFilter, armFilter, errorFilter, tFilter, showRoster]);
 
   const SortButton = ({ field, label }: { field: SortField; label: string }) => (
     <button
@@ -357,6 +368,18 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWa
               <option value="OF">OF - All Outfield</option>
             </select>
           </div>
+          {showRoster && (
+            <div className="w-48">
+              <select
+                value={rosterFilter}
+                onChange={(e) => setRosterFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="">All Rosters</option>
+                <option value="FA">FA - Free Agents</option>
+              </select>
+            </div>
+          )}
         </div>
         <div className="flex gap-2 items-center flex-wrap text-sm">
           <label className="font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Salary:</label>
@@ -499,6 +522,12 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWa
                 <SortButton field="team" label="Team" />
                 <ResizeHandle columnKey="team" />
               </th>
+              {showRoster && (
+                <th data-column-key="roster" style={{ width: getColumnWidth('roster') }} className="px-3 py-2 text-left relative border-r border-gray-300 dark:border-gray-600">
+                  <SortButton field="roster" label="Roster" />
+                  <ResizeHandle columnKey="roster" />
+                </th>
+              )}
               <th data-column-key="positions" style={{ width: getColumnWidth('positions') }} className="px-3 py-2 text-left relative border-r border-gray-300 dark:border-gray-600">
                 <SortButton field="positions" label="Pos" />
                 <ResizeHandle columnKey="positions" />
@@ -623,6 +652,9 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWa
                 <td className="px-3 py-2 text-gray-900 dark:text-white font-medium sticky left-0 bg-white dark:bg-gray-900 z-10">{hitter.name}</td>
                 <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{hitter.season}</td>
                 <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{hitter.team || '-'}</td>
+                {showRoster && (
+                  <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{hitter.roster || 'FA'}</td>
+                )}
                 <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{hitter.positions || '-'}</td>
                 <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300 font-mono whitespace-nowrap">{formatCurrency(hitter.salary)}</td>
                 <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300 font-semibold">{hitter.balance || 'E'}</td>

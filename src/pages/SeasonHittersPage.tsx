@@ -185,6 +185,7 @@ export function SeasonHittersPage() {
           hitters={hittersWithStats}
           onEdit={() => {}}
           onDelete={() => {}}
+          showRoster={true}
           onAddToWanted={handleAddToWanted}
         />
       </div>
