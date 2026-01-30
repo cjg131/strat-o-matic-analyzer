@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Upload, CheckCircle, AlertCircle, Loader2, Users } from 'lucide-react';
 import { useHitters } from '../hooks/useHitters';
 import { usePitchers } from '../hooks/usePitchers';
+import { processRosterImages, convertToRosterAssignments, type RosterData } from '../utils/rosterOCR';
 
 interface RosterImage {
   id: string;
@@ -9,10 +10,7 @@ interface RosterImage {
   preview: string | null;
   status: 'pending' | 'processing' | 'success' | 'error';
   error?: string;
-  extractedData?: {
-    teamName: string;
-    players: string[];
-  };
+  extractedData?: RosterData;
 }
 
 export function RosterManagementPage() {
@@ -57,51 +55,74 @@ export function RosterManagementPage() {
     });
   };
 
-  const processRosterImages = async () => {
+  const processRosterImagesHandler = async () => {
     setProcessing(true);
     
-    // Process each image
-    for (let i = 0; i < rosterImages.length; i++) {
-      const roster = rosterImages[i];
-      if (!roster.file) continue;
+    // Collect files to process
+    const filesToProcess = rosterImages
+      .filter(r => r.file !== null)
+      .map(r => r.file!);
+    
+    if (filesToProcess.length === 0) {
+      setProcessing(false);
+      return;
+    }
 
+    try {
+      // Process all images with OCR
+      const results = await processRosterImages(filesToProcess);
+      
+      // Update state with results
+      let resultIndex = 0;
       setRosterImages(prev => {
         const updated = [...prev];
-        updated[i] = { ...updated[i], status: 'processing' };
+        for (let i = 0; i < updated.length; i++) {
+          if (updated[i].file && resultIndex < results.length) {
+            updated[i] = {
+              ...updated[i],
+              status: 'success',
+              extractedData: results[resultIndex]
+            };
+            resultIndex++;
+          }
+        }
         return updated;
       });
 
-      try {
-        // TODO: Implement OCR processing
-        // For now, simulate processing
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        setRosterImages(prev => {
-          const updated = [...prev];
-          updated[i] = {
-            ...updated[i],
-            status: 'success',
-            extractedData: {
-              teamName: `Team ${i + 1}`,
-              players: ['Player 1', 'Player 2', 'Player 3']
-            }
-          };
-          return updated;
-        });
-      } catch (error) {
-        setRosterImages(prev => {
-          const updated = [...prev];
-          updated[i] = {
-            ...updated[i],
-            status: 'error',
-            error: error instanceof Error ? error.message : 'Failed to process image'
-          };
-          return updated;
-        });
-      }
+      // Generate and download roster-assignments.json
+      const assignments = convertToRosterAssignments(results);
+      downloadRosterAssignments(assignments);
+
+    } catch (error) {
+      // Mark all processing images as error
+      setRosterImages(prev => {
+        const updated = [...prev];
+        for (let i = 0; i < updated.length; i++) {
+          if (updated[i].file && updated[i].status === 'processing') {
+            updated[i] = {
+              ...updated[i],
+              status: 'error',
+              error: error instanceof Error ? error.message : 'Failed to process image'
+            };
+          }
+        }
+        return updated;
+      });
     }
 
     setProcessing(false);
+  };
+
+  const downloadRosterAssignments = (assignments: Record<string, any>) => {
+    const blob = new Blob([JSON.stringify(assignments, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'roster-assignments.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const canProcess = rosterImages.some(r => r.file !== null) && !processing;
@@ -197,7 +218,7 @@ export function RosterManagementPage() {
                         {roster.extractedData.teamName}
                       </p>
                       <p className="text-xs text-green-700 dark:text-green-300">
-                        {roster.extractedData.players.length} players found
+                        {roster.extractedData.hitters.length} hitters, {roster.extractedData.pitchers.length} pitchers
                       </p>
                     </div>
                   )}
@@ -226,7 +247,7 @@ export function RosterManagementPage() {
 
       <div className="flex justify-center">
         <button
-          onClick={processRosterImages}
+          onClick={processRosterImagesHandler}
           disabled={!canProcess}
           className="px-8 py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white rounded-lg font-semibold transition-colors flex items-center gap-2 disabled:cursor-not-allowed"
         >
