@@ -75,9 +75,9 @@ export function parseRosterText(text: string): RosterData {
       continue;
     }
     
-    // Clean up player name
-    const cleanName = cleanPlayerName(line);
-    if (cleanName) {
+    // Extract ALL players from this line (may contain multiple players in multi-column format)
+    const cleanNames = extractAllPlayersFromLine(line);
+    for (const cleanName of cleanNames) {
       if (currentSection === 'hitters') {
         hitters.push(cleanName);
       } else {
@@ -110,71 +110,43 @@ export function parseRosterText(text: string): RosterData {
 }
 
 /**
- * Clean up player name by removing extra characters, positions, etc.
- * Expected input format from roster table: "LastName, I. (Year)" or "LastName, I. (Year) Position Salary"
- * Examples: 
- *   "Ensberg, M. (2005) R 3B 5.48M"
- *   "Rodriguez, I. (1999) R C 6.55M"
+ * Extract all player names from a single OCR line that may contain multiple players
+ * Example input: "Cash .00M Flick, E. (1905) I L RF 6.36M Cash .07M Harper, B. (2015)"
+ * Should extract: ["Flick, E. (1905)", "Harper, B. (2015)"]
  */
-function cleanPlayerName(rawName: string): string | null {
+function extractAllPlayersFromLine(rawLine: string): string[] {
+  const players: string[] = [];
+  
+  console.log(`[extractAllPlayersFromLine] Input: "${rawLine}"`);
+  
   // Remove common OCR artifacts
-  let cleaned = rawName
-    .replace(/[|]/g, 'I') // Replace pipes with I
-    .replace(/[`']/g, "'") // Normalize quotes
+  let cleaned = rawLine
+    .replace(/[|]/g, 'I')
+    .replace(/[`']/g, "'")
     .trim();
-
-  console.log(`[cleanPlayerName] Input: "${rawName}"`);
-
-  // Try multiple patterns to match different OCR variations
   
-  // Pattern 1: "LastName, Initial(s) (Year)" - most common
-  // Examples: "Ensberg, M. (2005)", "Rodriguez, I. (1999)"
-  let match = cleaned.match(/^([A-Za-z'\-\s]+),\s*([A-Z]\.?)\s*\((\d{4})\)/);
+  // Global regex to find ALL occurrences of player pattern: "LastName, I. (Year)"
+  // This will match multiple players in the same line
+  const regex = /([A-Za-z'\-\s]+),\s*([A-Z]\.?)\s*\((\d{4})\)/g;
   
-  if (match) {
+  let match;
+  while ((match = regex.exec(cleaned)) !== null) {
     const lastName = match[1].trim();
     const initial = match[2].replace('.', '').trim();
     const year = match[3];
     
     const result = `${lastName}, ${initial}. (${year})`;
-    console.log(`[cleanPlayerName] Pattern 1 matched! Output: "${result}"`);
-    return result;
+    console.log(`[extractAllPlayersFromLine] Found player: "${result}"`);
+    players.push(result);
   }
-
-  // Pattern 2: Handle names with Jr, Sr, etc.
-  // Example: "Griffey Jr, K. (1989)"
-  match = cleaned.match(/^([A-Za-z'\-\s]+(?:Jr|Sr|II|III)?),\s*([A-Z]\.?)\s*\((\d{4})\)/i);
   
-  if (match) {
-    const lastName = match[1].trim();
-    const initial = match[2].replace('.', '').trim();
-    const year = match[3];
-    
-    const result = `${lastName}, ${initial}. (${year})`;
-    console.log(`[cleanPlayerName] Pattern 2 matched! Output: "${result}"`);
-    return result;
+  if (players.length === 0) {
+    console.log(`[extractAllPlayersFromLine] ❌ No players found in: "${rawLine}"`);
   }
-
-  // Pattern 3: Handle multiple initials
-  // Example: "Smith, J.R. (1995)"
-  match = cleaned.match(/^([A-Za-z'\-\s]+),\s*([A-Z]\.?[A-Z]?\.?)\s*\((\d{4})\)/);
   
-  if (match) {
-    const lastName = match[1].trim();
-    let initials = match[2].replace(/\./g, '').trim();
-    // Take only first initial
-    const initial = initials.charAt(0);
-    const year = match[3];
-    
-    const result = `${lastName}, ${initial}. (${year})`;
-    console.log(`[cleanPlayerName] Pattern 3 matched! Output: "${result}"`);
-    return result;
-  }
-
-  // If no match, log and return null
-  console.log(`[cleanPlayerName] ❌ No match found for: "${rawName}"`);
-  return null;
+  return players;
 }
+
 
 /**
  * Process multiple roster images and combine results
