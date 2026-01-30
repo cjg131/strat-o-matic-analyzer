@@ -20,19 +20,50 @@ export function assignRosterToPlayer(playerName: string, year: string, customRos
   const firstName = nameParts[1].trim();
   const firstInitial = firstName.charAt(0).toUpperCase();
   
-  // Use custom roster data if provided, otherwise use default
-  const dataToUse = customRosterData || rosterData;
+  // ALWAYS use the static roster-assignments.json for team names
+  // The customRosterData (OCR data) is only used to verify the player exists
+  // but we return the team name from the static file, not from OCR
   
   // DEBUG: Log what we're working with
   console.log(`[DEBUG] Trying to match: "${playerName}" (${year})`);
   console.log(`[DEBUG] Parsed as: lastName="${lastName}", firstName="${firstName}", initial="${firstInitial}"`);
-  console.log(`[DEBUG] Using ${customRosterData ? 'CUSTOM' : 'DEFAULT'} roster data`);
+  
+  // If custom data provided, first check if player exists in OCR data
   if (customRosterData) {
-    console.log(`[DEBUG] Custom data structure:`, Object.keys(dataToUse));
+    let foundInOCR = false;
+    for (const [, ocrRosterPlayers] of Object.entries(customRosterData.rosters)) {
+      const ocrPlayers = ocrRosterPlayers as { hitters?: string[]; pitchers?: string[] };
+      const allOCRPlayers = [
+        ...(ocrPlayers.hitters || []),
+        ...(ocrPlayers.pitchers || [])
+      ];
+      
+      // Check if player exists in OCR data
+      const existsInOCR = allOCRPlayers.some(ocrPlayer => {
+        const normalizedOCRPlayer = ocrPlayer.toLowerCase().trim();
+        const ocrMatch = normalizedOCRPlayer.match(/^([^,]+),\s*([^(]+)\s*\(([^)]+)\)/);
+        if (!ocrMatch) return false;
+        
+        const ocrLastName = ocrMatch[1].trim();
+        const ocrYear = ocrMatch[3].trim();
+        
+        return ocrLastName === lastName.toLowerCase() && ocrYear === year.toLowerCase();
+      });
+      
+      if (existsInOCR) {
+        foundInOCR = true;
+        break;
+      }
+    }
+    
+    if (!foundInOCR) {
+      console.log(`[DEBUG] Player not found in OCR data, skipping`);
+      return undefined;
+    }
   }
   
-  // Search through all rosters
-  for (const [rosterName, rosterPlayers] of Object.entries(dataToUse.rosters)) {
+  // Now search the STATIC roster-assignments.json for the actual team name
+  for (const [rosterName, rosterPlayers] of Object.entries(rosterData.rosters)) {
     // Check both hitters and pitchers arrays
     const players = rosterPlayers as { hitters?: string[]; pitchers?: string[] };
     const allPlayers = [

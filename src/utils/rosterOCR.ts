@@ -30,6 +30,8 @@ export async function extractTextFromImage(imageFile: File): Promise<string> {
  * Parse extracted OCR text to identify team name and player lists
  * Expected format: Division header at top, then multiple teams with their rosters
  * Each roster image contains an entire division with 4 teams
+ * 
+ * Team name pattern: "TeamName (W-L)" e.g., "Manhattan WOW Award Stars (9-12)"
  */
 export function parseRosterText(text: string): RosterData {
   const lines = text
@@ -44,26 +46,33 @@ export function parseRosterText(text: string): RosterData {
   console.log(`[parseRosterText] Total OCR lines: ${lines.length}`);
   console.log(`[parseRosterText] First 20 lines:`, lines.slice(0, 20));
 
-  // The first line is typically the division name (e.g., "East Division")
-  // We need to extract ALL teams from this division
-  // For now, we'll treat the entire image as one combined roster
-  // and extract all players, letting the team name be the division name
+  // Look for team name patterns: "Team Name (W-L)" like "Manhattan WOW Award Stars (9-12)"
+  // Team names appear before player lists and often have a record in parentheses
+  const teamNamePattern = /^([A-Za-z\s']+(?:II|III|IV)?)\s*\((\d+-\d+)\)/;
   
-  const divisionName = lines[0];
-  console.log(`[parseRosterText] Division: "${divisionName}"`);
-  
-  // Extract ALL players from all lines
+  let currentTeamName = lines[0]; // Default to division name if no team found
   const allPlayers: string[] = [];
   
-  for (const line of lines.slice(1)) {
+  for (const line of lines) {
+    // Check if this line is a team name
+    const teamMatch = line.match(teamNamePattern);
+    if (teamMatch) {
+      currentTeamName = teamMatch[1].trim();
+      console.log(`[parseRosterText] Found team: "${currentTeamName}" (${teamMatch[2]})`);
+      continue;
+    }
+    
     const lower = line.toLowerCase();
     
     // Skip headers and labels
-    if (lower.includes('pitcher') && lower.includes('total') ||
+    if (lower.includes('division') ||
+        lower.includes('pitcher') && lower.includes('total') ||
         lower.includes('hitter') && lower.includes('total') ||
         lower.includes('roster total') ||
         lower.includes('cash') ||
         lower.includes('total value') ||
+        lower.includes('pitchers') ||
+        lower.includes('hitters') ||
         lower.length < 10) {
       continue;
     }
@@ -73,13 +82,13 @@ export function parseRosterText(text: string): RosterData {
     allPlayers.push(...players);
   }
   
+  console.log(`[parseRosterText] Team: "${currentTeamName}"`);
   console.log(`[parseRosterText] Total players extracted: ${allPlayers.length}`);
   console.log(`[parseRosterText] Sample players:`, allPlayers.slice(0, 10));
 
-  // For now, return all players as hitters (we'll separate them later based on position)
-  // The team name will be the division name
+  // Return all players as hitters (we'll separate them later based on position)
   return {
-    teamName: divisionName,
+    teamName: currentTeamName,
     hitters: allPlayers,
     pitchers: []
   };
