@@ -10,6 +10,9 @@ export function SeasonLayout() {
     { path: '/season/roster-management', label: 'Roster Management' },
     { path: '/season/hitters', label: 'Hitters' },
     { path: '/season/pitchers', label: 'Pitchers' },
+    { path: '/season/wanted-players', label: 'Wanted Players' },
+    { path: '/season/lineup-optimizer', label: 'Lineup Optimizer' },
+    { path: '/season/pitching-rotation', label: 'Pitching Rotation' },
     
     // Team Management
     { path: '/season/hitter-preferences', label: 'Hitter Preferences' },
@@ -19,13 +22,6 @@ export function SeasonLayout() {
     // Analysis & Planning
     { path: '/season/opponent-analysis', label: 'Opponent Analysis' },
     { path: '/season/game-starters', label: 'Game Starters' },
-    { path: '/season/wanted-players', label: 'Wanted Players' },
-    
-    // Optimization Tools
-    { path: '/season/lineup-optimizer', label: 'Lineup Optimizer' },
-    { path: '/season/pitching-rotation', label: 'Pitching Rotation' },
-    
-    // Player Cards
     { path: '/season/player-cards', label: 'Player Cards' },
     { path: '/season/player-card-insights', label: 'Card Insights' },
   ];
