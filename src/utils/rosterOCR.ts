@@ -47,40 +47,35 @@ export function parseRosterText(text: string): RosterData[] {
   console.log(`[parseRosterText] Total OCR lines: ${lines.length}`);
   console.log(`[parseRosterText] First 10 lines:`, lines.slice(0, 10));
 
-  // Look for THE FIRST team name at the top of the image
+  // Extract ALL team names from the entire text (division images have multiple teams)
   // Pattern: "Team Name (W-L)" like "Manhattan WOW Award Stars (9-12)"
-  const teamNamePattern = /([A-Za-z\s']+(?:II|III|IV)?)\s*\((\d+-\d+)\)/;
+  const teamNamePattern = /([A-Za-z\s']+(?:II|III|IV)?)\s*\((\d+-\d+)\)/g;
   
-  let teamName: string | null = null;
+  const allTeamNames: string[] = [];
+  const fullText = lines.join(' ');
+  
+  // Find ALL team names in the entire text
+  const matches = Array.from(fullText.matchAll(teamNamePattern));
+  for (const match of matches) {
+    const teamName = match[1].trim();
+    allTeamNames.push(teamName);
+    console.log(`[parseRosterText] ✅ Found team name: "${teamName}" (${match[2]})`);
+  }
+  
+  if (allTeamNames.length === 0) {
+    console.error('[parseRosterText] ❌ No team names found');
+    console.error('[parseRosterText] Full text sample:', fullText.substring(0, 500));
+    throw new Error('Could not find any team names in roster image');
+  }
+  
+  console.log(`[parseRosterText] 📋 Total teams found: ${allTeamNames.length}`);
+  
+  // Extract all players from the entire image
   const allPlayers: string[] = [];
-  
-  // Find the team name (should be in the first few lines)
-  for (let i = 0; i < Math.min(10, lines.length); i++) {
-    const line = lines[i];
-    const match = line.match(teamNamePattern);
-    if (match) {
-      teamName = match[1].trim();
-      console.log(`[parseRosterText] ✅ Found team name: "${teamName}" (${match[2]})`);
-      break;
-    }
-  }
-  
-  if (!teamName) {
-    console.error('[parseRosterText] ❌ No team name found in first 10 lines');
-    console.error('[parseRosterText] First 10 lines:', lines.slice(0, 10));
-    throw new Error('Could not find team name in roster image');
-  }
-  
-  // Now extract all players from the entire image
   for (const line of lines) {
-    // Skip if this is the team name line itself
-    if (line.match(teamNamePattern)) {
-      continue;
-    }
-    
     const lower = line.toLowerCase();
     
-    // Skip headers and labels
+    // Skip headers, labels, and team name lines
     if (lower.includes('division') ||
         lower.includes('pitcher') && lower.includes('total') ||
         lower.includes('hitter') && lower.includes('total') ||
@@ -89,6 +84,7 @@ export function parseRosterText(text: string): RosterData[] {
         lower.includes('total value') ||
         lower.includes('pitchers') ||
         lower.includes('hitters') ||
+        line.match(teamNamePattern) ||
         lower.length < 10) {
       continue;
     }
@@ -98,15 +94,29 @@ export function parseRosterText(text: string): RosterData[] {
     allPlayers.push(...players);
   }
   
-  console.log(`[parseRosterText] Team "${teamName}": ${allPlayers.length} players`);
-  console.log(`[parseRosterText] Sample players:`, allPlayers.slice(0, 5));
+  console.log(`[parseRosterText] 📋 Total players extracted: ${allPlayers.length}`);
+  console.log(`[parseRosterText] 📋 Players per team: ~${Math.floor(allPlayers.length / allTeamNames.length)}`);
   
-  // Return single team roster
-  return [{
-    teamName,
-    hitters: allPlayers,
-    pitchers: []
-  }];
+  // Divide players evenly among teams (since we can't determine which player belongs to which team in a division image)
+  const playersPerTeam = Math.floor(allPlayers.length / allTeamNames.length);
+  const results: RosterData[] = [];
+  
+  for (let i = 0; i < allTeamNames.length; i++) {
+    const start = i * playersPerTeam;
+    const end = (i === allTeamNames.length - 1) ? allPlayers.length : start + playersPerTeam;
+    const teamPlayers = allPlayers.slice(start, end);
+    
+    console.log(`[parseRosterText] Team "${allTeamNames[i]}": ${teamPlayers.length} players`);
+    console.log(`[parseRosterText] Sample players:`, teamPlayers.slice(0, 3));
+    
+    results.push({
+      teamName: allTeamNames[i],
+      hitters: teamPlayers,
+      pitchers: []
+    });
+  }
+  
+  return results;
 }
 
 /**
