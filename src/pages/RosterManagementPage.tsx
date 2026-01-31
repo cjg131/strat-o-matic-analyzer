@@ -23,6 +23,15 @@ export function RosterManagementPage() {
     { id: 'roster1', file: null, preview: null, status: 'pending' },
     { id: 'roster2', file: null, preview: null, status: 'pending' },
     { id: 'roster3', file: null, preview: null, status: 'pending' },
+    { id: 'roster4', file: null, preview: null, status: 'pending' },
+    { id: 'roster5', file: null, preview: null, status: 'pending' },
+    { id: 'roster6', file: null, preview: null, status: 'pending' },
+    { id: 'roster7', file: null, preview: null, status: 'pending' },
+    { id: 'roster8', file: null, preview: null, status: 'pending' },
+    { id: 'roster9', file: null, preview: null, status: 'pending' },
+    { id: 'roster10', file: null, preview: null, status: 'pending' },
+    { id: 'roster11', file: null, preview: null, status: 'pending' },
+    { id: 'roster12', file: null, preview: null, status: 'pending' },
   ]);
   const [processing, setProcessing] = useState(false);
 
