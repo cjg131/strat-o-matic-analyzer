@@ -45,34 +45,36 @@ export function parseRosterText(text: string): RosterData[] {
   }
 
   console.log(`[parseRosterText] Total OCR lines: ${lines.length}`);
-  console.log(`[parseRosterText] First 30 lines:`, lines.slice(0, 30));
+  console.log(`[parseRosterText] First 10 lines:`, lines.slice(0, 10));
 
-  // Look for team name patterns: "Team Name (W-L)" like "Manhattan WOW Award Stars (9-12)"
-  // Use global flag to find ALL team names in a line (division images have multiple teams per line)
-  const teamNamePattern = /([A-Za-z\s']+(?:II|III|IV)?)\s*\((\d+-\d+)\)/g;
+  // Look for THE FIRST team name at the top of the image
+  // Pattern: "Team Name (W-L)" like "Manhattan WOW Award Stars (9-12)"
+  const teamNamePattern = /([A-Za-z\s']+(?:II|III|IV)?)\s*\((\d+-\d+)\)/;
   
-  const teams: Map<string, string[]> = new Map();
-  let currentTeamName: string | null = null;
+  let teamName: string | null = null;
+  const allPlayers: string[] = [];
   
+  // Find the team name (should be in the first few lines)
+  for (let i = 0; i < Math.min(10, lines.length); i++) {
+    const line = lines[i];
+    const match = line.match(teamNamePattern);
+    if (match) {
+      teamName = match[1].trim();
+      console.log(`[parseRosterText] ✅ Found team name: "${teamName}" (${match[2]})`);
+      break;
+    }
+  }
+  
+  if (!teamName) {
+    console.error('[parseRosterText] ❌ No team name found in first 10 lines');
+    console.error('[parseRosterText] First 10 lines:', lines.slice(0, 10));
+    throw new Error('Could not find team name in roster image');
+  }
+  
+  // Now extract all players from the entire image
   for (const line of lines) {
-    // Check if this line contains team names (could be multiple)
-    const teamMatches = Array.from(line.matchAll(teamNamePattern));
-    
-    if (teamMatches.length > 0) {
-      // Extract all team names from this line
-      for (const match of teamMatches) {
-        const teamName = match[1].trim();
-        const record = match[2];
-        console.log(`[parseRosterText] Found team: "${teamName}" (${record})`);
-        
-        // Initialize this team's player list
-        if (!teams.has(teamName)) {
-          teams.set(teamName, []);
-        }
-        
-        // Set the most recently found team as current
-        currentTeamName = teamName;
-      }
+    // Skip if this is the team name line itself
+    if (line.match(teamNamePattern)) {
       continue;
     }
     
@@ -91,30 +93,20 @@ export function parseRosterText(text: string): RosterData[] {
       continue;
     }
     
-    // Extract all players from this line and add to current team
-    if (currentTeamName) {
-      const players = extractAllPlayersFromLine(line);
-      const teamPlayers = teams.get(currentTeamName) || [];
-      teamPlayers.push(...players);
-      teams.set(currentTeamName, teamPlayers);
-    }
+    // Extract all players from this line
+    const players = extractAllPlayersFromLine(line);
+    allPlayers.push(...players);
   }
   
-  // Convert Map to array of RosterData
-  const results: RosterData[] = [];
-  for (const [teamName, players] of teams.entries()) {
-    console.log(`[parseRosterText] Team "${teamName}": ${players.length} players`);
-    console.log(`[parseRosterText] Sample players:`, players.slice(0, 5));
-    
-    results.push({
-      teamName,
-      hitters: players,
-      pitchers: []
-    });
-  }
+  console.log(`[parseRosterText] Team "${teamName}": ${allPlayers.length} players`);
+  console.log(`[parseRosterText] Sample players:`, allPlayers.slice(0, 5));
   
-  console.log(`[parseRosterText] Total teams found: ${results.length}`);
-  return results;
+  // Return single team roster
+  return [{
+    teamName,
+    hitters: allPlayers,
+    pitchers: []
+  }];
 }
 
 /**
