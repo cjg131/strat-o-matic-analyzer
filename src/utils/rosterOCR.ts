@@ -45,32 +45,31 @@ export function parseRosterText(text: string): RosterData[] {
   }
 
   console.log(`[parseRosterText] Total OCR lines: ${lines.length}`);
-  console.log(`[parseRosterText] First 10 lines:`, lines.slice(0, 10));
+  console.log(`[parseRosterText] First 5 lines:`, lines.slice(0, 5));
 
-  // Extract ALL team names from the entire text (division images have multiple teams)
+  // Look for THE FIRST team name (individual roster image = one team per image)
   // Pattern: "Team Name (W-L)" like "Manhattan WOW Award Stars (9-12)"
-  const teamNamePattern = /([A-Za-z\s']+(?:II|III|IV)?)\s*\((\d+-\d+)\)/g;
+  const teamNamePattern = /([A-Za-z\s']+(?:II|III|IV)?)\s*\((\d+-\d+)\)/;
   
-  const allTeamNames: string[] = [];
-  const fullText = lines.join(' ');
+  let teamName: string | null = null;
   
-  // Find ALL team names in the entire text
-  const matches = Array.from(fullText.matchAll(teamNamePattern));
-  for (const match of matches) {
-    const teamName = match[1].trim();
-    allTeamNames.push(teamName);
-    console.log(`[parseRosterText] ✅ Found team name: "${teamName}" (${match[2]})`);
+  // Find the first team name (should be near the top)
+  for (let i = 0; i < Math.min(5, lines.length); i++) {
+    const match = lines[i].match(teamNamePattern);
+    if (match) {
+      teamName = match[1].trim();
+      console.log(`[parseRosterText] ✅ Found team: "${teamName}" (${match[2]})`);
+      break;
+    }
   }
   
-  if (allTeamNames.length === 0) {
-    console.error('[parseRosterText] ❌ No team names found');
-    console.error('[parseRosterText] Full text sample:', fullText.substring(0, 500));
-    throw new Error('Could not find any team names in roster image');
+  if (!teamName) {
+    console.error('[parseRosterText] ❌ No team name found in first 5 lines');
+    console.error('[parseRosterText] First 5 lines:', lines.slice(0, 5));
+    throw new Error('Could not find team name - make sure you upload individual team roster images');
   }
   
-  console.log(`[parseRosterText] 📋 Total teams found: ${allTeamNames.length}`);
-  
-  // Extract all players from the entire image
+  // Extract all players from this image
   const allPlayers: string[] = [];
   for (const line of lines) {
     const lower = line.toLowerCase();
@@ -94,29 +93,15 @@ export function parseRosterText(text: string): RosterData[] {
     allPlayers.push(...players);
   }
   
-  console.log(`[parseRosterText] 📋 Total players extracted: ${allPlayers.length}`);
-  console.log(`[parseRosterText] 📋 Players per team: ~${Math.floor(allPlayers.length / allTeamNames.length)}`);
+  console.log(`[parseRosterText] Team "${teamName}": ${allPlayers.length} players extracted`);
+  console.log(`[parseRosterText] Sample players:`, allPlayers.slice(0, 5));
   
-  // Divide players evenly among teams (since we can't determine which player belongs to which team in a division image)
-  const playersPerTeam = Math.floor(allPlayers.length / allTeamNames.length);
-  const results: RosterData[] = [];
-  
-  for (let i = 0; i < allTeamNames.length; i++) {
-    const start = i * playersPerTeam;
-    const end = (i === allTeamNames.length - 1) ? allPlayers.length : start + playersPerTeam;
-    const teamPlayers = allPlayers.slice(start, end);
-    
-    console.log(`[parseRosterText] Team "${allTeamNames[i]}": ${teamPlayers.length} players`);
-    console.log(`[parseRosterText] Sample players:`, teamPlayers.slice(0, 3));
-    
-    results.push({
-      teamName: allTeamNames[i],
-      hitters: teamPlayers,
-      pitchers: []
-    });
-  }
-  
-  return results;
+  // Return single team roster
+  return [{
+    teamName,
+    hitters: allPlayers,
+    pitchers: []
+  }];
 }
 
 /**
