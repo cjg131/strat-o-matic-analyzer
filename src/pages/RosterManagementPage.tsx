@@ -192,10 +192,14 @@ export function RosterManagementPage() {
   const syncRostersToDatabase = async (assignments: Record<string, any>) => {
     try {
       console.log('🔄 Starting roster sync to database...');
+      console.log('🔍 Current user:', currentUser?.email);
+      console.log('🔍 Hitters count:', hitters.length);
+      console.log('🔍 Pitchers count:', pitchers.length);
       console.log('Assignments:', assignments);
+      
+      // Log the structure to help debug
       console.log('Assignments structure:', JSON.stringify(assignments, null, 2));
       
-      // Check if assignments has rosters
       if (!assignments.rosters) {
         console.error('❌ ERROR: assignments.rosters is undefined!');
         alert('Error: No roster data found in OCR results. Please check the console for details.');
