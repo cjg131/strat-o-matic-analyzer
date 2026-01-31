@@ -32,8 +32,9 @@ export async function extractTextFromImage(imageFile: File): Promise<string> {
  * Each roster image contains an entire division with 4 teams
  * 
  * Team name pattern: "TeamName (W-L)" e.g., "Manhattan WOW Award Stars (9-12)"
+ * Returns an array of RosterData, one for each team found in the division
  */
-export function parseRosterText(text: string): RosterData {
+export function parseRosterText(text: string): RosterData[] {
   const lines = text
     .split('\n')
     .map(line => line.trim())
@@ -44,14 +45,13 @@ export function parseRosterText(text: string): RosterData {
   }
 
   console.log(`[parseRosterText] Total OCR lines: ${lines.length}`);
-  console.log(`[parseRosterText] First 20 lines:`, lines.slice(0, 20));
+  console.log(`[parseRosterText] First 30 lines:`, lines.slice(0, 30));
 
   // Look for team name patterns: "Team Name (W-L)" like "Manhattan WOW Award Stars (9-12)"
-  // Team names appear before player lists and often have a record in parentheses
   const teamNamePattern = /^([A-Za-z\s']+(?:II|III|IV)?)\s*\((\d+-\d+)\)/;
   
-  let currentTeamName = lines[0]; // Default to division name if no team found
-  const allPlayers: string[] = [];
+  const teams: Map<string, string[]> = new Map();
+  let currentTeamName: string | null = null;
   
   for (const line of lines) {
     // Check if this line is a team name
@@ -59,6 +59,11 @@ export function parseRosterText(text: string): RosterData {
     if (teamMatch) {
       currentTeamName = teamMatch[1].trim();
       console.log(`[parseRosterText] Found team: "${currentTeamName}" (${teamMatch[2]})`);
+      
+      // Initialize this team's player list
+      if (!teams.has(currentTeamName)) {
+        teams.set(currentTeamName, []);
+      }
       continue;
     }
     
@@ -77,21 +82,30 @@ export function parseRosterText(text: string): RosterData {
       continue;
     }
     
-    // Extract all players from this line
-    const players = extractAllPlayersFromLine(line);
-    allPlayers.push(...players);
+    // Extract all players from this line and add to current team
+    if (currentTeamName) {
+      const players = extractAllPlayersFromLine(line);
+      const teamPlayers = teams.get(currentTeamName) || [];
+      teamPlayers.push(...players);
+      teams.set(currentTeamName, teamPlayers);
+    }
   }
   
-  console.log(`[parseRosterText] Team: "${currentTeamName}"`);
-  console.log(`[parseRosterText] Total players extracted: ${allPlayers.length}`);
-  console.log(`[parseRosterText] Sample players:`, allPlayers.slice(0, 10));
-
-  // Return all players as hitters (we'll separate them later based on position)
-  return {
-    teamName: currentTeamName,
-    hitters: allPlayers,
-    pitchers: []
-  };
+  // Convert Map to array of RosterData
+  const results: RosterData[] = [];
+  for (const [teamName, players] of teams.entries()) {
+    console.log(`[parseRosterText] Team "${teamName}": ${players.length} players`);
+    console.log(`[parseRosterText] Sample players:`, players.slice(0, 5));
+    
+    results.push({
+      teamName,
+      hitters: players,
+      pitchers: []
+    });
+  }
+  
+  console.log(`[parseRosterText] Total teams found: ${results.length}`);
+  return results;
 }
 
 /**
@@ -138,6 +152,7 @@ function extractAllPlayersFromLine(rawLine: string): string[] {
 
 /**
  * Process multiple roster images and combine results
+ * Each image contains a division with 4 teams, so we flatten the results
  */
 export async function processRosterImages(imageFiles: File[]): Promise<RosterData[]> {
   const results: RosterData[] = [];
@@ -145,14 +160,15 @@ export async function processRosterImages(imageFiles: File[]): Promise<RosterDat
   for (const file of imageFiles) {
     try {
       const text = await extractTextFromImage(file);
-      const rosterData = parseRosterText(text);
-      results.push(rosterData);
+      const teamsInDivision = parseRosterText(text); // Returns array of teams
+      results.push(...teamsInDivision); // Flatten into single array
     } catch (error) {
       console.error(`Failed to process ${file.name}:`, error);
       throw error;
     }
   }
   
+  console.log(`[processRosterImages] Total teams extracted: ${results.length}`);
   return results;
 }
 
