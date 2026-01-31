@@ -48,28 +48,32 @@ export function parseRosterText(text: string): RosterData[] {
   console.log(`[parseRosterText] First 30 lines:`, lines.slice(0, 30));
 
   // Look for team name patterns: "Team Name (W-L)" like "Manhattan WOW Award Stars (9-12)"
-  const teamNamePattern = /^([A-Za-z\s']+(?:II|III|IV)?)\s*\((\d+-\d+)\)/;
+  // Use global flag to find ALL team names in a line (division images have multiple teams per line)
+  const teamNamePattern = /([A-Za-z\s']+(?:II|III|IV)?)\s*\((\d+-\d+)\)/g;
   
   const teams: Map<string, string[]> = new Map();
   let currentTeamName: string | null = null;
   
   for (const line of lines) {
-    // Check if this line is a team name
-    const teamMatch = line.match(teamNamePattern);
-    if (teamMatch) {
-      currentTeamName = teamMatch[1].trim();
-      console.log(`[parseRosterText] Found team: "${currentTeamName}" (${teamMatch[2]})`);
-      
-      // Initialize this team's player list
-      if (!teams.has(currentTeamName)) {
-        teams.set(currentTeamName, []);
+    // Check if this line contains team names (could be multiple)
+    const teamMatches = Array.from(line.matchAll(teamNamePattern));
+    
+    if (teamMatches.length > 0) {
+      // Extract all team names from this line
+      for (const match of teamMatches) {
+        const teamName = match[1].trim();
+        const record = match[2];
+        console.log(`[parseRosterText] Found team: "${teamName}" (${record})`);
+        
+        // Initialize this team's player list
+        if (!teams.has(teamName)) {
+          teams.set(teamName, []);
+        }
+        
+        // Set the most recently found team as current
+        currentTeamName = teamName;
       }
       continue;
-    }
-    
-    // DEBUG: Log lines that look like they might be team names but don't match
-    if (line.includes('(') && line.includes('-') && line.includes(')')) {
-      console.log(`[parseRosterText] ⚠️ Potential team name not matched: "${line}"`);
     }
     
     const lower = line.toLowerCase();
