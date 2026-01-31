@@ -48,9 +48,9 @@ export function parseRosterText(text: string): RosterData[] {
   console.log(`[parseRosterText] First 5 lines:`, lines.slice(0, 5));
 
   // Look for THE FIRST team name (individual roster image = one team per image)
-  // Pattern: "Team Name (W-L)" like "Manhattan WOW Award Stars (9-12)" or "Tortugas Lie (14-7)"
-  // Require at least 2 characters before the parentheses
-  const teamNamePattern = /([A-Za-z][A-Za-z\s']*(?:II|III|IV)?)\s*\((\d+-\d+)\)/;
+  // Pattern: "Team Name (W-L)" like "Manhattan WOW Award Stars (9-12)" or "Wrigleyville Arkinals™ (13-8)"
+  // Allow letters, spaces, apostrophes, and special characters like ™
+  const teamNamePattern = /([A-Za-z][A-Za-z\s'™®©]*(?:II|III|IV)?)\s*\((\d+-\d+)\)/;
   
   let teamName: string | null = null;
   
