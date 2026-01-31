@@ -3,8 +3,7 @@ import { Upload, CheckCircle, AlertCircle, Loader2, Clipboard } from 'lucide-rea
 import { useHitters } from '../hooks/useHitters';
 import { usePitchers } from '../hooks/usePitchers';
 import { useAuth } from '../contexts/AuthContext';
-import { processRosterImages, convertToRosterAssignments, type RosterData } from '../utils/rosterOCR';
-import { assignRosterToPlayer } from '../utils/rosterAssignment';
+import { processRosterImages, convertToRosterAssignments, RosterData } from '../utils/rosterOCR';
 import { saveRosterAssignments } from '../services/firestore';
 
 interface RosterImage {
@@ -234,13 +233,51 @@ export function RosterManagementPage() {
       console.log(`✅ Cleared ${clearedCount} roster assignments`);
       
       // STEP 2: Assign new rosters from OCR data
-      console.log('� STEP 2: Assigning new rosters from OCR data...');
+      // Match database players (full names) against OCR players (initials)
+      console.log('📋 STEP 2: Assigning new rosters from OCR data...');
       let hitterUpdates = 0;
       let pitcherUpdates = 0;
       
+      // Helper function to match database player against OCR roster data
+      const findRosterForPlayer = (playerName: string, year: string): string | undefined => {
+        // Parse database player name: "LastName, FirstName"
+        const parts = playerName.split(',').map(p => p.trim());
+        if (parts.length < 2) return undefined;
+        
+        const dbLastName = parts[0].toLowerCase();
+        const dbFirstName = parts[1].toLowerCase();
+        const dbInitial = dbFirstName.charAt(0);
+        
+        // Search through all OCR rosters
+        for (const [teamName, roster] of Object.entries(assignments.rosters)) {
+          const rosterData = roster as { hitters?: string[]; pitchers?: string[] };
+          const allPlayers = [...(rosterData.hitters || []), ...(rosterData.pitchers || [])];
+          
+          // Check if this player is on this roster
+          const found = allPlayers.some(ocrPlayer => {
+            // OCR player format: "LastName, I. (Year)"
+            const match = ocrPlayer.match(/^([^,]+),\s*([A-Z])\.?\s*\(([^)]+)\)/i);
+            if (!match) return false;
+            
+            const ocrLastName = match[1].trim().toLowerCase();
+            const ocrInitial = match[2].toLowerCase();
+            const ocrYear = match[3].trim();
+            
+            // Match: same last name, same first initial, same year
+            return ocrLastName === dbLastName && 
+                   ocrInitial === dbInitial && 
+                   ocrYear === year;
+          });
+          
+          if (found) return teamName;
+        }
+        
+        return undefined;
+      };
+      
       for (const hitter of hitters) {
         try {
-          const assignedRoster = assignRosterToPlayer(hitter.name, hitter.season);
+          const assignedRoster = findRosterForPlayer(hitter.name, hitter.season);
           
           if (assignedRoster) {
             console.log(`Assigning ${hitter.name} (${hitter.season}) → "${assignedRoster}"`);
@@ -254,7 +291,7 @@ export function RosterManagementPage() {
       
       for (const pitcher of pitchers) {
         try {
-          const assignedRoster = assignRosterToPlayer(pitcher.name, pitcher.season);
+          const assignedRoster = findRosterForPlayer(pitcher.name, pitcher.season);
           
           if (assignedRoster) {
             console.log(`Assigning ${pitcher.name} (${pitcher.season}) → "${assignedRoster}"`);
