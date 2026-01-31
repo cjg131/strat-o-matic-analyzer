@@ -47,27 +47,46 @@ export function HitterPreferencesPage() {
 
   // Initialize preferences when team hitters change
   useEffect(() => {
-    const newPreferences: HitterPreference[] = teamHitters.map(hitter => ({
-      id: hitter.id,
-      name: hitter.name,
-      hand: getHandFromBalance(hitter.balance),
-      position: hitter.positions.split(',')[0].trim(),
-      balance: hitter.balance,
-      stealRating: hitter.stealRating || 'E',
-      avoidLHP: false,
-      avoidRHP: false,
-      moreSacBunt: false,
-      dontSacBunt: false,
-      moreHitAndRun: false,
-      dontHitAndRun: false,
-      moreSteal: false,
-      dontSteal: false,
-      dontPHvsLHP: false,
-      dontPHvsRHP: false,
-      avoidPHInBlowouts: false,
-      rememberFor4DefSub: false,
-      pinchRunForDont: false,
-    }));
+    const newPreferences: HitterPreference[] = teamHitters.map(hitter => {
+      const stealRating = hitter.stealRating || 'E';
+      const slg = hitter.slg || 0;
+      const isPowerHitter = slg >= 0.450; // Power hitter if SLG >= .450
+      const hand = getHandFromBalance(hitter.balance);
+      
+      // Get best defensive position rating (lower is better)
+      let bestDefenseRating = 999;
+      if (hitter.defensivePositions && Array.isArray(hitter.defensivePositions)) {
+        for (const defPos of hitter.defensivePositions) {
+          const rating = (defPos.range * 2) + defPos.error;
+          if (rating < bestDefenseRating) {
+            bestDefenseRating = rating;
+          }
+        }
+      }
+      const isEliteDefender = bestDefenseRating <= 4; // Range 1 + Error 2 or better
+      
+      return {
+        id: hitter.id,
+        name: hitter.name,
+        hand,
+        position: hitter.positions.split(',')[0].trim(),
+        balance: hitter.balance,
+        stealRating,
+        avoidLHP: false,
+        avoidRHP: false,
+        moreSacBunt: false,
+        dontSacBunt: isPowerHitter, // Power hitters don't bunt
+        moreHitAndRun: (hitter.ba || 0) >= 0.280, // Good contact hitters
+        dontHitAndRun: false,
+        moreSteal: stealRating === 'AA' || stealRating === 'A', // Elite stealers
+        dontSteal: stealRating === 'D' || stealRating === 'E', // Poor stealers
+        dontPHvsLHP: isPowerHitter && hand === 'R', // RH power hitters protected vs LHP
+        dontPHvsRHP: isPowerHitter && hand === 'L', // LH power hitters protected vs RHP
+        avoidPHInBlowouts: isPowerHitter || (hitter.games || 0) >= 100, // Starters protected
+        rememberFor4DefSub: isEliteDefender, // Elite defenders for late-inning subs
+        pinchRunForDont: stealRating === 'D' || stealRating === 'E', // Slow runners
+      };
+    });
     setPreferences(newPreferences);
   }, [teamHitters]);
 
