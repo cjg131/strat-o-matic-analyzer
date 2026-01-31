@@ -248,10 +248,23 @@ export function RosterManagementPage() {
         const dbFirstName = parts[1].toLowerCase();
         const dbInitial = dbFirstName.charAt(0);
         
+        const isEnsberg = dbLastName === 'ensberg';
+        if (isEnsberg) {
+          console.log(`🔍 ENSBERG DEBUG: DB has "${playerName}" (${year}), looking for lastName="${dbLastName}", initial="${dbInitial}"`);
+        }
+        
         // Search through all OCR rosters
         for (const [teamName, roster] of Object.entries(assignments.rosters)) {
           const rosterData = roster as { hitters?: string[]; pitchers?: string[] };
           const allPlayers = [...(rosterData.hitters || []), ...(rosterData.pitchers || [])];
+          
+          if (isEnsberg) {
+            console.log(`🔍 ENSBERG DEBUG: Checking team "${teamName}" with ${allPlayers.length} players`);
+            const ensbergMatches = allPlayers.filter(p => p.toLowerCase().includes('ensberg'));
+            if (ensbergMatches.length > 0) {
+              console.log(`🔍 ENSBERG DEBUG: Found Ensberg entries:`, ensbergMatches);
+            }
+          }
           
           // Check if this player is on this roster
           const found = allPlayers.some(ocrPlayer => {
@@ -263,13 +276,29 @@ export function RosterManagementPage() {
             const ocrInitial = match[2].toLowerCase();
             const ocrYear = match[3].trim();
             
+            if (isEnsberg && ocrLastName === 'ensberg') {
+              console.log(`🔍 ENSBERG DEBUG: Comparing OCR "${ocrPlayer}"`);
+              console.log(`   - OCR: lastName="${ocrLastName}", initial="${ocrInitial}", year="${ocrYear}"`);
+              console.log(`   - DB:  lastName="${dbLastName}", initial="${dbInitial}", year="${year}"`);
+              console.log(`   - Match? ${ocrLastName === dbLastName && ocrInitial === dbInitial && ocrYear === year}`);
+            }
+            
             // Match: same last name, same first initial, same year
             return ocrLastName === dbLastName && 
                    ocrInitial === dbInitial && 
                    ocrYear === year;
           });
           
-          if (found) return teamName;
+          if (found) {
+            if (isEnsberg) {
+              console.log(`✅ ENSBERG MATCHED to team: "${teamName}"`);
+            }
+            return teamName;
+          }
+        }
+        
+        if (isEnsberg) {
+          console.log(`❌ ENSBERG NOT MATCHED to any team`);
         }
         
         return undefined;
