@@ -19,9 +19,20 @@ export function TeamRosterTable({ hitters, pitchers, onRemoveHitter, onRemovePit
     const grouped: Record<string, HitterWithStats[]> = {};
     
     hitters.forEach(hitter => {
-      const positions = hitter.positions?.split('/').map(p => p.trim()) || [];
+      console.log(`[GroupHitters] Processing ${hitter.name}: positions="${hitter.positions}"`);
+      
+      // Handle both "/" and "," as position separators
+      const positions = hitter.positions?.split(/[\/,]/).map(p => p.trim()) || [];
+      console.log(`[GroupHitters] ${hitter.name} split positions:`, positions);
+      
+      if (positions.length === 0) {
+        console.warn(`[GroupHitters] ${hitter.name} has no positions! Raw value:`, hitter.positions);
+      }
+      
       positions.forEach(pos => {
         const mainPos = pos.split('-')[0].toUpperCase();
+        console.log(`[GroupHitters] ${hitter.name}: pos="${pos}" -> mainPos="${mainPos}"`);
+        
         if (!grouped[mainPos]) {
           grouped[mainPos] = [];
         }
@@ -31,6 +42,7 @@ export function TeamRosterTable({ hitters, pitchers, onRemoveHitter, onRemovePit
       });
     });
     
+    console.log('[GroupHitters] Final grouped:', Object.keys(grouped).map(k => `${k}: ${grouped[k].length}`));
     return grouped;
   };
 
