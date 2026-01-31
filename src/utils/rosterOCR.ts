@@ -48,24 +48,36 @@ export function parseRosterText(text: string): RosterData[] {
   console.log(`[parseRosterText] First 5 lines:`, lines.slice(0, 5));
 
   // Look for THE FIRST team name (individual roster image = one team per image)
-  // Pattern: "Team Name (W-L)" like "Manhattan WOW Award Stars (9-12)"
-  const teamNamePattern = /([A-Za-z\s']+(?:II|III|IV)?)\s*\((\d+-\d+)\)/;
+  // Pattern: "Team Name (W-L)" like "Manhattan WOW Award Stars (9-12)" or "Tortugas Lie (14-7)"
+  // Require at least 2 characters before the parentheses
+  const teamNamePattern = /([A-Za-z][A-Za-z\s']*(?:II|III|IV)?)\s*\((\d+-\d+)\)/;
   
   let teamName: string | null = null;
   
   // Find the first team name (should be near the top)
-  for (let i = 0; i < Math.min(5, lines.length); i++) {
-    const match = lines[i].match(teamNamePattern);
+  for (let i = 0; i < Math.min(10, lines.length); i++) {
+    const line = lines[i];
+    console.log(`[parseRosterText] Checking line ${i}: "${line}"`);
+    
+    const match = line.match(teamNamePattern);
     if (match) {
-      teamName = match[1].trim();
-      console.log(`[parseRosterText] ✅ Found team: "${teamName}" (${match[2]})`);
-      break;
+      const extractedName = match[1].trim();
+      console.log(`[parseRosterText] 🔍 Regex matched: "${extractedName}" (${match[2]})`);
+      
+      // Validate: team name must be at least 3 characters and contain at least one space (multi-word)
+      if (extractedName.length >= 3) {
+        teamName = extractedName;
+        console.log(`[parseRosterText] ✅ Found team: "${teamName}" (${match[2]})`);
+        break;
+      } else {
+        console.log(`[parseRosterText] ⚠️ Rejected short name: "${extractedName}"`);
+      }
     }
   }
   
   if (!teamName) {
-    console.error('[parseRosterText] ❌ No team name found in first 5 lines');
-    console.error('[parseRosterText] First 5 lines:', lines.slice(0, 5));
+    console.error('[parseRosterText] ❌ No team name found in first 10 lines');
+    console.error('[parseRosterText] First 10 lines:', lines.slice(0, 10));
     throw new Error('Could not find team name - make sure you upload individual team roster images');
   }
   
