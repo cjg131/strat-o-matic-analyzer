@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { usePitchers } from '../hooks/usePitchers';
 
 interface PitcherPreference {
+  id: string;
   name: string;
   hand: string;
   endurance: string;
@@ -22,32 +24,61 @@ interface PitcherPreference {
   maxIPRel2_3: boolean;
 }
 
+const USER_TEAM = 'Manhattan WOW Award Stars';
+
+function getBalanceFromPitcher(): string {
+  // For pitchers, balance might not be stored - return 'E' as default
+  return 'E';
+}
+
 export function PitcherPreferencesPage() {
-  const [preferences, setPreferences] = useState<PitcherPreference[]>([
-    // STARTERS
-    // Cooper - L, S8, E balance, ace (1.87 ERA)
-    { name: 'Cooper, Wilbur', hand: 'L', endurance: 'S8', balance: 'E', role: 'starter', dontRelieveB4: '', hookQk: false, hookSlo: false, maxIPStart6ip: false, maxIPStart7ip: false, ibbLess: false, avoidLHB: false, avoidRHB: false, avoidBlowout: true, avoidUsing6th: false, avoidUsing7th: false, avoidUsing8th: false, maxIPRel1_2: false, maxIPRel2_3: false },
-    // Clarkson - R, S9*, 1R balance, workhorse (2.76 ERA, 483 IP)
-    { name: 'Clarkson, John', hand: 'R', endurance: 'S9*', balance: '1R', role: 'starter', dontRelieveB4: '', hookQk: false, hookSlo: false, maxIPStart6ip: false, maxIPStart7ip: false, ibbLess: false, avoidLHB: false, avoidRHB: false, avoidBlowout: true, avoidUsing6th: false, avoidUsing7th: false, avoidUsing8th: false, maxIPRel1_2: false, maxIPRel2_3: false },
-    // Fraser - R, S9*, E balance, #4 starter (3.81 ERA)
-    { name: 'Fraser, Chick', hand: 'R', endurance: 'S9*', balance: 'E', role: 'starter', dontRelieveB4: '', hookQk: false, hookSlo: false, maxIPStart6ip: false, maxIPStart7ip: false, ibbLess: false, avoidLHB: false, avoidRHB: false, avoidBlowout: true, avoidUsing6th: false, avoidUsing7th: false, avoidUsing8th: false, maxIPRel1_2: false, maxIPRel2_3: false },
-    // Johnson - R, S8*, 1R balance, #2 starter (2.56 ERA, 366 IP)
-    { name: 'Johnson, School Boy', hand: 'R', endurance: 'S8*', balance: '1R', role: 'starter', dontRelieveB4: '', hookQk: false, hookSlo: false, maxIPStart6ip: false, maxIPStart7ip: false, ibbLess: false, avoidLHB: false, avoidRHB: false, avoidBlowout: true, avoidUsing6th: false, avoidUsing7th: false, avoidUsing8th: false, maxIPRel1_2: false, maxIPRel2_3: false },
-    
-    // RELIEVERS
-    // Drabowsky - R, R4, 9R balance, setup man (2.81 ERA)
-    { name: 'Drabowsky, Moe', hand: 'R', endurance: 'R4', balance: '9R', role: 'reliever', dontRelieveB4: '', hookQk: false, hookSlo: false, maxIPStart6ip: false, maxIPStart7ip: false, ibbLess: false, avoidLHB: false, avoidRHB: false, avoidBlowout: false, avoidUsing6th: true, avoidUsing7th: false, avoidUsing8th: false, maxIPRel1_2: false, maxIPRel2_3: true },
-    // Fisher - R, R2, 5R balance, middle relief (4.93 ERA)
-    { name: 'Fisher, Brian', hand: 'R', endurance: 'R2', balance: '5R', role: 'reliever', dontRelieveB4: '', hookQk: false, hookSlo: false, maxIPStart6ip: false, maxIPStart7ip: false, ibbLess: false, avoidLHB: false, avoidRHB: false, avoidBlowout: false, avoidUsing6th: false, avoidUsing7th: true, avoidUsing8th: true, maxIPRel1_2: true, maxIPRel2_3: false },
-    // Laroche - L, R2, 4R balance, LOOGY (5.57 ERA)
-    { name: 'Laroche, Dave', hand: 'L', endurance: 'R2', balance: '4R', role: 'reliever', dontRelieveB4: '', hookQk: false, hookSlo: false, maxIPStart6ip: false, maxIPStart7ip: false, ibbLess: false, avoidLHB: false, avoidRHB: true, avoidBlowout: false, avoidUsing6th: false, avoidUsing7th: true, avoidUsing8th: true, maxIPRel1_2: true, maxIPRel2_3: false },
-    // Mooney - L, R4, 6R balance, lefty specialist (5.47 ERA)
-    { name: 'Mooney, Jim', hand: 'L', endurance: 'R4', balance: '6R', role: 'reliever', dontRelieveB4: '', hookQk: false, hookSlo: false, maxIPStart6ip: false, maxIPStart7ip: false, ibbLess: false, avoidLHB: false, avoidRHB: true, avoidBlowout: false, avoidUsing6th: false, avoidUsing7th: true, avoidUsing8th: false, maxIPRel1_2: false, maxIPRel2_3: true },
-    // Earnshaw - R, S8*/R4, E balance, swingman (4.44 ERA)
-    { name: 'Earnshaw, George', hand: 'R', endurance: 'S8*/R4', balance: 'E', role: 'reliever', dontRelieveB4: '', hookQk: false, hookSlo: false, maxIPStart6ip: false, maxIPStart7ip: false, ibbLess: false, avoidLHB: false, avoidRHB: false, avoidBlowout: false, avoidUsing6th: true, avoidUsing7th: false, avoidUsing8th: false, maxIPRel1_2: false, maxIPRel2_3: false },
-    // Thurston - R, S9*/R3, 2R balance, swingman (#5 starter, 3.80 ERA)
-    { name: 'Thurston, Sloppy', hand: 'R', endurance: 'S9*/R3', balance: '2R', role: 'reliever', dontRelieveB4: '', hookQk: false, hookSlo: false, maxIPStart6ip: false, maxIPStart7ip: false, ibbLess: false, avoidLHB: false, avoidRHB: false, avoidBlowout: false, avoidUsing6th: true, avoidUsing7th: false, avoidUsing8th: false, maxIPRel1_2: false, maxIPRel2_3: false },
-  ]);
+  const { pitchers } = usePitchers();
+  const [preferences, setPreferences] = useState<PitcherPreference[]>([]);
+
+  // Filter pitchers by user's team
+  const teamPitchers = useMemo(() => {
+    return pitchers
+      .filter(p => p.roster === USER_TEAM)
+      .sort((a, b) => {
+        // Sort: starters first (by endurance), then relievers
+        const aIsStarter = a.endurance?.toUpperCase().includes('S') || false;
+        const bIsStarter = b.endurance?.toUpperCase().includes('S') || false;
+        if (aIsStarter !== bIsStarter) return bIsStarter ? 1 : -1;
+        return a.name.localeCompare(b.name);
+      });
+  }, [pitchers]);
+
+  // Initialize preferences when team pitchers change
+  useEffect(() => {
+    const newPreferences: PitcherPreference[] = teamPitchers.map(pitcher => {
+      const endurance = pitcher.endurance?.toUpperCase() || '';
+      const isStarter = endurance.includes('S');
+      
+      return {
+        id: pitcher.id,
+        name: `${pitcher.name} (${pitcher.season})`,
+        hand: pitcher.throwingArm || 'R',
+        endurance: pitcher.endurance || '',
+        balance: getBalanceFromPitcher(),
+        role: isStarter ? 'starter' : 'reliever',
+        dontRelieveB4: '',
+        hookQk: false,
+        hookSlo: false,
+        maxIPStart6ip: false,
+        maxIPStart7ip: false,
+        ibbLess: false,
+        avoidLHB: false,
+        avoidRHB: false,
+        avoidBlowout: isStarter, // Default: protect starters in blowouts
+        avoidUsing6th: false,
+        avoidUsing7th: false,
+        avoidUsing8th: false,
+        maxIPRel1_2: false,
+        maxIPRel2_3: false,
+      };
+    });
+    setPreferences(newPreferences);
+  }, [teamPitchers]);
 
   const togglePreference = (index: number, field: keyof PitcherPreference) => {
     const newPreferences = [...preferences];
@@ -86,7 +117,7 @@ export function PitcherPreferencesPage() {
 
       <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
         <p className="text-sm text-blue-800 dark:text-blue-200">
-          <strong>Strategy Applied:</strong> Starters protected in blowouts. Best relievers (Drabowsky R4) avoid early use. Short relievers (Fisher R2, Laroche R2) limited to 1-2 IP. Lefty specialists (Laroche, Mooney) avoid RHB. Swingmen (Earnshaw, Thurston) can provide length.
+          <strong>Team:</strong> {USER_TEAM} • <strong>Pitchers:</strong> {preferences.length} players loaded from your roster
         </p>
       </div>
 

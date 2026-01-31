@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useHitters } from '../hooks/useHitters';
 
 interface TeamStrategy {
   // Tendencies
@@ -27,36 +28,42 @@ interface TeamStrategy {
   defensiveReplacement4Position: string;
 }
 
+const USER_TEAM = 'Manhattan WOW Award Stars';
+
 export function TeamStrategyPage() {
-  // Based on roster analysis:
-  // - Elite speed: Gwynn (AA), Suzuki (AA), Gordon (AA), Matsui (AA), McGee (AA), Chance (AA), Chase (AA)
-  // - Power: Thomas (12 HR), Rodriguez (35 HR)
-  // - Elite defenders: Rodriguez (C 1e1), Bowa (SS 1e1), McGee (CF 1e0)
-  // - Best reliever: Drabowsky (2.81 ERA, R4)
-  // - Bench speed: McGee (switch hitter, AA steal, E balance)
-  // - Pinch runner: Killefer or McGee
+  const { hitters } = useHitters();
+  
+  // Build roster list from actual database hitters
+  const roster = useMemo(() => {
+    return hitters
+      .filter(h => h.roster === USER_TEAM)
+      .map(h => {
+        const hand = h.balance?.includes('L') ? 'L' : h.balance?.includes('R') ? 'R' : 'S';
+        const primaryPos = h.positions?.split(',')[0]?.trim() || 'DH';
+        return `${h.name} (${hand}, ${primaryPos})`;
+      })
+      .sort();
+  }, [hitters]);
   
   const [strategy, setStrategy] = useState<TeamStrategy>({
-    // Tendencies - optimized for speed/contact roster
-    baseRunning: 'Very Aggressive',  // AA stealers across roster
-    baseStealing: 'Very Aggressive', // 7 AA stealers - elite speed team
-    closerUsage: 'Regular',          // Drabowsky is good but not elite closer
-    reliefUsage: 'Normal',           // Balanced bullpen usage
-    bunting: 'Aggressive',           // Speed roster benefits from small ball
-    hitAndRun: 'Aggressive',         // Elite contact hitters (Gwynn .370, Suzuki .351)
-    intentionalWalk: 'Normal',       // Standard strategy
-    infieldIn: '3rd Inning',         // Aggressive defense with elite fielders
+    // Tendencies - default balanced settings
+    baseRunning: 'Normal',
+    baseStealing: 'Normal',
+    closerUsage: 'Regular',
+    reliefUsage: 'Normal',
+    bunting: 'Normal',
+    hitAndRun: 'Normal',
+    intentionalWalk: 'Normal',
+    infieldIn: '3rd Inning',
     
-    // Offensive subs - platoon advantages
-    pinchHitterVsLHP: 'Chase, Hal (R, 1B)',           // RHB vs LHP, .290 BA, AA steal
-    pinchHitterVsRHP: 'Washington, Claudell (L, RF)', // LHB vs RHP, .322 OBP, platoon advantage
-    pinchRunner: 'McGee, Willie (S, CF)',             // AA stealer, E balance, bench player
+    // Offensive subs - to be configured by user
+    pinchHitterVsLHP: '',
+    pinchHitterVsRHP: '',
+    pinchRunner: '',
     
-    // Defensive subs - bring in elite defenders late
-    // Only O'Leary at 3B needed - upgrades Lansford (2e8) to better range
-    // All other positions already have elite defense (Rodriguez 1e1 C, Chance 1e8 1B, Bowa 1e10 SS, Suzuki 1e1 CF, Gwynn 1e7 RF, Thomas 1e5 LF)
-    defensiveReplacement1Player: "O'Leary, Charley (R, 3B)",
-    defensiveReplacement1Position: '3B',
+    // Defensive subs - to be configured by user
+    defensiveReplacement1Player: '',
+    defensiveReplacement1Position: '',
     defensiveReplacement2Player: '',
     defensiveReplacement2Position: '',
     defensiveReplacement3Player: '',
@@ -72,23 +79,6 @@ export function TeamStrategyPage() {
     }));
   };
 
-  // Roster for dropdowns
-  const roster = [
-    'Rodriguez, Ivan (R, C)',
-    'Killefer, Bill (R, C)',
-    'Chance, Frank (R, 1B)',
-    'Chase, Hal (R, 1B)',
-    'Gordon, Dee (L, 2B)',
-    'Matsui, Kaz (S, 2B)',
-    'Lansford, Carney (R, 3B)',
-    "O'Leary, Charley (R, 3B)",
-    'Bowa, Larry (S, SS)',
-    'Thomas, Hawk (R, LF)',
-    'Suzuki, Ichiro (L, CF)',
-    'McGee, Willie (S, CF)',
-    'Gwynn, Tony (L, RF)',
-    'Washington, Claudell (L, RF)',
-  ];
 
   const tendencyOptions = {
     baseRunning: ['Very Aggressive', 'Aggressive', 'Normal', 'Conservative', 'Extra Conservative'],
