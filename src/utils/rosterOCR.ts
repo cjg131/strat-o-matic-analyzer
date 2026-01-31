@@ -67,6 +67,11 @@ export function parseRosterText(text: string): RosterData[] {
       continue;
     }
     
+    // DEBUG: Log lines that look like they might be team names but don't match
+    if (line.includes('(') && line.includes('-') && line.includes(')')) {
+      console.log(`[parseRosterText] ⚠️ Potential team name not matched: "${line}"`);
+    }
+    
     const lower = line.toLowerCase();
     
     // Skip headers and labels
