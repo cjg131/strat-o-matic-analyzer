@@ -121,6 +121,23 @@ export function RosterManagementPage() {
       // Generate roster assignments
       const assignments = convertToRosterAssignments(results);
       
+      // DEBUG: Search for Ensberg specifically
+      console.log('🔍 SEARCHING FOR ENSBERG IN OCR DATA...');
+      let ensbergFound = false;
+      for (const [teamName, roster] of Object.entries(assignments.rosters)) {
+        const rosterData = roster as { hitters?: string[]; pitchers?: string[] };
+        const allPlayers = [...(rosterData.hitters || []), ...(rosterData.pitchers || [])];
+        const ensbergMatch = allPlayers.find(p => p.toLowerCase().includes('ensberg'));
+        if (ensbergMatch) {
+          console.log(`✅ FOUND ENSBERG: "${ensbergMatch}" on team "${teamName}"`);
+          ensbergFound = true;
+        }
+      }
+      if (!ensbergFound) {
+        console.log('❌ ENSBERG NOT FOUND IN ANY OCR DATA');
+        console.log('All teams extracted:', Object.keys(assignments.rosters));
+      }
+      
       // Download roster-assignments.json
       downloadRosterAssignments(assignments);
       
@@ -128,6 +145,9 @@ export function RosterManagementPage() {
       if (currentUser) {
         await syncRostersToDatabase(assignments);
       }
+      
+      // DON'T clear images after processing - keep them for re-processing
+      // This prevents having to re-upload images every time
 
     } catch (error) {
       // Mark all processing images as error
