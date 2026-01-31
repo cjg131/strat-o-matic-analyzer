@@ -19,30 +19,40 @@ export function TeamRosterTable({ hitters, pitchers, onRemoveHitter, onRemovePit
     const grouped: Record<string, HitterWithStats[]> = {};
     
     hitters.forEach(hitter => {
-      console.log(`[GroupHitters] Processing ${hitter.name}: positions="${hitter.positions}"`);
+      // Find the player's best defensive position (lowest range + error rating)
+      let bestPosition = '';
+      let bestRating = 999;
       
-      // Handle both "/" and "," as position separators
-      const positions = hitter.positions?.split(/[\/,]/).map(p => p.trim()) || [];
-      console.log(`[GroupHitters] ${hitter.name} split positions:`, positions);
-      
-      if (positions.length === 0) {
-        console.warn(`[GroupHitters] ${hitter.name} has no positions! Raw value:`, hitter.positions);
+      if (hitter.defensivePositions && Array.isArray(hitter.defensivePositions)) {
+        for (const defPos of hitter.defensivePositions) {
+          const rating = (defPos.range * 2) + defPos.error;
+          if (rating < bestRating) {
+            bestRating = rating;
+            bestPosition = defPos.position.toUpperCase();
+          }
+        }
       }
       
-      positions.forEach(pos => {
-        const mainPos = pos.split('-')[0].toUpperCase();
-        console.log(`[GroupHitters] ${hitter.name}: pos="${pos}" -> mainPos="${mainPos}"`);
-        
-        if (!grouped[mainPos]) {
-          grouped[mainPos] = [];
+      // If no defensive positions data, fall back to first position in positions string
+      if (!bestPosition && hitter.positions) {
+        const positions = hitter.positions.split(/[\/,]/).map(p => p.trim());
+        if (positions.length > 0) {
+          bestPosition = positions[0].split('-')[0].toUpperCase();
         }
-        if (!grouped[mainPos].find(h => h.id === hitter.id)) {
-          grouped[mainPos].push(hitter);
-        }
-      });
+      }
+      
+      // Default to DH if still no position found
+      if (!bestPosition) {
+        bestPosition = 'DH';
+      }
+      
+      // Add player to their best position group
+      if (!grouped[bestPosition]) {
+        grouped[bestPosition] = [];
+      }
+      grouped[bestPosition].push(hitter);
     });
     
-    console.log('[GroupHitters] Final grouped:', Object.keys(grouped).map(k => `${k}: ${grouped[k].length}`));
     return grouped;
   };
 
