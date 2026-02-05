@@ -225,27 +225,40 @@ export function RosterManagementPage() {
       await saveRosterAssignments(currentUser!.uid, assignments);
       console.log('✅ Roster assignments saved to Firestore');
       
-      // STEP 1: Clear ALL roster assignments (set everyone to FA)
-      console.log('🧹 STEP 1: Clearing all roster assignments...');
+      // STEP 1: Build a set of all players found in the uploaded rosters
+      console.log('🔍 STEP 1: Identifying players in uploaded rosters...');
+      const uploadedPlayers = new Set<string>();
+      
+      for (const roster of Object.values(assignments.rosters)) {
+        const rosterData = roster as { hitters?: string[]; pitchers?: string[] };
+        const allPlayers = [...(rosterData.hitters || []), ...(rosterData.pitchers || [])];
+        allPlayers.forEach(player => uploadedPlayers.add(player));
+      }
+      
+      console.log(`Found ${uploadedPlayers.size} players in uploaded rosters`);
+      
+      // STEP 2: Clear ONLY the teams that were uploaded (not all teams)
+      console.log('🧹 STEP 2: Clearing assignments for uploaded teams only...');
+      const uploadedTeamNames = Object.keys(assignments.rosters);
       let clearedCount = 0;
       
       for (const hitter of hitters) {
-        if (hitter.roster && hitter.roster !== '') {
+        if (hitter.roster && uploadedTeamNames.includes(hitter.roster)) {
           await updateHitter(hitter.id, { ...hitter, roster: '' });
           clearedCount++;
         }
       }
       
       for (const pitcher of pitchers) {
-        if (pitcher.roster && pitcher.roster !== '') {
+        if (pitcher.roster && uploadedTeamNames.includes(pitcher.roster)) {
           await updatePitcher(pitcher.id, { ...pitcher, roster: '' });
           clearedCount++;
         }
       }
       
-      console.log(`✅ Cleared ${clearedCount} roster assignments`);
+      console.log(`✅ Cleared ${clearedCount} roster assignments from teams: ${uploadedTeamNames.join(', ')}`);
       
-      // STEP 2: Assign new rosters from OCR data
+      // STEP 3: Assign new rosters from OCR data
       // Match database players (full names) against OCR players (initials)
       console.log('📋 STEP 2: Assigning new rosters from OCR data...');
       let hitterUpdates = 0;
@@ -346,11 +359,10 @@ export function RosterManagementPage() {
       }
       
       console.log(`✅ Roster sync complete: ${hitterUpdates} hitters, ${pitcherUpdates} pitchers updated`);
-      alert(`Rosters synced successfully!\n${hitterUpdates} hitters and ${pitcherUpdates} pitchers updated.\n\nCheck the console for detailed logs. Refresh the page manually to see updated rosters.`);
+      alert(`Rosters synced successfully!\n${hitterUpdates} hitters and ${pitcherUpdates} pitchers updated.\n\nThe page will now refresh to update all tabs.`);
       
       // Reload the page to ensure all tabs reflect the updated rosters
-      // TEMPORARILY DISABLED FOR DEBUGGING - UNCOMMENT AFTER FIXING OCR
-      // window.location.reload();
+      window.location.reload();
     } catch (error) {
       console.error('Failed to sync rosters:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
