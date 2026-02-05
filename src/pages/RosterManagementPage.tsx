@@ -4,8 +4,9 @@ import { useHitters } from '../hooks/useHitters';
 import { usePitchers } from '../hooks/usePitchers';
 import { useAuth } from '../contexts/AuthContext';
 import { processRosterImages, convertToRosterAssignments, RosterData } from '../utils/rosterOCR';
-import { saveRosterAssignments, saveTeamStrategy } from '../services/firestore';
+import { saveRosterAssignments, saveTeamStrategy, saveHitterPreferences } from '../services/firestore';
 import { generateStrategyRecommendations } from '../utils/strategyAnalyzer';
+import { generateHitterPreferences } from '../utils/hitterPreferencesAnalyzer';
 
 interface RosterImage {
   id: string;
@@ -361,19 +362,25 @@ export function RosterManagementPage() {
       
       console.log(`✅ Roster sync complete: ${hitterUpdates} hitters, ${pitcherUpdates} pitchers updated`);
       
-      // Generate and save strategy recommendations for all updated teams
+      // Generate and save strategy recommendations and hitter preferences for all updated teams
       if (currentUser) {
-        console.log('🎯 Generating strategy recommendations...');
+        console.log('🎯 Generating strategy recommendations and hitter preferences...');
         const updatedTeamNames = Object.keys(assignments.rosters);
         for (const teamName of updatedTeamNames) {
           const teamHitters = hitters.filter(h => h.roster === teamName);
           if (teamHitters.length > 0) {
+            // Generate and save strategy
             const recommendations = generateStrategyRecommendations(teamHitters);
             await saveTeamStrategy(currentUser.uid, {
               teamName,
               ...recommendations
             });
             console.log(`✅ Strategy saved for ${teamName}`);
+            
+            // Generate and save hitter preferences
+            const preferences = generateHitterPreferences(teamHitters);
+            await saveHitterPreferences(currentUser.uid, preferences);
+            console.log(`✅ Hitter preferences saved for ${teamName} (${preferences.length} players)`);
           }
         }
       }

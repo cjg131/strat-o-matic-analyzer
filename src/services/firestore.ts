@@ -30,6 +30,15 @@ export const saveTeamStrategy = async (userId: string, strategy: Record<string, 
   }));
 };
 
+// Hitter Preferences
+export const saveHitterPreferences = async (userId: string, preferences: any[]): Promise<void> => {
+  const preferencesRef = doc(db, getUserPath(userId, 'settings'), 'hitterPreferences');
+  await setDoc(preferencesRef, sanitizeData({
+    preferences,
+    updatedAt: new Date().toISOString()
+  }));
+};
+
 // Collection paths for user data
 const getUserPath = (userId: string, collectionName: string) => {
   return `users/${userId}/${collectionName}`;
