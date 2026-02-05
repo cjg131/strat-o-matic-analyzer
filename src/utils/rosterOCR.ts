@@ -48,13 +48,10 @@ export function parseRosterText(text: string): RosterData[] {
   console.log(`[parseRosterText] First 5 lines:`, lines.slice(0, 5));
 
   // Look for THE FIRST team name (individual roster image = one team per image)
-  // Pattern 1: "Team Name (W-L)" like "Manhattan WOW Award Stars (9-12)"
-  // Pattern 2: "Team Name (partial" like "Manhattan WOW Award Stars (18-*"
-  // Pattern 3: Just "Team Name" before any parentheses
-  // Allow letters, spaces, apostrophes, and special characters like ™®©
-  const teamNameWithRecord = /([A-Za-z][A-Za-z\s'™®©]*(?:II|III|IV)?)\s*\((\d+-\d+)\)/;
-  const teamNamePartial = /([A-Z][A-Za-z\s'™®©]{9,}(?:II|III|IV)?)\s*\(/; // Team name before any (
-  const teamNameOnly = /^([A-Z][A-Za-z\s'™®©]{9,}(?:II|III|IV)?)$/;
+  // Strategy: Look for a capitalized multi-word name, optionally followed by parentheses
+  // Examples: "Manhattan WOW Award Stars (18-9)", "Manhattan WOW Award Stars (18-*", "Manhattan WOW Award Stars"
+  const teamNameBeforeParen = /^([A-Z][A-Za-z\s'™®©]+?)\s*\(/; // Everything before (
+  const teamNameOnly = /^([A-Z][A-Za-z\s'™®©]+)$/; // Just the name
   
   let teamName: string | null = null;
   
@@ -63,31 +60,18 @@ export function parseRosterText(text: string): RosterData[] {
     const line = lines[i].trim();
     console.log(`[parseRosterText] Checking line ${i}: "${line}"`);
     
-    // Try pattern with complete win-loss record first
-    let match = line.match(teamNameWithRecord);
+    // Try to extract team name before opening parenthesis (handles all cases with records)
+    let match = line.match(teamNameBeforeParen);
     if (match) {
       const extractedName = match[1].trim();
-      console.log(`[parseRosterText] 🔍 Regex matched (with record): "${extractedName}" (${match[2]})`);
+      console.log(`[parseRosterText] 🔍 Regex matched (before paren): "${extractedName}", length=${extractedName.length}`);
       
-      if (extractedName.length >= 10) {
+      if (extractedName.length >= 10 && extractedName.split(/\s+/).length >= 2) {
         teamName = extractedName;
-        console.log(`[parseRosterText] ✅ Found team: "${teamName}" (${match[2]})`);
+        console.log(`[parseRosterText] ✅ Found team: "${teamName}"`);
         break;
-      }
-    }
-    
-    // Try pattern with partial record or just team name before (
-    if (!teamName) {
-      match = line.match(teamNamePartial);
-      if (match) {
-        const extractedName = match[1].trim();
-        console.log(`[parseRosterText] 🔍 Regex matched (partial/before paren): "${extractedName}"`);
-        
-        if (extractedName.length >= 10) {
-          teamName = extractedName;
-          console.log(`[parseRosterText] ✅ Found team: "${teamName}"`);
-          break;
-        }
+      } else {
+        console.log(`[parseRosterText] ⚠️ Rejected: too short or single word (${extractedName.length} chars, ${extractedName.split(/\s+/).length} words)`);
       }
     }
     
@@ -96,12 +80,14 @@ export function parseRosterText(text: string): RosterData[] {
       match = line.match(teamNameOnly);
       if (match) {
         const extractedName = match[1].trim();
-        console.log(`[parseRosterText] 🔍 Regex matched (name only): "${extractedName}"`);
+        console.log(`[parseRosterText] 🔍 Regex matched (name only): "${extractedName}", length=${extractedName.length}`);
         
-        if (extractedName.length >= 10) {
+        if (extractedName.length >= 10 && extractedName.split(/\s+/).length >= 2) {
           teamName = extractedName;
           console.log(`[parseRosterText] ✅ Found team: "${teamName}"`);
           break;
+        } else {
+          console.log(`[parseRosterText] ⚠️ Rejected: too short or single word (${extractedName.length} chars, ${extractedName.split(/\s+/).length} words)`);
         }
       }
     }
@@ -127,7 +113,7 @@ export function parseRosterText(text: string): RosterData[] {
         lower.includes('total value') ||
         lower.includes('pitchers') ||
         lower.includes('hitters') ||
-        line.match(teamNameWithRecord) ||
+        line.match(teamNameBeforeParen) ||
         line.match(teamNameOnly) ||
         lower.length < 10) {
       continue;
