@@ -120,35 +120,52 @@ function analyzeTeam(hitters: Hitter[]): TeamAnalysis {
     else analysis.balanceTypes.switch++;
   });
 
-  // Find best pinch hitter vs LHP (right-handed batter with high balance vs LHP)
-  analysis.bestPinchHitterVsLHP = hitters
-    .filter(h => getBalanceType(h.balance) === 'R')
-    .sort((a, b) => {
-      const aBalance = getBalanceValue(a.balance);
-      const bBalance = b.balance;
-      const bBalanceValue = getBalanceValue(bBalance);
-      if (aBalance !== bBalanceValue) return bBalanceValue - aBalance;
-      return (b.ba || 0) - (a.ba || 0);
-    })[0] || null;
+  // Find best pinch hitter vs LHP (prefer right-handed batter with high balance vs LHP)
+  const rightHandedBatters = hitters.filter(h => getBalanceType(h.balance) === 'R');
+  if (rightHandedBatters.length > 0) {
+    analysis.bestPinchHitterVsLHP = rightHandedBatters
+      .sort((a, b) => {
+        const aBalance = getBalanceValue(a.balance);
+        const bBalanceValue = getBalanceValue(b.balance);
+        if (aBalance !== bBalanceValue) return bBalanceValue - aBalance;
+        return (b.ba || 0) - (a.ba || 0);
+      })[0];
+  } else {
+    // Fallback: best overall hitter (highest BA)
+    analysis.bestPinchHitterVsLHP = hitters
+      .sort((a, b) => (b.ba || 0) - (a.ba || 0))[0] || null;
+  }
 
-  // Find best pinch hitter vs RHP (left-handed batter with high balance vs RHP)
-  analysis.bestPinchHitterVsRHP = hitters
-    .filter(h => getBalanceType(h.balance) === 'L')
-    .sort((a, b) => {
-      const aBalance = getBalanceValue(a.balance);
-      const bBalance = getBalanceValue(b.balance);
-      if (aBalance !== bBalance) return bBalance - aBalance;
-      return (b.ba || 0) - (a.ba || 0);
-    })[0] || null;
+  // Find best pinch hitter vs RHP (prefer left-handed batter with high balance vs RHP)
+  const leftHandedBatters = hitters.filter(h => getBalanceType(h.balance) === 'L');
+  if (leftHandedBatters.length > 0) {
+    analysis.bestPinchHitterVsRHP = leftHandedBatters
+      .sort((a, b) => {
+        const aBalance = getBalanceValue(a.balance);
+        const bBalance = getBalanceValue(b.balance);
+        if (aBalance !== bBalance) return bBalance - aBalance;
+        return (b.ba || 0) - (a.ba || 0);
+      })[0];
+  } else {
+    // Fallback: second best overall hitter (to avoid duplicating PH vs LHP)
+    const sortedByBA = hitters.sort((a, b) => (b.ba || 0) - (a.ba || 0));
+    analysis.bestPinchHitterVsRHP = sortedByBA[1] || sortedByBA[0] || null;
+  }
 
-  // Find fastest runner (highest STL rating)
-  analysis.fastestRunner = hitters
-    .sort((a, b) => {
-      const aSpeed = getStealRatingValue(a.stealRating);
-      const bSpeed = getStealRatingValue(b.stealRating);
-      if (aSpeed !== bSpeed) return bSpeed - aSpeed;
-      return getRunRatingValue(b.runRating) - getRunRatingValue(a.runRating);
-    })[0] || null;
+  // Find fastest runner (highest STL rating) - prefer someone different from pinch hitters
+  const sortedBySpeed = hitters.sort((a, b) => {
+    const aSpeed = getStealRatingValue(a.stealRating);
+    const bSpeed = getStealRatingValue(b.stealRating);
+    if (aSpeed !== bSpeed) return bSpeed - aSpeed;
+    return getRunRatingValue(b.runRating) - getRunRatingValue(a.runRating);
+  });
+  
+  // Try to find fastest runner who isn't already a pinch hitter
+  const fastestNonPH = sortedBySpeed.find(h => 
+    h.id !== analysis.bestPinchHitterVsLHP?.id && 
+    h.id !== analysis.bestPinchHitterVsRHP?.id
+  );
+  analysis.fastestRunner = fastestNonPH || sortedBySpeed[0] || null;
 
   // Find best defensive replacements (elite defenders at key positions)
   const keyPositions = ['C', 'SS', 'CF', '2B', '3B'];
