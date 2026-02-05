@@ -5,10 +5,11 @@ import { usePitchers } from '../hooks/usePitchers';
 import { useAuth } from '../contexts/AuthContext';
 import { useScoringWeights } from '../hooks/useScoringWeights';
 import { processRosterImages, convertToRosterAssignments, RosterData } from '../utils/rosterOCR';
-import { saveRosterAssignments, saveTeamStrategy, saveHitterPreferences, saveOptimizedLineups } from '../services/firestore';
+import { saveRosterAssignments, saveTeamStrategy, saveHitterPreferences, saveOptimizedLineups, saveOptimizedRotation } from '../services/firestore';
 import { generateStrategyRecommendations } from '../utils/strategyAnalyzer';
 import { generateHitterPreferences } from '../utils/hitterPreferencesAnalyzer';
 import { generateOptimizedLineups } from '../utils/lineupOptimizer';
+import { generateOptimizedRotation } from '../utils/pitchingRotationOptimizer';
 
 interface RosterImage {
   id: string;
@@ -365,12 +366,14 @@ export function RosterManagementPage() {
       
       console.log(`✅ Roster sync complete: ${hitterUpdates} hitters, ${pitcherUpdates} pitchers updated`);
       
-      // Generate and save strategy, preferences, and lineups for all updated teams
+      // Generate and save strategy, preferences, lineups, and rotation for all updated teams
       if (currentUser) {
-        console.log('🎯 Generating strategy, preferences, and optimized lineups...');
+        console.log('🎯 Generating strategy, preferences, lineups, and rotation...');
         const updatedTeamNames = Object.keys(assignments.rosters);
         for (const teamName of updatedTeamNames) {
           const teamHitters = hitters.filter(h => h.roster === teamName);
+          const teamPitchers = pitchers.filter(p => p.roster === teamName);
+          
           if (teamHitters.length > 0) {
             // Generate and save strategy
             const recommendations = generateStrategyRecommendations(teamHitters);
@@ -392,6 +395,16 @@ export function RosterManagementPage() {
               ...lineups
             });
             console.log(`✅ Optimized lineups saved for ${teamName} (vs LHP: ${lineups.vsLHP.length}, vs RHP: ${lineups.vsRHP.length})`);
+          }
+          
+          if (teamPitchers.length > 0) {
+            // Generate and save optimized pitching rotation
+            const rotation = generateOptimizedRotation(teamPitchers);
+            await saveOptimizedRotation(currentUser.uid, {
+              teamName,
+              ...rotation
+            });
+            console.log(`✅ Pitching rotation saved for ${teamName} (${rotation.starters.length} starters, ${rotation.bullpen.length} relievers)`);
           }
         }
       }

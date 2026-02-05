@@ -48,6 +48,15 @@ export const saveOptimizedLineups = async (userId: string, lineups: any): Promis
   }));
 };
 
+// Optimized Pitching Rotation
+export const saveOptimizedRotation = async (userId: string, rotation: any): Promise<void> => {
+  const rotationRef = doc(db, getUserPath(userId, 'settings'), 'optimizedRotation');
+  await setDoc(rotationRef, sanitizeData({
+    ...rotation,
+    updatedAt: new Date().toISOString()
+  }));
+};
+
 // Collection paths for user data
 const getUserPath = (userId: string, collectionName: string) => {
   return `users/${userId}/${collectionName}`;
