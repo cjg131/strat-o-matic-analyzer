@@ -48,36 +48,53 @@ export function parseRosterText(text: string): RosterData[] {
   console.log(`[parseRosterText] First 5 lines:`, lines.slice(0, 5));
 
   // Look for THE FIRST team name (individual roster image = one team per image)
-  // Pattern: "Team Name (W-L)" like "Manhattan WOW Award Stars (9-12)" or "Wrigleyville Arkinals™ (13-8)"
-  // Allow letters, spaces, apostrophes, and special characters like ™
-  const teamNamePattern = /([A-Za-z][A-Za-z\s'™®©]*(?:II|III|IV)?)\s*\((\d+-\d+)\)/;
+  // Pattern 1: "Team Name (W-L)" like "Manhattan WOW Award Stars (9-12)"
+  // Pattern 2: Just "Team Name" if no record is visible
+  // Allow letters, spaces, apostrophes, and special characters like ™®©
+  const teamNameWithRecord = /([A-Za-z][A-Za-z\s'™®©]*(?:II|III|IV)?)\s*\((\d+-\d+)\)/;
+  const teamNameOnly = /^([A-Z][A-Za-z\s'™®©]{2,}(?:II|III|IV)?)$/;
   
   let teamName: string | null = null;
   
   // Find the first team name (should be near the top)
-  for (let i = 0; i < Math.min(10, lines.length); i++) {
-    const line = lines[i];
+  for (let i = 0; i < Math.min(15, lines.length); i++) {
+    const line = lines[i].trim();
     console.log(`[parseRosterText] Checking line ${i}: "${line}"`);
     
-    const match = line.match(teamNamePattern);
+    // Try pattern with win-loss record first
+    let match = line.match(teamNameWithRecord);
     if (match) {
       const extractedName = match[1].trim();
-      console.log(`[parseRosterText] 🔍 Regex matched: "${extractedName}" (${match[2]})`);
+      console.log(`[parseRosterText] 🔍 Regex matched (with record): "${extractedName}" (${match[2]})`);
       
-      // Validate: team name must be at least 3 characters and contain at least one space (multi-word)
       if (extractedName.length >= 3) {
         teamName = extractedName;
         console.log(`[parseRosterText] ✅ Found team: "${teamName}" (${match[2]})`);
         break;
-      } else {
-        console.log(`[parseRosterText] ⚠️ Rejected short name: "${extractedName}"`);
+      }
+    }
+    
+    // Try pattern without win-loss record (just team name)
+    // Must be at least 3 words to avoid false positives
+    if (!teamName && line.split(/\s+/).length >= 2) {
+      match = line.match(teamNameOnly);
+      if (match) {
+        const extractedName = match[1].trim();
+        console.log(`[parseRosterText] 🔍 Regex matched (name only): "${extractedName}"`);
+        
+        // Must be at least 10 characters to be a valid team name
+        if (extractedName.length >= 10) {
+          teamName = extractedName;
+          console.log(`[parseRosterText] ✅ Found team: "${teamName}"`);
+          break;
+        }
       }
     }
   }
   
   if (!teamName) {
-    console.error('[parseRosterText] ❌ No team name found in first 10 lines');
-    console.error('[parseRosterText] First 10 lines:', lines.slice(0, 10));
+    console.error('[parseRosterText] ❌ No team name found in first 15 lines');
+    console.error('[parseRosterText] First 15 lines:', lines.slice(0, 15));
     throw new Error('Could not find team name - make sure you upload individual team roster images');
   }
   
@@ -95,7 +112,8 @@ export function parseRosterText(text: string): RosterData[] {
         lower.includes('total value') ||
         lower.includes('pitchers') ||
         lower.includes('hitters') ||
-        line.match(teamNamePattern) ||
+        line.match(teamNameWithRecord) ||
+        line.match(teamNameOnly) ||
         lower.length < 10) {
       continue;
     }
