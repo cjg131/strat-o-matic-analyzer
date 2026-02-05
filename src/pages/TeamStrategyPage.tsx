@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useHitters } from '../hooks/useHitters';
+import { generateStrategyRecommendations } from '../utils/strategyAnalyzer';
 
 interface TeamStrategy {
   // Tendencies
@@ -45,8 +46,17 @@ export function TeamStrategyPage() {
       .sort();
   }, [hitters]);
   
+  // Generate intelligent strategy recommendations based on roster
+  const recommendations = useMemo(() => {
+    const teamHitters = hitters.filter(h => h.roster === USER_TEAM);
+    if (teamHitters.length === 0) {
+      return null;
+    }
+    return generateStrategyRecommendations(teamHitters);
+  }, [hitters]);
+  
   const [strategy, setStrategy] = useState<TeamStrategy>({
-    // Tendencies - default balanced settings
+    // Tendencies - will be set by recommendations
     baseRunning: 'Normal',
     baseStealing: 'Normal',
     closerUsage: 'Regular',
@@ -56,12 +66,12 @@ export function TeamStrategyPage() {
     intentionalWalk: 'Normal',
     infieldIn: '3rd Inning',
     
-    // Offensive subs - to be configured by user
+    // Offensive subs - will be set by recommendations
     pinchHitterVsLHP: '',
     pinchHitterVsRHP: '',
     pinchRunner: '',
     
-    // Defensive subs - to be configured by user
+    // Defensive subs - will be set by recommendations
     defensiveReplacement1Player: '',
     defensiveReplacement1Position: '',
     defensiveReplacement2Player: '',
@@ -71,6 +81,13 @@ export function TeamStrategyPage() {
     defensiveReplacement4Player: '',
     defensiveReplacement4Position: '',
   });
+  
+  // Apply recommendations when they change
+  useEffect(() => {
+    if (recommendations) {
+      setStrategy(recommendations);
+    }
+  }, [recommendations]);
 
   const updateStrategy = (field: keyof TeamStrategy, value: string) => {
     setStrategy(prev => ({
@@ -374,11 +391,13 @@ export function TeamStrategyPage() {
         </div>
       </div>
 
-      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-        <p className="text-sm text-blue-800 dark:text-blue-200">
-          <strong>Strategy Applied:</strong> Very Aggressive baserunning/stealing (7 AA stealers). Aggressive hit-and-run (elite contact: Gwynn .370, Suzuki .351). Platoon PH: Chase vs LHP (.290 BA), Washington vs RHP (.322 OBP). McGee as PR (AA steal). Defensive subs: Chase at 1B (AA range), O'Leary at 3B (1L balance), McGee at LF (elite CF defense) - upgrade defense late in games.
-        </p>
-      </div>
+      {recommendations && recommendations.explanation && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+          <p className="text-sm text-blue-800 dark:text-blue-200">
+            <strong>Strategy Recommendations:</strong> {recommendations.explanation}
+          </p>
+        </div>
+      )}
 
       <div className="flex justify-end">
         <button className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg shadow-md transition-colors">
