@@ -21,6 +21,15 @@ export const saveRosterAssignments = async (userId: string, assignments: Record<
   }));
 };
 
+// Team Strategy
+export const saveTeamStrategy = async (userId: string, strategy: Record<string, any>): Promise<void> => {
+  const strategyRef = doc(db, getUserPath(userId, 'settings'), 'teamStrategy');
+  await setDoc(strategyRef, sanitizeData({
+    ...strategy,
+    updatedAt: new Date().toISOString()
+  }));
+};
+
 // Collection paths for user data
 const getUserPath = (userId: string, collectionName: string) => {
   return `users/${userId}/${collectionName}`;

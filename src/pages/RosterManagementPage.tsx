@@ -4,7 +4,8 @@ import { useHitters } from '../hooks/useHitters';
 import { usePitchers } from '../hooks/usePitchers';
 import { useAuth } from '../contexts/AuthContext';
 import { processRosterImages, convertToRosterAssignments, RosterData } from '../utils/rosterOCR';
-import { saveRosterAssignments } from '../services/firestore';
+import { saveRosterAssignments, saveTeamStrategy } from '../services/firestore';
+import { generateStrategyRecommendations } from '../utils/strategyAnalyzer';
 
 interface RosterImage {
   id: string;
@@ -359,7 +360,25 @@ export function RosterManagementPage() {
       }
       
       console.log(`✅ Roster sync complete: ${hitterUpdates} hitters, ${pitcherUpdates} pitchers updated`);
-      alert(`Rosters synced successfully!\n${hitterUpdates} hitters and ${pitcherUpdates} pitchers updated.\n\nThe page will now refresh to update all tabs.`);
+      
+      // Generate and save strategy recommendations for all updated teams
+      if (currentUser) {
+        console.log('🎯 Generating strategy recommendations...');
+        const updatedTeamNames = Object.keys(assignments.rosters);
+        for (const teamName of updatedTeamNames) {
+          const teamHitters = hitters.filter(h => h.roster === teamName);
+          if (teamHitters.length > 0) {
+            const recommendations = generateStrategyRecommendations(teamHitters);
+            await saveTeamStrategy(currentUser.uid, {
+              teamName,
+              ...recommendations
+            });
+            console.log(`✅ Strategy saved for ${teamName}`);
+          }
+        }
+      }
+      
+      alert(`Rosters synced successfully!\n${hitterUpdates} hitters and ${pitcherUpdates} pitchers updated.\n\nStrategy recommendations have been generated for your team.\n\nThe page will now refresh to update all tabs.`);
       
       // Reload the page to ensure all tabs reflect the updated rosters
       window.location.reload();
