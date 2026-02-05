@@ -49,10 +49,12 @@ export function parseRosterText(text: string): RosterData[] {
 
   // Look for THE FIRST team name (individual roster image = one team per image)
   // Pattern 1: "Team Name (W-L)" like "Manhattan WOW Award Stars (9-12)"
-  // Pattern 2: Just "Team Name" if no record is visible
+  // Pattern 2: "Team Name (partial" like "Manhattan WOW Award Stars (18-*"
+  // Pattern 3: Just "Team Name" before any parentheses
   // Allow letters, spaces, apostrophes, and special characters like ™®©
   const teamNameWithRecord = /([A-Za-z][A-Za-z\s'™®©]*(?:II|III|IV)?)\s*\((\d+-\d+)\)/;
-  const teamNameOnly = /^([A-Z][A-Za-z\s'™®©]{2,}(?:II|III|IV)?)$/;
+  const teamNamePartial = /([A-Z][A-Za-z\s'™®©]{9,}(?:II|III|IV)?)\s*\(/; // Team name before any (
+  const teamNameOnly = /^([A-Z][A-Za-z\s'™®©]{9,}(?:II|III|IV)?)$/;
   
   let teamName: string | null = null;
   
@@ -61,28 +63,41 @@ export function parseRosterText(text: string): RosterData[] {
     const line = lines[i].trim();
     console.log(`[parseRosterText] Checking line ${i}: "${line}"`);
     
-    // Try pattern with win-loss record first
+    // Try pattern with complete win-loss record first
     let match = line.match(teamNameWithRecord);
     if (match) {
       const extractedName = match[1].trim();
       console.log(`[parseRosterText] 🔍 Regex matched (with record): "${extractedName}" (${match[2]})`);
       
-      if (extractedName.length >= 3) {
+      if (extractedName.length >= 10) {
         teamName = extractedName;
         console.log(`[parseRosterText] ✅ Found team: "${teamName}" (${match[2]})`);
         break;
       }
     }
     
-    // Try pattern without win-loss record (just team name)
-    // Must be at least 3 words to avoid false positives
+    // Try pattern with partial record or just team name before (
+    if (!teamName) {
+      match = line.match(teamNamePartial);
+      if (match) {
+        const extractedName = match[1].trim();
+        console.log(`[parseRosterText] 🔍 Regex matched (partial/before paren): "${extractedName}"`);
+        
+        if (extractedName.length >= 10) {
+          teamName = extractedName;
+          console.log(`[parseRosterText] ✅ Found team: "${teamName}"`);
+          break;
+        }
+      }
+    }
+    
+    // Try pattern without any parentheses (just team name)
     if (!teamName && line.split(/\s+/).length >= 2) {
       match = line.match(teamNameOnly);
       if (match) {
         const extractedName = match[1].trim();
         console.log(`[parseRosterText] 🔍 Regex matched (name only): "${extractedName}"`);
         
-        // Must be at least 10 characters to be a valid team name
         if (extractedName.length >= 10) {
           teamName = extractedName;
           console.log(`[parseRosterText] ✅ Found team: "${teamName}"`);
