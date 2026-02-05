@@ -39,6 +39,15 @@ export const saveHitterPreferences = async (userId: string, preferences: any[]):
   }));
 };
 
+// Optimized Lineups
+export const saveOptimizedLineups = async (userId: string, lineups: any): Promise<void> => {
+  const lineupsRef = doc(db, getUserPath(userId, 'settings'), 'optimizedLineups');
+  await setDoc(lineupsRef, sanitizeData({
+    ...lineups,
+    updatedAt: new Date().toISOString()
+  }));
+};
+
 // Collection paths for user data
 const getUserPath = (userId: string, collectionName: string) => {
   return `users/${userId}/${collectionName}`;

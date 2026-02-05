@@ -3,10 +3,12 @@ import { Upload, CheckCircle, AlertCircle, Loader2, Clipboard } from 'lucide-rea
 import { useHitters } from '../hooks/useHitters';
 import { usePitchers } from '../hooks/usePitchers';
 import { useAuth } from '../contexts/AuthContext';
+import { useScoringWeights } from '../hooks/useScoringWeights';
 import { processRosterImages, convertToRosterAssignments, RosterData } from '../utils/rosterOCR';
-import { saveRosterAssignments, saveTeamStrategy, saveHitterPreferences } from '../services/firestore';
+import { saveRosterAssignments, saveTeamStrategy, saveHitterPreferences, saveOptimizedLineups } from '../services/firestore';
 import { generateStrategyRecommendations } from '../utils/strategyAnalyzer';
 import { generateHitterPreferences } from '../utils/hitterPreferencesAnalyzer';
+import { generateOptimizedLineups } from '../utils/lineupOptimizer';
 
 interface RosterImage {
   id: string;
@@ -21,6 +23,7 @@ export function RosterManagementPage() {
   const { hitters, updateHitter } = useHitters();
   const { pitchers, updatePitcher } = usePitchers();
   const { currentUser } = useAuth();
+  const { weights } = useScoringWeights();
   const [rosterImages, setRosterImages] = useState<RosterImage[]>([
     { id: 'roster1', file: null, preview: null, status: 'pending' },
     { id: 'roster2', file: null, preview: null, status: 'pending' },
@@ -362,9 +365,9 @@ export function RosterManagementPage() {
       
       console.log(`✅ Roster sync complete: ${hitterUpdates} hitters, ${pitcherUpdates} pitchers updated`);
       
-      // Generate and save strategy recommendations and hitter preferences for all updated teams
+      // Generate and save strategy, preferences, and lineups for all updated teams
       if (currentUser) {
-        console.log('🎯 Generating strategy recommendations and hitter preferences...');
+        console.log('🎯 Generating strategy, preferences, and optimized lineups...');
         const updatedTeamNames = Object.keys(assignments.rosters);
         for (const teamName of updatedTeamNames) {
           const teamHitters = hitters.filter(h => h.roster === teamName);
@@ -381,6 +384,14 @@ export function RosterManagementPage() {
             const preferences = generateHitterPreferences(teamHitters);
             await saveHitterPreferences(currentUser.uid, preferences);
             console.log(`✅ Hitter preferences saved for ${teamName} (${preferences.length} players)`);
+            
+            // Generate and save optimized lineups
+            const lineups = generateOptimizedLineups(teamHitters, weights.hitter);
+            await saveOptimizedLineups(currentUser.uid, {
+              teamName,
+              ...lineups
+            });
+            console.log(`✅ Optimized lineups saved for ${teamName} (vs LHP: ${lineups.vsLHP.length}, vs RHP: ${lineups.vsRHP.length})`);
           }
         }
       }
