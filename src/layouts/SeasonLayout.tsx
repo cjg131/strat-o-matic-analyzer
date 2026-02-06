@@ -1,10 +1,10 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { useTeam } from '../hooks/useTeam';
+import { useSeasonTeam } from '../hooks/useSeasonTeam';
 
 export function SeasonLayout() {
   const location = useLocation();
-  const { team } = useTeam();
+  const { selectedTeamName } = useSeasonTeam();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -42,7 +42,7 @@ export function SeasonLayout() {
           </Link>
           <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
           <span className="text-sm font-semibold text-gray-900 dark:text-white">
-            {team.name}
+            {selectedTeamName || 'No Team Selected'}
           </span>
         </div>
         <nav className="flex flex-wrap gap-2">

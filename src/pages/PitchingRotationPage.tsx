@@ -1,4 +1,5 @@
 import { usePitchers } from '../hooks/usePitchers';
+import { useSeasonTeam } from '../hooks/useSeasonTeam';
 
 interface RotationSlot {
   position: number;
@@ -23,9 +24,10 @@ interface Reliever {
 
 export function PitchingRotationPage() {
   const { pitchers } = usePitchers();
+  const { selectedTeamName } = useSeasonTeam();
   
-  // Filter to Manhattan WOW Award Stars roster
-  const rosterPitchers = pitchers.filter(p => p.roster === 'Manhattan WOW Award Stars');
+  // Filter to selected season team roster
+  const rosterPitchers = pitchers.filter(p => p.roster === selectedTeamName);
   
   // Separate starters and relievers based on endurance rating
   const starters = rosterPitchers.filter(p => {

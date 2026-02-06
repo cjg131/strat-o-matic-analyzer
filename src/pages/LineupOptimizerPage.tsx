@@ -1,6 +1,7 @@
 import { usePlayerCards } from '../hooks/usePlayerCards';
 import { useHitters } from '../hooks/useHitters';
 import { useScoringWeights } from '../hooks/useScoringWeights';
+import { useSeasonTeam } from '../hooks/useSeasonTeam';
 import { calculateHitterStats } from '../utils/calculations';
 import { Info } from 'lucide-react';
 import type { HitterWithStats } from '../types';
@@ -113,9 +114,9 @@ function getBestPosition(hitter: HitterWithStats, availablePositions: string[]):
 }
 
 // Helper to optimize lineup order based on stats and platoon matchup
-function optimizeLineupOrder(hitters: HitterWithStats[], pitcherHand: 'L' | 'R'): HitterWithStats[] {
-  // Filter to only rostered players (Manhattan WOW Award Stars)
-  const roster = hitters.filter(h => h.roster === 'Manhattan WOW Award Stars');
+function optimizeLineupOrder(hitters: HitterWithStats[], pitcherHand: 'L' | 'R', teamName: string | null): HitterWithStats[] {
+  // Filter to only rostered players for the selected season team
+  const roster = hitters.filter(h => h.roster === teamName);
   
   if (roster.length === 0) return [];
   
@@ -214,6 +215,7 @@ export function LineupOptimizerPage() {
   const { getPlayerCard } = usePlayerCards();
   const { hitters } = useHitters();
   const { weights } = useScoringWeights();
+  const { selectedTeamName } = useSeasonTeam();
   
   // Calculate stats for all hitters
   const hittersWithStats: HitterWithStats[] = hitters.map((hitter) =>
@@ -251,7 +253,7 @@ export function LineupOptimizerPage() {
   };
   
   // Debug: Log roster players and their positions
-  const rosterPlayers = hittersWithStats.filter(h => h.roster === 'Manhattan WOW Award Stars');
+  const rosterPlayers = hittersWithStats.filter(h => h.roster === selectedTeamName);
   console.log('Roster players:', rosterPlayers.map(h => ({
     name: h.name,
     positions: h.positions,
@@ -260,8 +262,8 @@ export function LineupOptimizerPage() {
   })));
   
   // Get optimized lineups for each pitcher handedness
-  const vsLHSPHitters = optimizeLineupOrder(hittersWithStats, 'L');
-  const vsRHSPHitters = optimizeLineupOrder(hittersWithStats, 'R');
+  const vsLHSPHitters = optimizeLineupOrder(hittersWithStats, 'L', selectedTeamName);
+  const vsRHSPHitters = optimizeLineupOrder(hittersWithStats, 'R', selectedTeamName);
   
   console.log('vs LHSP lineup:', vsLHSPHitters.map(h => ({ name: h.name, positions: h.positions })));
   console.log('vs RHSP lineup:', vsRHSPHitters.map(h => ({ name: h.name, positions: h.positions })));

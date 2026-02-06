@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useHitters } from '../hooks/useHitters';
+import { useSeasonTeam } from '../hooks/useSeasonTeam';
 
 interface HitterPreference {
   id: string;
@@ -23,16 +24,15 @@ interface HitterPreference {
   pinchRunForDont: boolean;
 }
 
-const USER_TEAM = 'Manhattan WOW Award Stars';
-
 export function HitterPreferencesPage() {
   const { hitters } = useHitters();
+  const { selectedTeamName } = useSeasonTeam();
   const [preferences, setPreferences] = useState<HitterPreference[]>([]);
 
   // Filter hitters by user's team and convert to preferences format
   const teamHitters = useMemo(() => {
     return hitters
-      .filter(h => h.roster === USER_TEAM)
+      .filter(h => h.roster === selectedTeamName)
       .sort((a, b) => {
         // Sort by position order: C, 1B, 2B, 3B, SS, LF, CF, RF, DH
         const posOrder = ['C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'DH'];
@@ -122,7 +122,7 @@ export function HitterPreferencesPage() {
 
       <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
         <p className="text-sm text-blue-800 dark:text-blue-200">
-          <strong>Team:</strong> {USER_TEAM} • <strong>Hitters:</strong> {preferences.length} players loaded from your roster
+          <strong>Team:</strong> {selectedTeamName || 'None'} • <strong>Hitters:</strong> {preferences.length} players loaded from your roster
         </p>
       </div>
 

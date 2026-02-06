@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useHitters } from '../hooks/useHitters';
+import { useSeasonTeam } from '../hooks/useSeasonTeam';
 import { generateStrategyRecommendations } from '../utils/strategyAnalyzer';
 
 interface TeamStrategy {
@@ -29,15 +30,14 @@ interface TeamStrategy {
   defensiveReplacement4Position: string;
 }
 
-const USER_TEAM = 'Manhattan WOW Award Stars';
-
 export function TeamStrategyPage() {
   const { hitters } = useHitters();
+  const { selectedTeamName } = useSeasonTeam();
   
   // Build roster list from actual database hitters
   const roster = useMemo(() => {
     return hitters
-      .filter(h => h.roster === USER_TEAM)
+      .filter(h => h.roster === selectedTeamName)
       .map(h => {
         const hand = h.balance?.includes('L') ? 'L' : h.balance?.includes('R') ? 'R' : 'S';
         const primaryPos = h.positions?.split(',')[0]?.trim() || 'DH';
@@ -48,7 +48,7 @@ export function TeamStrategyPage() {
   
   // Generate intelligent strategy recommendations based on roster
   const recommendations = useMemo(() => {
-    const teamHitters = hitters.filter(h => h.roster === USER_TEAM);
+    const teamHitters = hitters.filter(h => h.roster === selectedTeamName);
     if (teamHitters.length === 0) {
       return null;
     }

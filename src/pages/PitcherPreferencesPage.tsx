@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { usePitchers } from '../hooks/usePitchers';
+import { useSeasonTeam } from '../hooks/useSeasonTeam';
 
 interface PitcherPreference {
   id: string;
@@ -24,8 +25,6 @@ interface PitcherPreference {
   maxIPRel2_3: boolean;
 }
 
-const USER_TEAM = 'Manhattan WOW Award Stars';
-
 function getBalanceFromPitcher(): string {
   // For pitchers, balance might not be stored - return 'E' as default
   return 'E';
@@ -33,12 +32,13 @@ function getBalanceFromPitcher(): string {
 
 export function PitcherPreferencesPage() {
   const { pitchers } = usePitchers();
+  const { selectedTeamName } = useSeasonTeam();
   const [preferences, setPreferences] = useState<PitcherPreference[]>([]);
 
   // Filter pitchers by user's team
   const teamPitchers = useMemo(() => {
     return pitchers
-      .filter(p => p.roster === USER_TEAM)
+      .filter(p => p.roster === selectedTeamName)
       .sort((a, b) => {
         // Sort: starters first (by endurance), then relievers
         const aIsStarter = a.endurance?.toUpperCase().includes('S') || false;
@@ -117,7 +117,7 @@ export function PitcherPreferencesPage() {
 
       <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
         <p className="text-sm text-blue-800 dark:text-blue-200">
-          <strong>Team:</strong> {USER_TEAM} • <strong>Pitchers:</strong> {preferences.length} players loaded from your roster
+          <strong>Team:</strong> {selectedTeamName || 'None'} • <strong>Pitchers:</strong> {preferences.length} players loaded from your roster
         </p>
       </div>
 
