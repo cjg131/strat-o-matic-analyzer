@@ -1,34 +1,50 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
+import { useTeam } from '../hooks/useTeam';
 
 export function SeasonLayout() {
   const location = useLocation();
+  const { team } = useTeam();
 
   const isActive = (path: string) => location.pathname === path;
 
   const tabs = [
     // Player Data
-    { path: '/season/roster-management', label: 'Roster Management' },
-    { path: '/season/hitters', label: 'Hitters' },
-    { path: '/season/pitchers', label: 'Pitchers' },
-    { path: '/season/wanted-players', label: 'Wanted Players' },
-    { path: '/season/lineup-optimizer', label: 'Lineup Optimizer' },
-    { path: '/season/pitching-rotation', label: 'Pitching Rotation' },
+    { path: '/season/manage/roster-management', label: 'Roster Management' },
+    { path: '/season/manage/hitters', label: 'Hitters' },
+    { path: '/season/manage/pitchers', label: 'Pitchers' },
+    { path: '/season/manage/wanted-players', label: 'Wanted Players' },
+    { path: '/season/manage/lineup-optimizer', label: 'Lineup Optimizer' },
+    { path: '/season/manage/pitching-rotation', label: 'Pitching Rotation' },
     
     // Team Management
-    { path: '/season/hitter-preferences', label: 'Hitter Preferences' },
-    { path: '/season/pitcher-preferences', label: 'Pitcher Preferences' },
-    { path: '/season/team-strategy', label: 'Team Strategy' },
+    { path: '/season/manage/hitter-preferences', label: 'Hitter Preferences' },
+    { path: '/season/manage/pitcher-preferences', label: 'Pitcher Preferences' },
+    { path: '/season/manage/team-strategy', label: 'Team Strategy' },
     
     // Analysis & Planning
-    { path: '/season/opponent-analysis', label: 'Opponent Analysis' },
-    { path: '/season/game-starters', label: 'Game Starters' },
-    { path: '/season/player-cards', label: 'Player Cards' },
-    { path: '/season/player-card-insights', label: 'Card Insights' },
+    { path: '/season/manage/opponent-analysis', label: 'Opponent Analysis' },
+    { path: '/season/manage/game-starters', label: 'Game Starters' },
+    { path: '/season/manage/player-cards', label: 'Player Cards' },
+    { path: '/season/manage/player-card-insights', label: 'Card Insights' },
   ];
 
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+        <div className="flex items-center gap-4 mb-3">
+          <Link
+            to="/season"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            All Teams
+          </Link>
+          <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
+          <span className="text-sm font-semibold text-gray-900 dark:text-white">
+            {team.name}
+          </span>
+        </div>
         <nav className="flex flex-wrap gap-2">
           {tabs.map((tab) => (
             <Link

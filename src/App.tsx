@@ -15,6 +15,7 @@ import { GameStartersPage } from './pages/GameStartersPage';
 import { SeasonHittersPage } from './pages/SeasonHittersPage';
 import { SeasonPitchersPage } from './pages/SeasonPitchersPage';
 import { TeamRostersPage } from './pages/TeamRostersPage';
+import { TeamSelectPage } from './pages/TeamSelectPage';
 import { RosterImportPage } from './pages/RosterImportPage';
 import { WantedPlayersPage } from './pages/WantedPlayersPage';
 import { LineupOptimizerPage } from './pages/LineupOptimizerPage';
@@ -76,7 +77,7 @@ function Navigation() {
               Pre-Draft
             </Link>
             <Link
-              to="/season/overview"
+              to="/season"
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 location.pathname.startsWith('/season')
                   ? 'bg-primary-600 text-white'
@@ -138,9 +139,12 @@ function App() {
                 <Route path="team-builder" element={<TeamBuilderPage />} />
               </Route>
               
-              {/* Season Section */}
-              <Route path="/season" element={<ProtectedRoute><SeasonLayout /></ProtectedRoute>}>
-                <Route index element={<Navigate to="/season/hitter-preferences" replace />} />
+              {/* Season Section - Team Select Landing */}
+              <Route path="/season" element={<ProtectedRoute><TeamSelectPage /></ProtectedRoute>} />
+              
+              {/* Season Section - Team Management Sub-pages */}
+              <Route path="/season/manage" element={<ProtectedRoute><SeasonLayout /></ProtectedRoute>}>
+                <Route index element={<Navigate to="/season/manage/roster-management" replace />} />
                 <Route path="hitter-preferences" element={<HitterPreferencesPage />} />
                 <Route path="pitcher-preferences" element={<PitcherPreferencesPage />} />
                 <Route path="team-strategy" element={<TeamStrategyPage />} />
