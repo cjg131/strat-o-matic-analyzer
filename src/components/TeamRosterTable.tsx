@@ -1,7 +1,14 @@
-import { Trash2 } from 'lucide-react';
+import { Trash2, FileText } from 'lucide-react';
 import type { HitterWithStats, PitcherWithStats } from '../types';
 import { formatCurrency } from '../utils/calculations';
-import { DebouncedNotesInput } from './DebouncedNotesInput';
+import { NotesModal } from './NotesModal';
+import { useState } from 'react';
+
+interface NotesState {
+  playerId: string;
+  playerName: string;
+  notes: string;
+}
 
 interface TeamRosterTableProps {
   hitters: HitterWithStats[];
@@ -13,6 +20,7 @@ interface TeamRosterTableProps {
 }
 
 export function TeamRosterTable({ hitters, pitchers, onRemoveHitter, onRemovePitcher, onUpdateHitterNotes, onUpdatePitcherNotes }: TeamRosterTableProps) {
+  const [notesModal, setNotesModal] = useState<NotesState | null>(null);
   console.log('[TeamRosterTable] Received hitters:', hitters.length, hitters);
   console.log('[TeamRosterTable] Received pitchers:', pitchers.length, pitchers);
   
@@ -137,14 +145,26 @@ export function TeamRosterTable({ hitters, pitchers, onRemoveHitter, onRemovePit
                           <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-300">FP/600</th>
                           <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-300">FP/G</th>
                           <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-300">FP/$</th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300">Notes</th>
                           <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-300">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                         {posHitters.map(hitter => (
                           <tr key={hitter.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                            <td className="px-3 py-2 text-gray-900 dark:text-white font-medium">{hitter.name}</td>
+                            <td className="px-3 py-2 text-gray-900 dark:text-white font-medium">
+                              <div className="flex items-center gap-2">
+                                <span>{hitter.name}</span>
+                                {onUpdateHitterNotes && (
+                                  <button
+                                    onClick={() => setNotesModal({ playerId: hitter.id, playerName: hitter.name, notes: hitter.notes || '' })}
+                                    className="p-1 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400"
+                                    title={hitter.notes ? 'Edit notes' : 'Add notes'}
+                                  >
+                                    <FileText className={`h-4 w-4 ${hitter.notes ? 'text-primary-600 dark:text-primary-400' : ''}`} />
+                                  </button>
+                                )}
+                              </div>
+                            </td>
                             <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{hitter.season}</td>
                             <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{hitter.team || '-'}</td>
                             <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">{formatCurrency(hitter.salary)}</td>
@@ -195,18 +215,6 @@ export function TeamRosterTable({ hitters, pitchers, onRemoveHitter, onRemovePit
                             <td className="px-3 py-2 text-center font-semibold text-primary-600 dark:text-primary-400">{hitter.pointsPer600PA.toFixed(1)}</td>
                             <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">{hitter.pointsPerGame.toFixed(2)}</td>
                             <td className="px-3 py-2 text-center font-semibold text-green-600 dark:text-green-400">{hitter.pointsPerDollar.toFixed(2)}</td>
-                            <td className="px-3 py-2" style={{ minWidth: '300px' }}>
-                              {onUpdateHitterNotes ? (
-                                <DebouncedNotesInput
-                                  value={hitter.notes || ''}
-                                  onChange={(notes) => onUpdateHitterNotes(hitter.id, notes)}
-                                  placeholder="Add notes..."
-                                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                />
-                              ) : (
-                                <span className="text-gray-700 dark:text-gray-300 text-sm">{hitter.notes || '-'}</span>
-                              )}
-                            </td>
                             <td className="px-3 py-2 text-center">
                               <button
                                 onClick={() => onRemoveHitter(hitter.id)}
@@ -276,14 +284,26 @@ export function TeamRosterTable({ hitters, pitchers, onRemoveHitter, onRemovePit
                         <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-300">FP/IP</th>
                         <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-300">FP/Start</th>
                         <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-300">FP/$</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300">Notes</th>
                         <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-300">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                       {starters.map(pitcher => (
                         <tr key={pitcher.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                          <td className="px-3 py-2 text-gray-900 dark:text-white font-medium">{pitcher.name}</td>
+                          <td className="px-3 py-2 text-gray-900 dark:text-white font-medium">
+                            <div className="flex items-center gap-2">
+                              <span>{pitcher.name}</span>
+                              {onUpdatePitcherNotes && (
+                                <button
+                                  onClick={() => setNotesModal({ playerId: pitcher.id, playerName: pitcher.name, notes: pitcher.notes || '' })}
+                                  className="p-1 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400"
+                                  title={pitcher.notes ? 'Edit notes' : 'Add notes'}
+                                >
+                                  <FileText className={`h-4 w-4 ${pitcher.notes ? 'text-primary-600 dark:text-primary-400' : ''}`} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
                           <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{pitcher.season}</td>
                           <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{pitcher.team || '-'}</td>
                           <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">{formatCurrency(pitcher.salary)}</td>
@@ -307,18 +327,6 @@ export function TeamRosterTable({ hitters, pitchers, onRemoveHitter, onRemovePit
                           <td className="px-3 py-2 text-center font-semibold text-primary-600 dark:text-primary-400">{pitcher.pointsPerIP.toFixed(1)}</td>
                           <td className="px-3 py-2 text-center font-semibold text-primary-600 dark:text-primary-400">{pitcher.pointsPerStart.toFixed(1)}</td>
                           <td className="px-3 py-2 text-center font-semibold text-green-600 dark:text-green-400">{pitcher.pointsPerDollar.toFixed(2)}</td>
-                          <td className="px-3 py-2" style={{ minWidth: '300px' }}>
-                            {onUpdatePitcherNotes ? (
-                              <DebouncedNotesInput
-                                value={pitcher.notes || ''}
-                                onChange={(notes) => onUpdatePitcherNotes(pitcher.id, notes)}
-                                placeholder="Add notes..."
-                                className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                              />
-                            ) : (
-                              <span className="text-gray-700 dark:text-gray-300 text-sm">{pitcher.notes || '-'}</span>
-                            )}
-                          </td>
                           <td className="px-3 py-2 text-center">
                             <button
                               onClick={() => onRemovePitcher(pitcher.id)}
@@ -369,14 +377,26 @@ export function TeamRosterTable({ hitters, pitchers, onRemoveHitter, onRemovePit
                         <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-300">FP</th>
                         <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-300">FP/IP</th>
                         <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-300">FP/$</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300">Notes</th>
                         <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-300">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                       {relievers.map(pitcher => (
                         <tr key={pitcher.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                          <td className="px-3 py-2 text-gray-900 dark:text-white font-medium">{pitcher.name}</td>
+                          <td className="px-3 py-2 text-gray-900 dark:text-white font-medium">
+                            <div className="flex items-center gap-2">
+                              <span>{pitcher.name}</span>
+                              {onUpdatePitcherNotes && (
+                                <button
+                                  onClick={() => setNotesModal({ playerId: pitcher.id, playerName: pitcher.name, notes: pitcher.notes || '' })}
+                                  className="p-1 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400"
+                                  title={pitcher.notes ? 'Edit notes' : 'Add notes'}
+                                >
+                                  <FileText className={`h-4 w-4 ${pitcher.notes ? 'text-primary-600 dark:text-primary-400' : ''}`} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
                           <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{pitcher.season}</td>
                           <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{pitcher.team || '-'}</td>
                           <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">{formatCurrency(pitcher.salary)}</td>
@@ -399,18 +419,6 @@ export function TeamRosterTable({ hitters, pitchers, onRemoveHitter, onRemovePit
                           <td className="px-3 py-2 text-center font-semibold text-primary-600 dark:text-primary-400">{pitcher.fantasyPoints.toFixed(1)}</td>
                           <td className="px-3 py-2 text-center font-semibold text-primary-600 dark:text-primary-400">{pitcher.pointsPerIP.toFixed(1)}</td>
                           <td className="px-3 py-2 text-center font-semibold text-green-600 dark:text-green-400">{pitcher.pointsPerDollar.toFixed(2)}</td>
-                          <td className="px-3 py-2" style={{ minWidth: '300px' }}>
-                            {onUpdatePitcherNotes ? (
-                              <DebouncedNotesInput
-                                value={pitcher.notes || ''}
-                                onChange={(notes) => onUpdatePitcherNotes(pitcher.id, notes)}
-                                placeholder="Add notes..."
-                                className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                              />
-                            ) : (
-                              <span className="text-gray-700 dark:text-gray-300 text-sm">{pitcher.notes || '-'}</span>
-                            )}
-                          </td>
                           <td className="px-3 py-2 text-center">
                             <button
                               onClick={() => onRemovePitcher(pitcher.id)}
@@ -430,6 +438,22 @@ export function TeamRosterTable({ hitters, pitchers, onRemoveHitter, onRemovePit
           </div>
         )}
       </div>
+
+      {notesModal && (onUpdateHitterNotes || onUpdatePitcherNotes) && (
+        <NotesModal
+          playerName={notesModal.playerName}
+          initialNotes={notesModal.notes}
+          onSave={(notes) => {
+            if (hitters.find(h => h.id === notesModal.playerId)) {
+              onUpdateHitterNotes?.(notesModal.playerId, notes);
+            } else {
+              onUpdatePitcherNotes?.(notesModal.playerId, notes);
+            }
+            setNotesModal(null);
+          }}
+          onClose={() => setNotesModal(null)}
+        />
+      )}
     </div>
   );
 }

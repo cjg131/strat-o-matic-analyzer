@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
-import { ArrowUpDown, Edit2, Trash2, UserPlus, Star } from 'lucide-react';
+import { ArrowUpDown, Edit2, Trash2, UserPlus, Star, FileText } from 'lucide-react';
 import type { PitcherWithStats } from '../types';
-import { DebouncedNotesInput } from './DebouncedNotesInput';
+import { NotesModal } from './NotesModal';
 import { formatNumber, formatCurrency } from '../utils/calculations';
 
 interface PitchersTableProps {
@@ -12,6 +12,12 @@ interface PitchersTableProps {
   onAddToWanted?: (pitcher: PitcherWithStats) => void;
   onUpdateNotes?: (id: string, notes: string) => void;
   showRoster?: boolean; // Show roster column and FA filter (default: false for pre-draft, true for season)
+}
+
+interface NotesState {
+  playerId: string;
+  playerName: string;
+  notes: string;
 }
 
 type SortField = keyof PitcherWithStats;
@@ -59,6 +65,7 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddTo
   const [enduranceFilter, setEnduranceFilter] = useState<string>('all');
   const [minSalary, setMinSalary] = useState<string>('');
   const [maxSalary, setMaxSalary] = useState<string>('');
+  const [notesModal, setNotesModal] = useState<NotesState | null>(null);
   
   const defaultWidths: Record<string, number> = {
     name: 180,
@@ -86,7 +93,6 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddTo
     fpip: 80,
     fpgs: 80,
     fpdollar: 80,
-    notes: 200,
     actions: 120,
   };
 
@@ -442,10 +448,6 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddTo
                 <SortButton field="pointsPerDollar" label="FP/$" />
                 <ResizeHandle columnKey="fpdollar" />
               </th>
-              <th data-column-key="notes" style={{ width: getColumnWidth('notes') }} className="px-3 py-2 text-left relative border-r border-gray-300 dark:border-gray-600">
-                Notes
-                <ResizeHandle columnKey="notes" />
-              </th>
               <th data-column-key="actions" style={{ width: getColumnWidth('actions') }} className="px-3 py-2 text-center relative">
                 Actions
                 <ResizeHandle columnKey="actions" />
@@ -455,7 +457,20 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddTo
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {filteredAndSortedPitchers.map((pitcher) => (
               <tr key={pitcher.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                <td className="px-3 py-2 text-gray-900 dark:text-white font-medium sticky left-0 bg-white dark:bg-gray-900 z-10">{pitcher.name}</td>
+                <td className="px-3 py-2 text-gray-900 dark:text-white font-medium sticky left-0 bg-white dark:bg-gray-900 z-10">
+                  <div className="flex items-center gap-2">
+                    <span>{pitcher.name}</span>
+                    {onUpdateNotes && (
+                      <button
+                        onClick={() => setNotesModal({ playerId: pitcher.id, playerName: pitcher.name, notes: pitcher.notes || '' })}
+                        className="p-1 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400"
+                        title={pitcher.notes ? 'Edit notes' : 'Add notes'}
+                      >
+                        <FileText className={`h-4 w-4 ${pitcher.notes ? 'text-primary-600 dark:text-primary-400' : ''}`} />
+                      </button>
+                    )}
+                  </div>
+                </td>
                 <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{pitcher.season}</td>
                 <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{pitcher.team || '-'}</td>
                 {showRoster && (
@@ -491,18 +506,6 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddTo
                 </td>
                 <td className="px-3 py-2 text-right font-semibold text-green-600 dark:text-green-400">
                   {isNaN(pitcher.pointsPerDollar) || !isFinite(pitcher.pointsPerDollar) ? '-' : formatNumber(pitcher.pointsPerDollar, 2)}
-                </td>
-                <td className="px-3 py-2">
-                  {onUpdateNotes ? (
-                    <DebouncedNotesInput
-                      value={pitcher.notes || ''}
-                      onChange={(notes) => onUpdateNotes(pitcher.id, notes)}
-                      placeholder="Add notes..."
-                      className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  ) : (
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">{pitcher.notes || '-'}</span>
-                  )}
                 </td>
                 <td className="px-3 py-2">
                   <div className="flex items-center justify-center gap-2">
@@ -549,6 +552,18 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddTo
       <div className="text-sm text-gray-600 dark:text-gray-400">
         Showing {filteredAndSortedPitchers.length} of {pitchers.length} pitchers
       </div>
+
+      {notesModal && onUpdateNotes && (
+        <NotesModal
+          playerName={notesModal.playerName}
+          initialNotes={notesModal.notes}
+          onSave={(notes) => {
+            onUpdateNotes(notesModal.playerId, notes);
+            setNotesModal(null);
+          }}
+          onClose={() => setNotesModal(null)}
+        />
+      )}
     </div>
   );
 }

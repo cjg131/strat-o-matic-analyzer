@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
-import { ArrowUpDown, Edit2, Trash2, UserPlus, Star } from 'lucide-react';
+import { ArrowUpDown, Edit2, Trash2, UserPlus, Star, FileText } from 'lucide-react';
 import type { HitterWithStats } from '../types';
-import { DebouncedNotesInput } from './DebouncedNotesInput';
+import { NotesModal } from './NotesModal';
 import { formatNumber, formatCurrency } from '../utils/calculations';
 
 interface HittersTableProps {
@@ -14,6 +14,12 @@ interface HittersTableProps {
   showRoster?: boolean; // Show roster column and FA filter (default: false for pre-draft, true for season)
 }
 
+interface NotesState {
+  playerId: string;
+  playerName: string;
+  notes: string;
+}
+
 type SortField = keyof HitterWithStats;
 type SortDirection = 'asc' | 'desc';
 
@@ -21,10 +27,11 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWa
   const [sortField, setSortField] = useState<SortField>('fantasyPoints');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [searchTerm, setSearchTerm] = useState('');
-  const [positionFilter, setPositionFilter] = useState('');
+  const [positionFilter, setPositionFilter] = useState<string>('all');
   const [rosterFilter, setRosterFilter] = useState('');
   const [minSalary, setMinSalary] = useState<string>('');
   const [maxSalary, setMaxSalary] = useState<string>('');
+  const [notesModal, setNotesModal] = useState<NotesState | null>(null);
   const [stlFilter, setStlFilter] = useState('');
   const [runFilter, setRunFilter] = useState('');
   const [rangeFilter, setRangeFilter] = useState('');
@@ -65,7 +72,6 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWa
     fp600: 100,
     fpg: 80,
     fpdollar: 80,
-    notes: 200,
     actions: 120,
   };
 
@@ -643,10 +649,6 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWa
                 <SortButton field="pointsPerDollar" label="FP/$" />
                 <ResizeHandle columnKey="fpdollar" />
               </th>
-              <th data-column-key="notes" style={{ width: getColumnWidth('notes') }} className="px-3 py-2 text-left relative border-r border-gray-300 dark:border-gray-600">
-                Notes
-                <ResizeHandle columnKey="notes" />
-              </th>
               <th data-column-key="actions" style={{ width: getColumnWidth('actions') }} className="px-3 py-2 text-center relative">
                 Actions
                 <ResizeHandle columnKey="actions" />
@@ -656,7 +658,20 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWa
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {filteredAndSortedHitters.map((hitter) => (
               <tr key={hitter.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                <td className="px-3 py-2 text-gray-900 dark:text-white font-medium sticky left-0 bg-white dark:bg-gray-900 z-10">{hitter.name}</td>
+                <td className="px-3 py-2 text-gray-900 dark:text-white font-medium sticky left-0 bg-white dark:bg-gray-900 z-10">
+                  <div className="flex items-center gap-2">
+                    <span>{hitter.name}</span>
+                    {onUpdateNotes && (
+                      <button
+                        onClick={() => setNotesModal({ playerId: hitter.id, playerName: hitter.name, notes: hitter.notes || '' })}
+                        className="p-1 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400"
+                        title={hitter.notes ? 'Edit notes' : 'Add notes'}
+                      >
+                        <FileText className={`h-4 w-4 ${hitter.notes ? 'text-primary-600 dark:text-primary-400' : ''}`} />
+                      </button>
+                    )}
+                  </div>
+                </td>
                 <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{hitter.season}</td>
                 <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{hitter.team || '-'}</td>
                 {showRoster && (
@@ -739,18 +754,6 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWa
                   {isNaN(hitter.pointsPerDollar) || !isFinite(hitter.pointsPerDollar) ? '-' : formatNumber(hitter.pointsPerDollar, 2)}
                 </td>
                 <td className="px-3 py-2">
-                  {onUpdateNotes ? (
-                    <DebouncedNotesInput
-                      value={hitter.notes || ''}
-                      onChange={(notes) => onUpdateNotes(hitter.id, notes)}
-                      placeholder="Add notes..."
-                      className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  ) : (
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">{hitter.notes || '-'}</span>
-                  )}
-                </td>
-                <td className="px-3 py-2">
                   <div className="flex items-center justify-center gap-2">
                     {onAddToWanted && (
                       <button
@@ -795,6 +798,18 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWa
       <div className="text-sm text-gray-600 dark:text-gray-400">
         Showing {filteredAndSortedHitters.length} of {hitters.length} hitters
       </div>
+
+      {notesModal && onUpdateNotes && (
+        <NotesModal
+          playerName={notesModal.playerName}
+          initialNotes={notesModal.notes}
+          onSave={(notes) => {
+            onUpdateNotes(notesModal.playerId, notes);
+            setNotesModal(null);
+          }}
+          onClose={() => setNotesModal(null)}
+        />
+      )}
     </div>
   );
 }
