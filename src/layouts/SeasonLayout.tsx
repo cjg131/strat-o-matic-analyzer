@@ -11,6 +11,7 @@ export function SeasonLayout() {
   const tabs = [
     // Player Data
     { path: '/season/manage/roster-management', label: 'Roster Management' },
+    { path: '/season/manage/league-teams', label: 'League Teams' },
     { path: '/season/manage/hitters', label: 'Hitters' },
     { path: '/season/manage/pitchers', label: 'Pitchers' },
     { path: '/season/manage/wanted-players', label: 'Wanted Players' },
