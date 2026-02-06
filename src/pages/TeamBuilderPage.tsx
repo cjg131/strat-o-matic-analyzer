@@ -13,7 +13,7 @@ import { TeamRosterTable } from '../components/TeamRosterTable';
 import { checkPositionCoverage } from '../utils/positionUtils';
 
 export function TeamBuilderPage() {
-  const { team, teams, currentTeamId, removeHitter, removePitcher, updateTeamName, clearTeam, addHitter, addPitcher, setBallpark, setBallparkStrategy, createNewTeam, switchTeam, deleteTeam, duplicateTeam } = useTeam();
+  const { team, teams, currentTeamId, removeHitter, removePitcher, updateHitter, updatePitcher, updateTeamName, clearTeam, addHitter, addPitcher, setBallpark, setBallparkStrategy, createNewTeam, switchTeam, deleteTeam, duplicateTeam } = useTeam();
   const { hitters } = useHitters();
   const { pitchers } = usePitchers();
   const { weights } = useScoringWeights();
@@ -93,6 +93,20 @@ export function TeamBuilderPage() {
     clearTeam();
     selectedHitters.forEach((h) => addHitter(h));
     selectedPitchers.forEach((p) => addPitcher(p));
+  };
+
+  const handleUpdateHitterNotes = (id: string, notes: string) => {
+    const hitter = team.hitters.find(h => h.id === id);
+    if (hitter) {
+      updateHitter(id, { ...hitter, notes });
+    }
+  };
+
+  const handleUpdatePitcherNotes = (id: string, notes: string) => {
+    const pitcher = team.pitchers.find(p => p.id === id);
+    if (pitcher) {
+      updatePitcher(id, { ...pitcher, notes });
+    }
   };
 
   return (
@@ -362,6 +376,8 @@ export function TeamBuilderPage() {
             pitchers={pitchersWithStats}
             onRemoveHitter={removeHitter}
             onRemovePitcher={removePitcher}
+            onUpdateHitterNotes={handleUpdateHitterNotes}
+            onUpdatePitcherNotes={handleUpdatePitcherNotes}
           />
         );
       })()}

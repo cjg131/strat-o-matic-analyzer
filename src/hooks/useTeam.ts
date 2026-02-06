@@ -98,6 +98,18 @@ export function useTeam() {
     });
   };
 
+  const updateHitter = (id: string, updatedHitter: Hitter) => {
+    updateCurrentTeam((prev) => {
+      const newHitters = prev.hitters.map((h) => h.id === id ? updatedHitter : h);
+      const newTotalSalary = calculateTotalSalary(newHitters, prev.pitchers);
+      return {
+        ...prev,
+        hitters: newHitters,
+        totalSalary: newTotalSalary,
+      };
+    });
+  };
+
   const addPitcher = (pitcher: Pitcher) => {
     updateCurrentTeam((prev) => {
       const newPitchers = [...prev.pitchers, pitcher];
@@ -113,6 +125,18 @@ export function useTeam() {
   const removePitcher = (id: string) => {
     updateCurrentTeam((prev) => {
       const newPitchers = prev.pitchers.filter((p) => p.id !== id);
+      const newTotalSalary = calculateTotalSalary(prev.hitters, newPitchers);
+      return {
+        ...prev,
+        pitchers: newPitchers,
+        totalSalary: newTotalSalary,
+      };
+    });
+  };
+
+  const updatePitcher = (id: string, updatedPitcher: Pitcher) => {
+    updateCurrentTeam((prev) => {
+      const newPitchers = prev.pitchers.map((p) => p.id === id ? updatedPitcher : p);
       const newTotalSalary = calculateTotalSalary(prev.hitters, newPitchers);
       return {
         ...prev,
@@ -197,8 +221,10 @@ export function useTeam() {
     currentTeamId,
     addHitter,
     removeHitter,
+    updateHitter,
     addPitcher,
     removePitcher,
+    updatePitcher,
     updateTeamName,
     clearTeam,
     setBallpark,
