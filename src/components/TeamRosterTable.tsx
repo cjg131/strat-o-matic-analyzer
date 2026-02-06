@@ -1,6 +1,7 @@
 import { Trash2 } from 'lucide-react';
 import type { HitterWithStats, PitcherWithStats } from '../types';
 import { formatCurrency } from '../utils/calculations';
+import { DebouncedNotesInput } from './DebouncedNotesInput';
 
 interface TeamRosterTableProps {
   hitters: HitterWithStats[];
@@ -194,12 +195,11 @@ export function TeamRosterTable({ hitters, pitchers, onRemoveHitter, onRemovePit
                             <td className="px-3 py-2 text-center font-semibold text-primary-600 dark:text-primary-400">{hitter.pointsPer600PA.toFixed(1)}</td>
                             <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">{hitter.pointsPerGame.toFixed(2)}</td>
                             <td className="px-3 py-2 text-center font-semibold text-green-600 dark:text-green-400">{hitter.pointsPerDollar.toFixed(2)}</td>
-                            <td className="px-3 py-2">
+                            <td className="px-3 py-2" style={{ minWidth: '300px' }}>
                               {onUpdateHitterNotes ? (
-                                <input
-                                  type="text"
+                                <DebouncedNotesInput
                                   value={hitter.notes || ''}
-                                  onChange={(e) => onUpdateHitterNotes(hitter.id, e.target.value)}
+                                  onChange={(notes) => onUpdateHitterNotes(hitter.id, notes)}
                                   placeholder="Add notes..."
                                   className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                 />
@@ -307,12 +307,11 @@ export function TeamRosterTable({ hitters, pitchers, onRemoveHitter, onRemovePit
                           <td className="px-3 py-2 text-center font-semibold text-primary-600 dark:text-primary-400">{pitcher.pointsPerIP.toFixed(1)}</td>
                           <td className="px-3 py-2 text-center font-semibold text-primary-600 dark:text-primary-400">{pitcher.pointsPerStart.toFixed(1)}</td>
                           <td className="px-3 py-2 text-center font-semibold text-green-600 dark:text-green-400">{pitcher.pointsPerDollar.toFixed(2)}</td>
-                          <td className="px-3 py-2">
+                          <td className="px-3 py-2" style={{ minWidth: '300px' }}>
                             {onUpdatePitcherNotes ? (
-                              <input
-                                type="text"
+                              <DebouncedNotesInput
                                 value={pitcher.notes || ''}
-                                onChange={(e) => onUpdatePitcherNotes(pitcher.id, e.target.value)}
+                                onChange={(notes) => onUpdatePitcherNotes(pitcher.id, notes)}
                                 placeholder="Add notes..."
                                 className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                               />
@@ -400,12 +399,11 @@ export function TeamRosterTable({ hitters, pitchers, onRemoveHitter, onRemovePit
                           <td className="px-3 py-2 text-center font-semibold text-primary-600 dark:text-primary-400">{pitcher.fantasyPoints.toFixed(1)}</td>
                           <td className="px-3 py-2 text-center font-semibold text-primary-600 dark:text-primary-400">{pitcher.pointsPerIP.toFixed(1)}</td>
                           <td className="px-3 py-2 text-center font-semibold text-green-600 dark:text-green-400">{pitcher.pointsPerDollar.toFixed(2)}</td>
-                          <td className="px-3 py-2">
+                          <td className="px-3 py-2" style={{ minWidth: '300px' }}>
                             {onUpdatePitcherNotes ? (
-                              <input
-                                type="text"
+                              <DebouncedNotesInput
                                 value={pitcher.notes || ''}
-                                onChange={(e) => onUpdatePitcherNotes(pitcher.id, e.target.value)}
+                                onChange={(notes) => onUpdatePitcherNotes(pitcher.id, notes)}
                                 placeholder="Add notes..."
                                 className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                               />

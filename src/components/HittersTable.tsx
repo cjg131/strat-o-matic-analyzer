@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { ArrowUpDown, Edit2, Trash2, UserPlus, Star } from 'lucide-react';
 import type { HitterWithStats } from '../types';
+import { DebouncedNotesInput } from './DebouncedNotesInput';
 import { formatNumber, formatCurrency } from '../utils/calculations';
 
 interface HittersTableProps {
@@ -739,10 +740,9 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWa
                 </td>
                 <td className="px-3 py-2">
                   {onUpdateNotes ? (
-                    <input
-                      type="text"
+                    <DebouncedNotesInput
                       value={hitter.notes || ''}
-                      onChange={(e) => onUpdateNotes(hitter.id, e.target.value)}
+                      onChange={(notes) => onUpdateNotes(hitter.id, notes)}
                       placeholder="Add notes..."
                       className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
