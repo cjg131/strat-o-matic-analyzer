@@ -34,6 +34,7 @@ export interface Hitter {
   ba?: number; // Batting Average
   obp?: number; // On-Base Percentage
   slg?: number; // Slugging Percentage
+  notes?: string; // User notes about the player
 }
 
 export interface HitterWithStats extends Hitter {
@@ -68,6 +69,7 @@ export interface Pitcher {
   wildPitch: number;
   hold: number;
   bunting: string;
+  notes?: string; // User notes about the player
 }
 
 export interface PitcherWithStats extends Pitcher {

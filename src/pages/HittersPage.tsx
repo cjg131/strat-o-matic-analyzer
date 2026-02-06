@@ -97,6 +97,13 @@ export function HittersPage() {
     setEditingHitter(undefined);
   };
 
+  const handleUpdateNotes = (id: string, notes: string) => {
+    const hitter = hitters.find(h => h.id === id);
+    if (hitter) {
+      updateHitter(id, { ...hitter, notes });
+    }
+  };
+
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this hitter?')) {
       deleteHitter(id);
@@ -427,6 +434,7 @@ export function HittersPage() {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onAddToTeam={addHitterToTeam}
+          onUpdateNotes={handleUpdateNotes}
         />
       </div>
     </div>

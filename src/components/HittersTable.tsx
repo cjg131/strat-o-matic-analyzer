@@ -9,13 +9,14 @@ interface HittersTableProps {
   onDelete: (id: string) => void;
   onAddToTeam?: (hitter: HitterWithStats) => void;
   onAddToWanted?: (hitter: HitterWithStats) => void;
+  onUpdateNotes?: (id: string, notes: string) => void;
   showRoster?: boolean; // Show roster column and FA filter (default: false for pre-draft, true for season)
 }
 
 type SortField = keyof HitterWithStats;
 type SortDirection = 'asc' | 'desc';
 
-export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWanted, showRoster = false }: HittersTableProps) {
+export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWanted, onUpdateNotes, showRoster = false }: HittersTableProps) {
   const [sortField, setSortField] = useState<SortField>('fantasyPoints');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [searchTerm, setSearchTerm] = useState('');
@@ -63,6 +64,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWa
     fp600: 100,
     fpg: 80,
     fpdollar: 80,
+    notes: 200,
     actions: 120,
   };
 
@@ -640,6 +642,10 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWa
                 <SortButton field="pointsPerDollar" label="FP/$" />
                 <ResizeHandle columnKey="fpdollar" />
               </th>
+              <th data-column-key="notes" style={{ width: getColumnWidth('notes') }} className="px-3 py-2 text-left relative border-r border-gray-300 dark:border-gray-600">
+                Notes
+                <ResizeHandle columnKey="notes" />
+              </th>
               <th data-column-key="actions" style={{ width: getColumnWidth('actions') }} className="px-3 py-2 text-center relative">
                 Actions
                 <ResizeHandle columnKey="actions" />
@@ -730,6 +736,19 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWa
                 </td>
                 <td className="px-3 py-2 text-right font-semibold text-green-600 dark:text-green-400">
                   {isNaN(hitter.pointsPerDollar) || !isFinite(hitter.pointsPerDollar) ? '-' : formatNumber(hitter.pointsPerDollar, 2)}
+                </td>
+                <td className="px-3 py-2">
+                  {onUpdateNotes ? (
+                    <input
+                      type="text"
+                      value={hitter.notes || ''}
+                      onChange={(e) => onUpdateNotes(hitter.id, e.target.value)}
+                      placeholder="Add notes..."
+                      className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  ) : (
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">{hitter.notes || '-'}</span>
+                  )}
                 </td>
                 <td className="px-3 py-2">
                   <div className="flex items-center justify-center gap-2">
