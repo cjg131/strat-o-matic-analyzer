@@ -21,7 +21,13 @@ export function useSeasonTeam() {
 
     const unsubscribe = subscribeToSeasonSettings(currentUser.uid, (settings) => {
       setSelectedTeamName(settings.seasonTeamName);
-      setSeasonTeamNames(settings.seasonTeamNames);
+      let names = settings.seasonTeamNames;
+      // Auto-migrate: if a selected team exists but isn't in the list, add it
+      if (settings.seasonTeamName && !names.includes(settings.seasonTeamName)) {
+        names = [...names, settings.seasonTeamName];
+        saveSeasonTeamNames(currentUser.uid, names);
+      }
+      setSeasonTeamNames(names);
     });
 
     return unsubscribe;
