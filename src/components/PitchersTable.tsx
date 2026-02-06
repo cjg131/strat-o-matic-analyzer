@@ -9,6 +9,7 @@ interface PitchersTableProps {
   onDelete: (id: string) => void;
   onAddToTeam?: (pitcher: PitcherWithStats) => void;
   onAddToWanted?: (pitcher: PitcherWithStats) => void;
+  onUpdateNotes?: (id: string, notes: string) => void;
   showRoster?: boolean; // Show roster column and FA filter (default: false for pre-draft, true for season)
 }
 
@@ -47,7 +48,7 @@ function compareEndurance(a: string, b: string): number {
   return 0;
 }
 
-export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddToWanted, showRoster = false }: PitchersTableProps) {
+export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddToWanted, onUpdateNotes, showRoster = false }: PitchersTableProps) {
   const [sortField, setSortField] = useState<SortField>('fantasyPoints');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [searchTerm, setSearchTerm] = useState('');
@@ -84,6 +85,7 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddTo
     fpip: 80,
     fpgs: 80,
     fpdollar: 80,
+    notes: 200,
     actions: 120,
   };
 
@@ -439,6 +441,10 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddTo
                 <SortButton field="pointsPerDollar" label="FP/$" />
                 <ResizeHandle columnKey="fpdollar" />
               </th>
+              <th data-column-key="notes" style={{ width: getColumnWidth('notes') }} className="px-3 py-2 text-left relative border-r border-gray-300 dark:border-gray-600">
+                Notes
+                <ResizeHandle columnKey="notes" />
+              </th>
               <th data-column-key="actions" style={{ width: getColumnWidth('actions') }} className="px-3 py-2 text-center relative">
                 Actions
                 <ResizeHandle columnKey="actions" />
@@ -484,6 +490,19 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddTo
                 </td>
                 <td className="px-3 py-2 text-right font-semibold text-green-600 dark:text-green-400">
                   {isNaN(pitcher.pointsPerDollar) || !isFinite(pitcher.pointsPerDollar) ? '-' : formatNumber(pitcher.pointsPerDollar, 2)}
+                </td>
+                <td className="px-3 py-2">
+                  {onUpdateNotes ? (
+                    <input
+                      type="text"
+                      value={pitcher.notes || ''}
+                      onChange={(e) => onUpdateNotes(pitcher.id, e.target.value)}
+                      placeholder="Add notes..."
+                      className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  ) : (
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">{pitcher.notes || '-'}</span>
+                  )}
                 </td>
                 <td className="px-3 py-2">
                   <div className="flex items-center justify-center gap-2">

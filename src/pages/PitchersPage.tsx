@@ -85,6 +85,13 @@ export function PitchersPage() {
     setEditingPitcher(undefined);
   };
 
+  const handleUpdateNotes = (id: string, notes: string) => {
+    const pitcher = pitchers.find(p => p.id === id);
+    if (pitcher) {
+      updatePitcher(id, { ...pitcher, notes });
+    }
+  };
+
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this pitcher?')) {
       deletePitcher(id);
@@ -342,6 +349,7 @@ export function PitchersPage() {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onAddToTeam={addPitcherToTeam}
+          onUpdateNotes={handleUpdateNotes}
         />
       </div>
     </div>
