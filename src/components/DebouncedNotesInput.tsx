@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo, useCallback } from 'react';
 
 interface DebouncedNotesInputProps {
   value: string;
@@ -8,15 +8,21 @@ interface DebouncedNotesInputProps {
   debounceMs?: number;
 }
 
-export function DebouncedNotesInput({ 
+export const DebouncedNotesInput = memo(function DebouncedNotesInput({ 
   value, 
   onChange, 
   placeholder = "Add notes...",
   className = "",
-  debounceMs = 500 
+  debounceMs = 1000 
 }: DebouncedNotesInputProps) {
   const [localValue, setLocalValue] = useState(value);
   const timeoutRef = useRef<NodeJS.Timeout>();
+  const onChangeRef = useRef(onChange);
+
+  // Keep onChange ref updated without triggering effects
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   // Update local value when prop changes (e.g., from external source)
   useEffect(() => {
@@ -31,7 +37,7 @@ export function DebouncedNotesInput({
       }
       
       timeoutRef.current = setTimeout(() => {
-        onChange(localValue);
+        onChangeRef.current(localValue);
       }, debounceMs);
     }
 
@@ -40,15 +46,19 @@ export function DebouncedNotesInput({
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [localValue, value, onChange, debounceMs]);
+  }, [localValue, value, debounceMs]);
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalValue(e.target.value);
+  }, []);
 
   return (
     <input
       type="text"
       value={localValue}
-      onChange={(e) => setLocalValue(e.target.value)}
+      onChange={handleChange}
       placeholder={placeholder}
       className={className}
     />
   );
-}
+});

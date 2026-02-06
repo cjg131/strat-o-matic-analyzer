@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Plus, Upload, Download, Trash2, RefreshCw } from 'lucide-react';
 import { usePitchers } from '../hooks/usePitchers';
 import { useScoringWeights } from '../hooks/useScoringWeights';
@@ -85,12 +85,12 @@ export function PitchersPage() {
     setEditingPitcher(undefined);
   };
 
-  const handleUpdateNotes = (id: string, notes: string) => {
+  const handleUpdateNotes = useCallback((id: string, notes: string) => {
     const pitcher = pitchers.find(p => p.id === id);
     if (pitcher) {
       updatePitcher(id, { ...pitcher, notes });
     }
-  };
+  }, [pitchers, updatePitcher]);
 
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this pitcher?')) {

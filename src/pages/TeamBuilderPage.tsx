@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Users, Trash2, DollarSign, AlertCircle, Zap, Plus, Copy } from 'lucide-react';
 import { useTeam } from '../hooks/useTeam';
 import { useHitters } from '../hooks/useHitters';
@@ -95,19 +95,19 @@ export function TeamBuilderPage() {
     selectedPitchers.forEach((p) => addPitcher(p));
   };
 
-  const handleUpdateHitterNotes = (id: string, notes: string) => {
+  const handleUpdateHitterNotes = useCallback((id: string, notes: string) => {
     const hitter = team.hitters.find(h => h.id === id);
     if (hitter) {
       updateHitter(id, { ...hitter, notes });
     }
-  };
+  }, [team.hitters, updateHitter]);
 
-  const handleUpdatePitcherNotes = (id: string, notes: string) => {
+  const handleUpdatePitcherNotes = useCallback((id: string, notes: string) => {
     const pitcher = team.pitchers.find(p => p.id === id);
     if (pitcher) {
       updatePitcher(id, { ...pitcher, notes });
     }
-  };
+  }, [team.pitchers, updatePitcher]);
 
   return (
     <div className="space-y-6">
