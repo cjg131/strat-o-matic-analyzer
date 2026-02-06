@@ -2,29 +2,32 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useHitters } from './useHitters';
 import { usePitchers } from './usePitchers';
-import { subscribeToSeasonTeamName, saveSeasonTeamName } from '../services/firestore';
+import { subscribeToSeasonSettings, saveSeasonTeamName, saveSeasonTeamNames } from '../services/firestore';
 
 export function useSeasonTeam() {
   const { currentUser } = useAuth();
   const { hitters } = useHitters();
   const { pitchers } = usePitchers();
   const [selectedTeamName, setSelectedTeamName] = useState<string | null>(null);
+  const [seasonTeamNames, setSeasonTeamNames] = useState<string[]>([]);
 
-  // Subscribe to the persisted season team name
+  // Subscribe to persisted season settings (selected team + list of season teams)
   useEffect(() => {
     if (!currentUser) {
       setSelectedTeamName(null);
+      setSeasonTeamNames([]);
       return;
     }
 
-    const unsubscribe = subscribeToSeasonTeamName(currentUser.uid, (teamName) => {
-      setSelectedTeamName(teamName);
+    const unsubscribe = subscribeToSeasonSettings(currentUser.uid, (settings) => {
+      setSelectedTeamName(settings.seasonTeamName);
+      setSeasonTeamNames(settings.seasonTeamNames);
     });
 
     return unsubscribe;
   }, [currentUser]);
 
-  // Derive available season teams from the roster field on hitters/pitchers
+  // Derive available league teams from the roster field on hitters/pitchers
   const availableTeams = useMemo(() => {
     const teamNames = new Set<string>();
     hitters.forEach(h => {
@@ -51,15 +54,29 @@ export function useSeasonTeam() {
     };
   };
 
+  // Select a season team (sets it as the active team)
   const selectTeam = async (teamName: string) => {
     if (!currentUser) return;
     await saveSeasonTeamName(currentUser.uid, teamName);
   };
 
+  // Add a new season team to the list and select it
+  const addSeasonTeam = async (teamName: string) => {
+    if (!currentUser) return;
+    const updated = [...seasonTeamNames];
+    if (!updated.includes(teamName)) {
+      updated.push(teamName);
+      await saveSeasonTeamNames(currentUser.uid, updated);
+    }
+    await saveSeasonTeamName(currentUser.uid, teamName);
+  };
+
   return {
     selectedTeamName,
+    seasonTeamNames,
     availableTeams,
     selectTeam,
+    addSeasonTeam,
     getTeamStats,
   };
 }

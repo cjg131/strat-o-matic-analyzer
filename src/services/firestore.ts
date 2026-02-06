@@ -239,21 +239,29 @@ export const deleteTeam = async (userId: string, teamId: string): Promise<void> 
   await deleteDoc(teamRef);
 };
 
-// Season Team Name (the user's current season team, e.g. "Manhattan WOW Award Stars")
-export const subscribeToSeasonTeamName = (
+// Season Team Names (the user's season teams list + currently selected)
+export const subscribeToSeasonSettings = (
   userId: string,
-  callback: (teamName: string | null) => void
+  callback: (settings: { seasonTeamName: string | null; seasonTeamNames: string[] }) => void
 ): Unsubscribe => {
   const settingsRef = doc(db, getUserPath(userId, 'settings'), 'current');
   return onSnapshot(settingsRef, (snapshot) => {
     const data = snapshot.data();
-    callback(data?.seasonTeamName || null);
+    callback({
+      seasonTeamName: data?.seasonTeamName || null,
+      seasonTeamNames: data?.seasonTeamNames || [],
+    });
   });
 };
 
 export const saveSeasonTeamName = async (userId: string, teamName: string): Promise<void> => {
   const settingsRef = doc(db, getUserPath(userId, 'settings'), 'current');
   await setDoc(settingsRef, { seasonTeamName: teamName }, { merge: true });
+};
+
+export const saveSeasonTeamNames = async (userId: string, teamNames: string[]): Promise<void> => {
+  const settingsRef = doc(db, getUserPath(userId, 'settings'), 'current');
+  await setDoc(settingsRef, { seasonTeamNames: teamNames }, { merge: true });
 };
 
 // Current Team ID

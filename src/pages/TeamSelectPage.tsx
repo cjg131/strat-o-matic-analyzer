@@ -4,14 +4,10 @@ import { Trophy, Plus, ChevronRight } from 'lucide-react';
 import { useSeasonTeam } from '../hooks/useSeasonTeam';
 
 export function TeamSelectPage() {
-  const { selectedTeamName, selectTeam } = useSeasonTeam();
+  const { seasonTeamNames, selectTeam, addSeasonTeam } = useSeasonTeam();
   const navigate = useNavigate();
   const [showAddSeason, setShowAddSeason] = useState(false);
   const [newTeamName, setNewTeamName] = useState('');
-
-  // The user's season teams are stored as selectedTeamName (persisted).
-  // For now we show the currently saved season team. If none exists, prompt to add one.
-  const seasonTeams = selectedTeamName ? [selectedTeamName] : [];
 
   const handleSelectTeam = async (teamName: string) => {
     await selectTeam(teamName);
@@ -21,7 +17,7 @@ export function TeamSelectPage() {
   const handleAddSeason = async () => {
     const name = newTeamName.trim();
     if (!name) return;
-    await selectTeam(name);
+    await addSeasonTeam(name);
     setNewTeamName('');
     setShowAddSeason(false);
     navigate('/season/manage/roster-management');
@@ -40,7 +36,7 @@ export function TeamSelectPage() {
       </div>
 
       <div className="flex flex-col items-center gap-4 max-w-lg mx-auto">
-        {seasonTeams.map((teamName) => (
+        {seasonTeamNames.map((teamName) => (
           <button
             key={teamName}
             onClick={() => handleSelectTeam(teamName)}
