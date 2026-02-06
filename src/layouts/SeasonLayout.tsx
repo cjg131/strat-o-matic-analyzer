@@ -9,25 +9,12 @@ export function SeasonLayout() {
   const isActive = (path: string) => location.pathname === path;
 
   const tabs = [
-    // Player Data
     { path: '/season/manage/roster-management', label: 'Roster Management' },
     { path: '/season/manage/league-teams', label: 'League Teams' },
     { path: '/season/manage/hitters', label: 'Hitters' },
     { path: '/season/manage/pitchers', label: 'Pitchers' },
     { path: '/season/manage/wanted-players', label: 'Wanted Players' },
-    { path: '/season/manage/lineup-optimizer', label: 'Lineup Optimizer' },
-    { path: '/season/manage/pitching-rotation', label: 'Pitching Rotation' },
-    
-    // Team Management
-    { path: '/season/manage/hitter-preferences', label: 'Hitter Preferences' },
-    { path: '/season/manage/pitcher-preferences', label: 'Pitcher Preferences' },
-    { path: '/season/manage/team-strategy', label: 'Team Strategy' },
-    
-    // Analysis & Planning
-    { path: '/season/manage/opponent-analysis', label: 'Opponent Analysis' },
     { path: '/season/manage/game-starters', label: 'Game Starters' },
-    { path: '/season/manage/player-cards', label: 'Player Cards' },
-    { path: '/season/manage/player-card-insights', label: 'Card Insights' },
   ];
 
   return (

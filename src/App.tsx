@@ -25,6 +25,7 @@ import { PlayerCardInsightsPage } from './pages/PlayerCardInsightsPage';
 import { RosterManagementPage } from './pages/RosterManagementPage';
 import { LeagueTeamsPage } from './pages/LeagueTeamsPage';
 import { LeagueTeamAnalysisPage } from './pages/LeagueTeamAnalysisPage';
+import { LeagueTeamOverviewPage } from './pages/LeagueTeamOverviewPage';
 import { PreDraftLayout } from './layouts/PreDraftLayout';
 import { SeasonLayout } from './layouts/SeasonLayout';
 import { Login } from './components/Login';
@@ -147,24 +148,30 @@ function App() {
               {/* Season Section - Team Management Sub-pages */}
               <Route path="/season/manage" element={<ProtectedRoute><SeasonLayout /></ProtectedRoute>}>
                 <Route index element={<Navigate to="/season/manage/roster-management" replace />} />
-                <Route path="hitter-preferences" element={<HitterPreferencesPage />} />
-                <Route path="pitcher-preferences" element={<PitcherPreferencesPage />} />
-                <Route path="team-strategy" element={<TeamStrategyPage />} />
-                <Route path="opponent-analysis" element={<OpponentAnalysisPage />} />
+                <Route path="roster-management" element={<RosterManagementPage />} />
+                <Route path="league-teams" element={<LeagueTeamsPage />} />
+                <Route path="hitters" element={<SeasonHittersPage />} />
+                <Route path="pitchers" element={<SeasonPitchersPage />} />
+                <Route path="wanted-players" element={<WantedPlayersPage />} />
                 <Route path="game-starters" element={<GameStartersPage />} />
                 <Route path="team-rosters" element={<TeamRostersPage />} />
                 <Route path="roster-import" element={<RosterImportPage />} />
-                <Route path="roster-management" element={<RosterManagementPage />} />
-                <Route path="league-teams" element={<LeagueTeamsPage />} />
-                <Route path="league-team/:teamName" element={<LeagueTeamAnalysisPage />} />
-                <Route path="wanted-players" element={<WantedPlayersPage />} />
-                <Route path="lineup-optimizer" element={<LineupOptimizerPage />} />
-                <Route path="pitching-rotation" element={<PitchingRotationPage />} />
-                <Route path="player-cards" element={<PlayerCardsPage />} />
-                <Route path="player-card-insights" element={<PlayerCardInsightsPage />} />
-                <Route path="hitters" element={<SeasonHittersPage />} />
-                <Route path="pitchers" element={<SeasonPitchersPage />} />
                 <Route path="overview" element={<SeasonOverviewPage />} />
+                
+                {/* League Team Analysis - nested layout with analysis tabs */}
+                <Route path="league-team/:teamName" element={<LeagueTeamAnalysisPage />}>
+                  <Route path="overview" element={<LeagueTeamOverviewPage />} />
+                  <Route path="hitters" element={<SeasonHittersPage />} />
+                  <Route path="pitchers" element={<SeasonPitchersPage />} />
+                  <Route path="lineup-optimizer" element={<LineupOptimizerPage />} />
+                  <Route path="pitching-rotation" element={<PitchingRotationPage />} />
+                  <Route path="hitter-preferences" element={<HitterPreferencesPage />} />
+                  <Route path="pitcher-preferences" element={<PitcherPreferencesPage />} />
+                  <Route path="team-strategy" element={<TeamStrategyPage />} />
+                  <Route path="opponent-analysis" element={<OpponentAnalysisPage />} />
+                  <Route path="player-cards" element={<PlayerCardsPage />} />
+                  <Route path="player-card-insights" element={<PlayerCardInsightsPage />} />
+                </Route>
               </Route>
               
               {/* Legacy redirects for old URLs */}
