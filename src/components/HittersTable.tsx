@@ -164,7 +164,7 @@ export function HittersTable({ hitters, onEdit, onDelete, onAddToTeam, onAddToWa
       }
     }
 
-    if (positionFilter) {
+    if (positionFilter && positionFilter !== 'all') {
       filtered = filtered.filter((h) => {
         // Check both positions string and defensivePositions array
         let hasPosition = false;
