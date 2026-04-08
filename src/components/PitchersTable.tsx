@@ -448,6 +448,14 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddTo
                 <SortButton field="pointsPerDollar" label="FP/$" />
                 <ResizeHandle columnKey="fpdollar" />
               </th>
+              <th data-column-key="endscore" style={{ width: getColumnWidth('endscore') }} className="px-3 py-2 text-right relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="enduranceScore" label="End.Sc" />
+                <ResizeHandle columnKey="endscore" />
+              </th>
+              <th data-column-key="cardgrade" style={{ width: getColumnWidth('cardgrade') }} className="px-3 py-2 text-center relative border-r border-gray-300 dark:border-gray-600">
+                <SortButton field="cardGrade" label="Card" />
+                <ResizeHandle columnKey="cardgrade" />
+              </th>
               <th data-column-key="actions" style={{ width: getColumnWidth('actions') }} className="px-3 py-2 text-center relative">
                 Actions
                 <ResizeHandle columnKey="actions" />
@@ -506,6 +514,24 @@ export function PitchersTable({ pitchers, onEdit, onDelete, onAddToTeam, onAddTo
                 </td>
                 <td className="px-3 py-2 text-right font-semibold text-green-600 dark:text-green-400">
                   {isNaN(pitcher.pointsPerDollar) || !isFinite(pitcher.pointsPerDollar) ? '-' : formatNumber(pitcher.pointsPerDollar, 2)}
+                </td>
+                <td className="px-3 py-2 text-right text-purple-600 dark:text-purple-400">
+                  {pitcher.enduranceScore > 0 ? formatNumber(pitcher.enduranceScore, 0) : '-'}
+                </td>
+                <td className="px-3 py-2 text-center">
+                  {pitcher.cardGrade ? (
+                    <span className={`inline-block px-1.5 py-0.5 text-xs font-bold rounded ${
+                      pitcher.cardGrade === 'A' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                      pitcher.cardGrade === 'B' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                      pitcher.cardGrade === 'C' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                      pitcher.cardGrade === 'D' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
+                      'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                    }`}>
+                      {pitcher.cardGrade}
+                    </span>
+                  ) : (
+                    <span className="text-gray-400 text-xs">—</span>
+                  )}
                 </td>
                 <td className="px-3 py-2">
                   <div className="flex items-center justify-center gap-2">

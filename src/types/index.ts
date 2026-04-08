@@ -35,6 +35,7 @@ export interface Hitter {
   obp?: number; // On-Base Percentage
   slg?: number; // Slugging Percentage
   notes?: string; // User notes about the player
+  cardGrade?: string; // Manual card quality grade: A, B, C, D, F
 }
 
 export interface HitterWithStats extends Hitter {
@@ -43,6 +44,7 @@ export interface HitterWithStats extends Hitter {
   pointsPer600PA: number;
   pointsPerGame: number;
   pointsPerDollar: number;
+  ballparkAdjustedPoints?: number;
 }
 
 export interface Pitcher {
@@ -70,6 +72,7 @@ export interface Pitcher {
   hold: number;
   bunting: string;
   notes?: string; // User notes about the player
+  cardGrade?: string; // Manual card quality grade: A, B, C, D, F
 }
 
 export interface PitcherWithStats extends Pitcher {
@@ -78,6 +81,8 @@ export interface PitcherWithStats extends Pitcher {
   pointsPerStart: number;
   pointsPerDollar: number;
   singles: number;
+  enduranceScore: number;
+  ballparkAdjustedPoints?: number;
 }
 
 export interface Ballpark {
@@ -117,6 +122,7 @@ export interface PitcherScoringWeights {
   hitAllowed: number;
   homeRunAllowed: number;
   earnedRun: number;
+  enduranceWeight: number;
 }
 
 export interface ScoringWeights {
@@ -166,6 +172,7 @@ export const DEFAULT_SCORING_WEIGHTS: ScoringWeights = {
     hitAllowed: -1,
     homeRunAllowed: -3,
     earnedRun: -2,
+    enduranceWeight: 0.5,
   },
 };
 

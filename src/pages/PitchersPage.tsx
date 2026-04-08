@@ -15,19 +15,19 @@ import type { Pitcher, PitcherWithStats, PitcherScoringWeights } from '../types'
 const PITCHER_PRESETS: Record<string, { name: string; weights: PitcherScoringWeights }> = {
   balanced: {
     name: 'Balanced',
-    weights: { strikeout: 1, walkAllowed: -1, hitAllowed: -1, homeRunAllowed: -3, earnedRun: -2 }
+    weights: { strikeout: 1, walkAllowed: -1, hitAllowed: -1, homeRunAllowed: -3, earnedRun: -2, enduranceWeight: 0.5 }
   },
   strikeout: {
     name: 'Strikeout Pitcher',
-    weights: { strikeout: 2, walkAllowed: -0.5, hitAllowed: -0.8, homeRunAllowed: -2, earnedRun: -1.5 }
+    weights: { strikeout: 2, walkAllowed: -0.5, hitAllowed: -0.8, homeRunAllowed: -2, earnedRun: -1.5, enduranceWeight: 0.5 }
   },
   control: {
     name: 'Control & Command',
-    weights: { strikeout: 0.5, walkAllowed: -2, hitAllowed: -1.5, homeRunAllowed: -3, earnedRun: -2.5 }
+    weights: { strikeout: 0.5, walkAllowed: -2, hitAllowed: -1.5, homeRunAllowed: -3, earnedRun: -2.5, enduranceWeight: 0.5 }
   },
   groundball: {
     name: 'Ground Ball Pitcher',
-    weights: { strikeout: 0.5, walkAllowed: -1, hitAllowed: -0.8, homeRunAllowed: -4, earnedRun: -2 }
+    weights: { strikeout: 0.5, walkAllowed: -1, hitAllowed: -0.8, homeRunAllowed: -4, earnedRun: -2, enduranceWeight: 0.5 }
   }
 };
 
@@ -294,11 +294,11 @@ export function PitchersPage() {
 
         <div className="mb-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
           <p className="text-xs text-blue-800 dark:text-blue-200">
-            <strong>Formula:</strong> FP = (K × {weights.pitcher.strikeout}) + (BB × {weights.pitcher.walkAllowed}) + (H × {weights.pitcher.hitAllowed}) + (HR × {weights.pitcher.homeRunAllowed}) + (ER × {weights.pitcher.earnedRun}). Endurance (S1-S9, R1-R3, C1-C3) is in the rating, not FP.
+            <strong>Formula:</strong> FP = (K × {weights.pitcher.strikeout}) + (BB × {weights.pitcher.walkAllowed}) + (H × {weights.pitcher.hitAllowed}) + (HR × {weights.pitcher.homeRunAllowed}) + (ER × {weights.pitcher.earnedRun}) + (Endurance Score × {weights.pitcher.enduranceWeight}). Endurance scores: S9=100, S7=80, S5=60, S3=40, C4=50, R3=35.
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-3">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-3">
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">Strikeout (K)</label>
             <input type="number" step="0.1" value={weights.pitcher.strikeout}
@@ -328,6 +328,12 @@ export function PitchersPage() {
             <input type="number" step="0.1" value={weights.pitcher.earnedRun}
               onChange={(e) => updateWeights({ ...weights, pitcher: { ...weights.pitcher, earnedRun: parseFloat(e.target.value) || 0 }})}
               className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-green-700 dark:text-green-300 mb-0.5">Endurance Weight</label>
+            <input type="number" step="0.1" value={weights.pitcher.enduranceWeight}
+              onChange={(e) => updateWeights({ ...weights, pitcher: { ...weights.pitcher, enduranceWeight: parseFloat(e.target.value) || 0 }})}
+              className="w-full px-2 py-1 text-sm border border-green-300 dark:border-green-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
           </div>
         </div>
 
