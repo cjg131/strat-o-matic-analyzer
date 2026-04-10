@@ -4,6 +4,23 @@ import { saveMultipleHitters, saveMultiplePitchers, clearAllHitters, clearAllPit
 import type { Hitter, Pitcher, DefensivePosition } from '../types';
 import { analyzeHitterCard, analyzePitcherCard } from '../utils/cardAnalysis';
 
+/**
+ * Normalize card columns: the scraper stores each row as pipe-delimited strings
+ * like "#2-|HR|1-8" but the analysis engine expects individual cell arrays
+ * like ["#2-", "HR", "1-8"]. This function handles both formats.
+ */
+function normalizeColumns(columns: string[][]): string[][] {
+  return columns.map(col =>
+    col.flatMap(cell => {
+      // If the cell contains pipes, split it into individual cells
+      if (cell.includes('|')) {
+        return cell.split('|').filter(s => s.length > 0);
+      }
+      return [cell];
+    })
+  );
+}
+
 interface ScrapedHitterBase {
   playerId: string;
   year: string;
@@ -185,7 +202,8 @@ function mergeHitter(base: ScrapedHitterBase, card?: ScrapedCardData): Hitter {
   };
 
   if (card && card.columns && card.columns.length > 0) {
-    const analysis = analyzeHitterCard(card.columns);
+    const normalizedColumns = normalizeColumns(card.columns);
+    const analysis = analyzeHitterCard(normalizedColumns);
     hitter.cardData = {
       powerVsL: card.powerVsL || '',
       powerVsR: card.powerVsR || '',
@@ -195,7 +213,7 @@ function mergeHitter(base: ScrapedHitterBase, card?: ScrapedCardData): Hitter {
       hitAndRun: card.hitAndRun || '',
       stealDetails: card.stealRange || '',
       defenseRaw: card.defenseRaw || '',
-      columns: card.columns,
+      columns: normalizedColumns,
       // Computed analysis scores
       cardScore: analysis.cardScore,
       onBaseCard: analysis.onBaseCard,
@@ -246,12 +264,13 @@ function mergePitcher(base: ScrapedPitcherBase, card?: ScrapedCardData): Pitcher
   };
 
   if (card && card.columns && card.columns.length > 0) {
-    const analysis = analyzePitcherCard(card.columns);
+    const normalizedColumns = normalizeColumns(card.columns);
+    const analysis = analyzePitcherCard(normalizedColumns);
     pitcher.cardData = {
       pitcherRating: card.pitcherRating ?? undefined,
       pctVsL: card.pctVsL ?? undefined,
       pctVsR: card.pctVsR ?? undefined,
-      columns: card.columns,
+      columns: normalizedColumns,
       // Computed analysis scores
       cardScore: analysis.cardScore,
       gbRate: analysis.gbRate,
