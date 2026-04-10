@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { saveMultipleHitters, saveMultiplePitchers, clearAllHitters, clearAllPitchers } from '../services/firestore';
 import type { Hitter, Pitcher, DefensivePosition } from '../types';
+import { analyzeHitterCard, analyzePitcherCard } from '../utils/cardAnalysis';
 
 interface ScrapedHitterBase {
   playerId: string;
@@ -184,6 +185,7 @@ function mergeHitter(base: ScrapedHitterBase, card?: ScrapedCardData): Hitter {
   };
 
   if (card && card.columns && card.columns.length > 0) {
+    const analysis = analyzeHitterCard(card.columns);
     hitter.cardData = {
       powerVsL: card.powerVsL || '',
       powerVsR: card.powerVsR || '',
@@ -194,6 +196,19 @@ function mergeHitter(base: ScrapedHitterBase, card?: ScrapedCardData): Hitter {
       stealDetails: card.stealRange || '',
       defenseRaw: card.defenseRaw || '',
       columns: card.columns,
+      // Computed analysis scores
+      cardScore: analysis.cardScore,
+      onBaseCard: analysis.onBaseCard,
+      sluggingCard: analysis.sluggingCard,
+      clutchHits: analysis.clutchHits,
+      clutchPlus: analysis.clutchPlus,
+      homeRunResults: analysis.homeRunResults,
+      walkResults: analysis.walkResults,
+      strikeoutResults: analysis.strikeoutResults,
+      hitResults: analysis.hitResults,
+      outResults: analysis.outResults,
+      vsLScore: analysis.vsLScore,
+      vsRScore: analysis.vsRScore,
     };
   }
 
@@ -231,11 +246,23 @@ function mergePitcher(base: ScrapedPitcherBase, card?: ScrapedCardData): Pitcher
   };
 
   if (card && card.columns && card.columns.length > 0) {
+    const analysis = analyzePitcherCard(card.columns);
     pitcher.cardData = {
       pitcherRating: card.pitcherRating ?? undefined,
       pctVsL: card.pctVsL ?? undefined,
       pctVsR: card.pctVsR ?? undefined,
       columns: card.columns,
+      // Computed analysis scores
+      cardScore: analysis.cardScore,
+      gbRate: analysis.gbRate,
+      kRate: analysis.kRate,
+      hitResults: analysis.hitResults,
+      outResults: analysis.outResults,
+      homeRunResults: analysis.homeRunResults,
+      walkResults: analysis.walkResults,
+      strikeoutResults: analysis.strikeoutResults,
+      vsLScore: analysis.vsLScore,
+      vsRScore: analysis.vsRScore,
     };
   }
 

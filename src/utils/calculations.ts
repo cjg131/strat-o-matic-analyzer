@@ -188,6 +188,14 @@ export function calculateHitterStats(
       const hrMap: Record<string, number> = { 'A': 4, 'B': 3, 'C': 2, 'D': 1 };
       cardBonus += (hrMap[hitter.cardData.hitAndRun] || 0) * (weights.hitAndRunWeight || 0);
     }
+    // vsL/vsR split scores: reward hitters who are strong vs both sides
+    // vsLScore and vsRScore come from card analysis (higher = better outcomes)
+    if (hitter.cardData.vsLScore !== undefined) {
+      cardBonus += hitter.cardData.vsLScore * (weights.vsLSplitWeight || 0) / 10;
+    }
+    if (hitter.cardData.vsRScore !== undefined) {
+      cardBonus += hitter.cardData.vsRScore * (weights.vsRSplitWeight || 0) / 10;
+    }
   }
   // Ensure cardBonus is a valid number
   if (isNaN(cardBonus) || !isFinite(cardBonus)) {
@@ -273,6 +281,13 @@ export function calculatePitcherStats(
     // Strikeout rate on card
     if (pitcher.cardData.kRate !== undefined) {
       pitcherCardBonus += pitcher.cardData.kRate * 10 * (weights.kRateWeight || 0);
+    }
+    // vsL/vsR split scores: reward pitchers who shut down both sides
+    if (pitcher.cardData.vsLScore !== undefined) {
+      pitcherCardBonus += pitcher.cardData.vsLScore * (weights.vsLSplitWeight || 0) / 10;
+    }
+    if (pitcher.cardData.vsRScore !== undefined) {
+      pitcherCardBonus += pitcher.cardData.vsRScore * (weights.vsRSplitWeight || 0) / 10;
     }
   }
   if (isNaN(pitcherCardBonus) || !isFinite(pitcherCardBonus)) {

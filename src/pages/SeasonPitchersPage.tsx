@@ -13,19 +13,19 @@ import type { PitcherWithStats, PitcherScoringWeights } from '../types';
 const PITCHER_PRESETS: Record<string, { name: string; weights: PitcherScoringWeights }> = {
   balanced: {
     name: 'Balanced',
-    weights: { strikeout: 1, walkAllowed: -1, hitAllowed: -1, homeRunAllowed: -3, earnedRun: -2, enduranceWeight: 0.5, cardScoreWeight: 0.5, pitcherRatingWeight: 3, gbRateWeight: 1, kRateWeight: 2 }
+    weights: { strikeout: 1, walkAllowed: -1, hitAllowed: -1, homeRunAllowed: -3, earnedRun: -2, enduranceWeight: 0.5, cardScoreWeight: 0.5, pitcherRatingWeight: 3, gbRateWeight: 1, kRateWeight: 2, vsLSplitWeight: 0.3, vsRSplitWeight: 0.3 }
   },
   strikeout: {
     name: 'Strikeout Pitcher',
-    weights: { strikeout: 2, walkAllowed: -0.5, hitAllowed: -0.8, homeRunAllowed: -2, earnedRun: -1.5, enduranceWeight: 0.5, cardScoreWeight: 0.5, pitcherRatingWeight: 3, gbRateWeight: 1, kRateWeight: 2 }
+    weights: { strikeout: 2, walkAllowed: -0.5, hitAllowed: -0.8, homeRunAllowed: -2, earnedRun: -1.5, enduranceWeight: 0.5, cardScoreWeight: 0.5, pitcherRatingWeight: 3, gbRateWeight: 1, kRateWeight: 2, vsLSplitWeight: 0.3, vsRSplitWeight: 0.3 }
   },
   control: {
     name: 'Control & Command',
-    weights: { strikeout: 0.5, walkAllowed: -2, hitAllowed: -1.5, homeRunAllowed: -3, earnedRun: -2.5, enduranceWeight: 0.5, cardScoreWeight: 0.5, pitcherRatingWeight: 3, gbRateWeight: 1, kRateWeight: 2 }
+    weights: { strikeout: 0.5, walkAllowed: -2, hitAllowed: -1.5, homeRunAllowed: -3, earnedRun: -2.5, enduranceWeight: 0.5, cardScoreWeight: 0.5, pitcherRatingWeight: 3, gbRateWeight: 1, kRateWeight: 2, vsLSplitWeight: 0.3, vsRSplitWeight: 0.3 }
   },
   groundball: {
     name: 'Ground Ball Pitcher',
-    weights: { strikeout: 0.5, walkAllowed: -1, hitAllowed: -0.8, homeRunAllowed: -4, earnedRun: -2, enduranceWeight: 0.5, cardScoreWeight: 0.5, pitcherRatingWeight: 3, gbRateWeight: 1, kRateWeight: 2 }
+    weights: { strikeout: 0.5, walkAllowed: -1, hitAllowed: -0.8, homeRunAllowed: -4, earnedRun: -2, enduranceWeight: 0.5, cardScoreWeight: 0.5, pitcherRatingWeight: 3, gbRateWeight: 1, kRateWeight: 2, vsLSplitWeight: 0.3, vsRSplitWeight: 0.3 }
   }
 };
 

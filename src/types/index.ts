@@ -58,6 +58,8 @@ export interface Hitter {
     strikeoutResults?: number; // Total strikeout outcomes
     hitResults?: number; // Total hit outcomes (SI, DO, TR, HR)
     outResults?: number; // Total out outcomes (fly, gb, strikeout, etc.)
+    vsLScore?: number; // Card quality score vs left-handed pitchers
+    vsRScore?: number; // Card quality score vs right-handed pitchers
   };
 }
 
@@ -111,6 +113,8 @@ export interface Pitcher {
     homeRunResults?: number; // HR outcomes allowed
     walkResults?: number; // Walk outcomes
     strikeoutResults?: number; // K outcomes
+    vsLScore?: number; // Card quality score vs left-handed batters
+    vsRScore?: number; // Card quality score vs right-handed batters
   };
 }
 
@@ -159,6 +163,9 @@ export interface HitterScoringWeights {
   powerRatingWeight: number; // Weight for W (wide) power rating
   buntingWeight: number; // Weight for bunting rating (A=4, B=3, C=2, D=1)
   hitAndRunWeight: number; // Weight for hit & run rating
+  vsLSplitWeight: number; // Weight for card performance vs left-handed pitchers
+  vsRSplitWeight: number; // Weight for card performance vs right-handed pitchers
+  injuryPenalty: number; // Penalty per injury day (higher injury = worse)
 }
 
 export interface PitcherScoringWeights {
@@ -173,6 +180,8 @@ export interface PitcherScoringWeights {
   pitcherRatingWeight: number; // Weight for pitcher rating (1=best, 8=worst)
   gbRateWeight: number; // Weight for ground ball rate
   kRateWeight: number; // Weight for strikeout rate on card
+  vsLSplitWeight: number; // Weight for card performance vs left-handed batters
+  vsRSplitWeight: number; // Weight for card performance vs right-handed batters
 }
 
 export interface ScoringWeights {
@@ -201,6 +210,9 @@ export const DEFAULT_HITTER_WEIGHTS: HitterScoringWeights = {
   powerRatingWeight: 2,
   buntingWeight: 0.5,
   hitAndRunWeight: 0.5,
+  vsLSplitWeight: 0.3,
+  vsRSplitWeight: 0.3,
+  injuryPenalty: -0.5,
 };
 
 export const DEFAULT_SCORING_WEIGHTS: ScoringWeights = {
@@ -225,6 +237,9 @@ export const DEFAULT_SCORING_WEIGHTS: ScoringWeights = {
     powerRatingWeight: 2,
     buntingWeight: 0.5,
     hitAndRunWeight: 0.5,
+    vsLSplitWeight: 0.3,
+    vsRSplitWeight: 0.3,
+    injuryPenalty: -0.5,
   },
   pitcher: {
     strikeout: 1,
@@ -237,6 +252,8 @@ export const DEFAULT_SCORING_WEIGHTS: ScoringWeights = {
     pitcherRatingWeight: 3,
     gbRateWeight: 1,
     kRateWeight: 2,
+    vsLSplitWeight: 0.3,
+    vsRSplitWeight: 0.3,
   },
 };
 

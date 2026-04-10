@@ -1,94 +1,172 @@
 /**
- * Card Analysis Engine
+ * Card Analysis Engine v2
  * 
  * Parses the 6 dice columns from Strat-O-Matic cards and computes
  * analytical scores that reveal the TRUE card quality beyond basic stats.
  * 
- * Each column has ~11-15 dice outcomes (rolls 2-12, some with sub-ranges).
- * The outcomes determine what happens when that column is "hit" during the game sim.
+ * Data format from scraper: each column is an array of individual table cells:
+ * ["#2-", "HR", "1-8", "fly(cf)B", "9-20", ">3-", "SINGLE(rf)", "4-", "WALK", ...]
  * 
- * Hitter columns: 1-3 vs Lefty pitchers, 4-6 vs Righty pitchers
- * Pitcher columns: 4-6 vs Lefty batters, 4-6 vs Righty batters
+ * Pattern: [diceRoll, outcome, (optional subRange), (optional outcome2), (optional subRange2), ...]
+ * Dice roll markers: # = clutch, $ = super clutch, > = improved result indicator
+ * 
+ * Hitter columns: 0-2 vs Lefty pitchers, 3-5 vs Righty pitchers
+ * Pitcher columns: 0-2 vs Lefty batters, 3-5 vs Righty batters
  */
 
-// Outcome values used by classifyOutcome() below
+interface ParsedOutcome {
+  diceRoll: number;
+  isClutch: boolean;       // # prefix
+  isSuperClutch: boolean;  // $ prefix
+  isImproved: boolean;     // > prefix
+  type: string;            // homerun, triple, double, single, walk, strikeout, groundBall, flyBall, lineout
+  rangeStart: number;      // Sub-range start (1 if full range)
+  rangeEnd: number;        // Sub-range end (20 if full range)
+  probability: number;     // rangeSize / 20 (fraction of this dice roll this outcome covers)
+  rawText: string;
+}
 
-/**
- * Classify a single outcome string from a dice column cell
- */
-function classifyOutcome(outcome: string): {
-  type: string;
-  value: number;
-  isClutch: boolean;
-  isSuperClutch: boolean;
-  hasRange: boolean;
-  rangeSize: number; // How many numbers in the sub-range (e.g., 1-14 = 14 out of 20)
-} {
-  const trimmed = outcome.trim();
-  const isClutch = trimmed.startsWith('#');
-  const isSuperClutch = trimmed.startsWith('$');
-  const clean = trimmed.replace(/^[#$>]/, '').trim();
-  
-  // Check for sub-ranges like "1-14" which means this outcome only happens on those rolls
-  let rangeSize = 20; // Default: full range (always happens)
-  const rangeMatch = clean.match(/(\d+)-(\d+)$/);
-  if (rangeMatch) {
-    rangeSize = parseInt(rangeMatch[2]) - parseInt(rangeMatch[1]) + 1;
+function classifyOutcomeType(text: string): string {
+  const clean = text.toUpperCase().trim();
+  if (/^HR$|HOMERUN|HOME\s*RUN/.test(clean)) return 'homerun';
+  if (/^TR$|TRIPLE/.test(clean)) return 'triple';
+  if (/^DO$|DOUBLE/.test(clean)) return 'double';
+  if (/SINGLE/.test(clean)) return 'single';
+  if (/WALK|^HBP|^HP/.test(clean)) return 'walk';
+  if (/STRIKEOUT/.test(clean)) return 'strikeout';
+  if (/^GB\(/.test(clean)) return 'groundBall';
+  if (/^FLY\(|^FB\(|^FO\(/.test(clean)) return 'flyBall';
+  if (/LINEOUT|^LO\(|POPOUT|^PO\(|CATCH|^FO/.test(clean)) return 'lineout';
+  if (/^IF/.test(clean)) return 'groundBall'; // infield hit attempt or IF error
+  return 'out'; // generic out
+}
+
+function getOutcomeValue(type: string): number {
+  switch (type) {
+    case 'homerun': return 4.0;
+    case 'triple': return 3.0;
+    case 'double': return 2.0;
+    case 'single': return 1.0;
+    case 'walk': return 0.8;
+    case 'strikeout': return -0.5;
+    case 'groundBall': return -0.25; // Slightly better than flyball (can advance runners, DP risk though)
+    case 'flyBall': return -0.3;
+    case 'lineout': return -0.3;
+    default: return -0.3;
   }
-  
-  // Determine outcome type and value
-  let type = 'out';
-  let value = -0.3;
-  
-  if (/HOMERUN|^HR$/i.test(clean)) { type = 'homerun'; value = 4.0; }
-  else if (/TRIPLE|^TR$/i.test(clean)) { type = 'triple'; value = 3.0; }
-  else if (/DOUBLE|^DO$/i.test(clean)) { type = 'double'; value = 2.0; }
-  else if (/SINGLE|^SI$/i.test(clean)) { type = 'single'; value = 1.0; }
-  else if (/WALK|^HBP/i.test(clean)) { type = 'walk'; value = 0.8; }
-  else if (/strikeout/i.test(clean)) { type = 'strikeout'; value = -0.5; }
-  else if (/^gb\(/i.test(clean)) { type = 'groundBall'; value = -0.3; }
-  else if (/^(fly|FB)\(/i.test(clean)) { type = 'flyBall'; value = -0.3; }
-  else if (/lineout|^lo|popout|CATCH/i.test(clean)) { type = 'lineout'; value = -0.3; }
-  
-  // Adjust value by range (if it's a split outcome like "HR 1-14 / fly 15-20")
-  const hasRange = rangeSize < 20;
-  
-  return { type, value, isClutch, isSuperClutch, hasRange, rangeSize };
 }
 
 /**
- * Parse a column's raw cell data into structured outcomes
- * Each cell from the table looks like: "diceNum|OUTCOME|rangeStart||secondOutcome|rangeEnd"
- * or simpler: "diceNum|OUTCOME"
+ * Parse a column's raw cell array into structured outcomes.
+ * 
+ * Input: ["#2-", "HR", "1-8", "fly(cf)B", "9-20", ">3-", "SINGLE(rf)", "4-", "WALK", ...]
+ * 
+ * Logic:
+ * - Cell matching /^[#$>]?\d+-$/ is a dice roll marker (start of new entry)
+ * - Cell matching /^\d+-\d+$/ is a sub-range (e.g., "1-8", "9-20")
+ * - Everything else is an outcome text
  */
-function parseColumnEntries(entries: string[]): Array<{
-  diceRoll: string;
-  outcomes: Array<ReturnType<typeof classifyOutcome>>;
-}> {
-  const results: Array<{ diceRoll: string; outcomes: Array<ReturnType<typeof classifyOutcome>> }> = [];
+function parseColumn(cells: string[]): ParsedOutcome[] {
+  const outcomes: ParsedOutcome[] = [];
   
-  for (const entry of entries) {
-    const parts = entry.split('|').map(p => p.trim()).filter(p => p);
-    if (parts.length === 0) continue;
+  let currentDice = 0;
+  let currentClutch = false;
+  let currentSuperClutch = false;
+  let currentImproved = false;
+  let pendingOutcomes: { text: string; rangeStart: number; rangeEnd: number }[] = [];
+  let lastOutcomeText = '';
+  
+  for (let i = 0; i < cells.length; i++) {
+    const cell = cells[i].trim();
+    if (!cell) continue;
     
-    const diceRoll = parts[0]; // e.g., "#2-", "3-", "$12-"
-    const outcomes: Array<ReturnType<typeof classifyOutcome>> = [];
-    
-    // Process remaining parts as outcomes
-    for (let i = 1; i < parts.length; i++) {
-      const part = parts[i];
-      if (!part || /^\d+-\d+$/.test(part) || part === '+ injury' || part === '') continue;
+    // Check if this is a dice roll marker: "#2-", "$5-", ">3-", "4-", "10-", "12-"
+    const diceMatch = cell.match(/^([#$>]*)(\d+)-$/);
+    if (diceMatch) {
+      // Flush any pending outcome from the previous dice roll
+      if (lastOutcomeText && currentDice > 0) {
+        // Check if next cell is a sub-range
+        // (already handled below)
+      }
       
-      const classified = classifyOutcome(part);
-      outcomes.push(classified);
+      // Finalize previous dice roll's outcomes
+      if (pendingOutcomes.length > 0 && currentDice > 0) {
+        for (const po of pendingOutcomes) {
+          const type = classifyOutcomeType(po.text);
+          const rangeSize = po.rangeEnd - po.rangeStart + 1;
+          outcomes.push({
+            diceRoll: currentDice,
+            isClutch: currentClutch,
+            isSuperClutch: currentSuperClutch,
+            isImproved: currentImproved,
+            type,
+            rangeStart: po.rangeStart,
+            rangeEnd: po.rangeEnd,
+            probability: rangeSize / 20,
+            rawText: po.text,
+          });
+        }
+      }
+      
+      // Start new dice roll
+      const markers = diceMatch[1];
+      currentDice = parseInt(diceMatch[2]);
+      currentClutch = markers.includes('#');
+      currentSuperClutch = markers.includes('$');
+      currentImproved = markers.includes('>');
+      pendingOutcomes = [];
+      lastOutcomeText = '';
+      continue;
     }
     
-    if (outcomes.length > 0) {
-      results.push({ diceRoll, outcomes });
+    // Check if this is a sub-range: "1-8", "9-20", "1-14"
+    const rangeMatch = cell.match(/^(\d+)-(\d+)$/);
+    if (rangeMatch && currentDice > 0) {
+      const rangeStart = parseInt(rangeMatch[1]);
+      const rangeEnd = parseInt(rangeMatch[2]);
+      
+      // This range applies to the PREVIOUS outcome text
+      if (pendingOutcomes.length > 0) {
+        // Update the last pending outcome's range
+        pendingOutcomes[pendingOutcomes.length - 1].rangeEnd = rangeEnd;
+        pendingOutcomes[pendingOutcomes.length - 1].rangeStart = rangeStart;
+      }
+      continue;
+    }
+    
+    // This must be an outcome text (HR, SINGLE(rf), WALK, strikeout, fly(cf)B, gb(ss)A, etc.)
+    if (currentDice > 0) {
+      // If there's already a pending outcome without a range, it gets default full range
+      // But if a range follows, it'll be updated
+      pendingOutcomes.push({
+        text: cell,
+        rangeStart: 1,
+        rangeEnd: 20,
+      });
+      lastOutcomeText = cell;
     }
   }
   
-  return results;
+  // Flush last dice roll
+  if (pendingOutcomes.length > 0 && currentDice > 0) {
+    for (const po of pendingOutcomes) {
+      const type = classifyOutcomeType(po.text);
+      const rangeSize = po.rangeEnd - po.rangeStart + 1;
+      outcomes.push({
+        diceRoll: currentDice,
+        isClutch: currentClutch,
+        isSuperClutch: currentSuperClutch,
+        isImproved: currentImproved,
+        type,
+        rangeStart: po.rangeStart,
+        rangeEnd: po.rangeEnd,
+        probability: rangeSize / 20,
+        rawText: po.text,
+      });
+    }
+  }
+  
+  return outcomes;
 }
 
 /**
@@ -108,8 +186,8 @@ export function analyzeHitterCard(columns: string[][]): {
   vsLScore: number;
   vsRScore: number;
 } {
-  let totalValue = 0;
-  let totalOutcomes = 0;
+  let totalWeightedValue = 0;
+  let totalProbability = 0;
   let clutchHits = 0;
   let clutchPlus = 0;
   let homeRunResults = 0;
@@ -117,76 +195,73 @@ export function analyzeHitterCard(columns: string[][]): {
   let strikeoutResults = 0;
   let hitResults = 0;
   let outResults = 0;
-  let vsLValue = 0;
-  let vsLCount = 0;
-  let vsRValue = 0;
-  let vsRCount = 0;
-  
-  // Bases values for slugging calculation
   let totalBases = 0;
   let onBaseEvents = 0;
   
+  let vsLWeightedValue = 0;
+  let vsLProbability = 0;
+  let vsRWeightedValue = 0;
+  let vsRProbability = 0;
+  
   for (let colIdx = 0; colIdx < Math.min(6, columns.length); colIdx++) {
     const isVsLeft = colIdx < 3;
-    const parsed = parseColumnEntries(columns[colIdx]);
+    const parsed = parseColumn(columns[colIdx]);
     
-    for (const entry of parsed) {
-      for (const outcome of entry.outcomes) {
-        // Weight by range size (if split outcome, only count proportional share)
-        const weight = outcome.rangeSize / 20;
-        
-        totalValue += outcome.value * weight;
-        totalOutcomes++;
-        
-        if (isVsLeft) { vsLValue += outcome.value * weight; vsLCount++; }
-        else { vsRValue += outcome.value * weight; vsRCount++; }
-        
-        if (outcome.isClutch) clutchHits++;
-        if (outcome.isSuperClutch) clutchPlus++;
-        
-        switch (outcome.type) {
-          case 'homerun':
-            homeRunResults++;
-            hitResults++;
-            totalBases += 4 * weight;
-            onBaseEvents += weight;
-            break;
-          case 'triple':
-            hitResults++;
-            totalBases += 3 * weight;
-            onBaseEvents += weight;
-            break;
-          case 'double':
-            hitResults++;
-            totalBases += 2 * weight;
-            onBaseEvents += weight;
-            break;
-          case 'single':
-            hitResults++;
-            totalBases += 1 * weight;
-            onBaseEvents += weight;
-            break;
-          case 'walk':
-            walkResults++;
-            onBaseEvents += weight;
-            break;
-          case 'strikeout':
-            strikeoutResults++;
-            outResults++;
-            break;
-          default:
-            outResults++;
-        }
+    for (const outcome of parsed) {
+      const value = getOutcomeValue(outcome.type);
+      const weightedValue = value * outcome.probability;
+      
+      totalWeightedValue += weightedValue;
+      totalProbability += outcome.probability;
+      
+      if (isVsLeft) { vsLWeightedValue += weightedValue; vsLProbability += outcome.probability; }
+      else { vsRWeightedValue += weightedValue; vsRProbability += outcome.probability; }
+      
+      if (outcome.isClutch) clutchHits++;
+      if (outcome.isSuperClutch) clutchPlus++;
+      
+      switch (outcome.type) {
+        case 'homerun':
+          homeRunResults++;
+          hitResults++;
+          totalBases += 4 * outcome.probability;
+          onBaseEvents += outcome.probability;
+          break;
+        case 'triple':
+          hitResults++;
+          totalBases += 3 * outcome.probability;
+          onBaseEvents += outcome.probability;
+          break;
+        case 'double':
+          hitResults++;
+          totalBases += 2 * outcome.probability;
+          onBaseEvents += outcome.probability;
+          break;
+        case 'single':
+          hitResults++;
+          totalBases += 1 * outcome.probability;
+          onBaseEvents += outcome.probability;
+          break;
+        case 'walk':
+          walkResults++;
+          onBaseEvents += outcome.probability;
+          break;
+        case 'strikeout':
+          strikeoutResults++;
+          outResults++;
+          break;
+        default:
+          outResults++;
       }
     }
   }
   
-  // Normalize scores
-  const cardScore = totalOutcomes > 0 ? Math.round((totalValue / totalOutcomes) * 100) : 0;
-  const onBaseCard = totalOutcomes > 0 ? Math.round((onBaseEvents / totalOutcomes) * 1000) / 1000 : 0;
-  const sluggingCard = totalOutcomes > 0 ? Math.round((totalBases / totalOutcomes) * 1000) / 1000 : 0;
-  const vsLScore = vsLCount > 0 ? Math.round((vsLValue / vsLCount) * 100) : 0;
-  const vsRScore = vsRCount > 0 ? Math.round((vsRValue / vsRCount) * 100) : 0;
+  // Card score: weighted average value across all outcomes × 100
+  const cardScore = totalProbability > 0 ? Math.round((totalWeightedValue / totalProbability) * 100) : 0;
+  const onBaseCard = totalProbability > 0 ? Math.round((onBaseEvents / totalProbability) * 1000) / 1000 : 0;
+  const sluggingCard = totalProbability > 0 ? Math.round((totalBases / totalProbability) * 1000) / 1000 : 0;
+  const vsLScore = vsLProbability > 0 ? Math.round((vsLWeightedValue / vsLProbability) * 100) : 0;
+  const vsRScore = vsRProbability > 0 ? Math.round((vsRWeightedValue / vsRProbability) * 100) : 0;
   
   return {
     cardScore,
@@ -220,49 +295,46 @@ export function analyzePitcherCard(columns: string[][]): {
   vsLScore: number;
   vsRScore: number;
 } {
-  let totalOutcomes = 0;
+  let totalProbability = 0;
   let hitResults = 0;
   let outResults = 0;
   let homeRunResults = 0;
   let walkResults = 0;
   let strikeoutResults = 0;
   let groundBalls = 0;
-  let vsLValue = 0;
-  let vsLCount = 0;
-  let vsRValue = 0;
-  let vsRCount = 0;
+  let vsLWeightedValue = 0;
+  let vsLProbability = 0;
+  let vsRWeightedValue = 0;
+  let vsRProbability = 0;
   
   for (let colIdx = 0; colIdx < Math.min(6, columns.length); colIdx++) {
     const isVsLeft = colIdx < 3;
-    const parsed = parseColumnEntries(columns[colIdx]);
+    const parsed = parseColumn(columns[colIdx]);
     
-    for (const entry of parsed) {
-      for (const outcome of entry.outcomes) {
-        const weight = outcome.rangeSize / 20;
-        totalOutcomes++;
-        
-        // For pitchers, invert the value: outs are GOOD, hits are BAD
-        const pitcherValue = -outcome.value;
-        if (isVsLeft) { vsLValue += pitcherValue * weight; vsLCount++; }
-        else { vsRValue += pitcherValue * weight; vsRCount++; }
-        
-        switch (outcome.type) {
-          case 'homerun': homeRunResults++; hitResults++; break;
-          case 'triple': case 'double': case 'single': hitResults++; break;
-          case 'walk': walkResults++; break;
-          case 'strikeout': strikeoutResults++; outResults++; break;
-          case 'groundBall': groundBalls++; outResults++; break;
-          default: outResults++;
-        }
+    for (const outcome of parsed) {
+      totalProbability += outcome.probability;
+      
+      // For pitchers, invert the value: outs are GOOD, hits are BAD
+      const pitcherValue = -getOutcomeValue(outcome.type) * outcome.probability;
+      if (isVsLeft) { vsLWeightedValue += pitcherValue; vsLProbability += outcome.probability; }
+      else { vsRWeightedValue += pitcherValue; vsRProbability += outcome.probability; }
+      
+      switch (outcome.type) {
+        case 'homerun': homeRunResults++; hitResults++; break;
+        case 'triple': case 'double': case 'single': hitResults++; break;
+        case 'walk': walkResults++; break;
+        case 'strikeout': strikeoutResults++; outResults++; break;
+        case 'groundBall': groundBalls++; outResults++; break;
+        default: outResults++;
       }
     }
   }
   
-  const cardScore = totalOutcomes > 0 ? Math.round(((outResults - hitResults) / totalOutcomes) * 100) : 0;
+  const cardScore = totalProbability > 0 ? Math.round(((outResults - hitResults) / totalProbability) * 100) : 0;
   const gbRate = outResults > 0 ? Math.round((groundBalls / outResults) * 1000) / 1000 : 0;
-  const kRate = totalOutcomes > 0 ? Math.round((strikeoutResults / totalOutcomes) * 1000) / 1000 : 0;
-  const vsLScore = vsLCount > 0 ? Math.round((vsLValue / vsLCount) * 100) : 0;
-  const vsRScore = vsRCount > 0 ? Math.round((vsRValue / vsRCount) * 100) : 0;
+  const kRate = totalProbability > 0 ? Math.round((strikeoutResults / totalProbability) * 1000) / 1000 : 0;
+  const vsLScore = vsLProbability > 0 ? Math.round((vsLWeightedValue / vsLProbability) * 100) : 0;
+  const vsRScore = vsRProbability > 0 ? Math.round((vsRWeightedValue / vsRProbability) * 100) : 0;
   
   return {
     cardScore,
@@ -279,12 +351,10 @@ export function analyzePitcherCard(columns: string[][]): {
 }
 
 /**
- * Auto-assign a card grade (A-F) based on card score
- * This replaces the manual grading with a data-driven grade
+ * Auto-assign a card grade (A+ to F) based on card score
  */
 export function computeCardGrade(cardScore: number, type: 'hitter' | 'pitcher'): string {
   if (type === 'hitter') {
-    // Hitter card scores: higher = better card
     if (cardScore >= 80) return 'A+';
     if (cardScore >= 60) return 'A';
     if (cardScore >= 40) return 'B+';
@@ -294,7 +364,6 @@ export function computeCardGrade(cardScore: number, type: 'hitter' | 'pitcher'):
     if (cardScore >= -15) return 'D';
     return 'F';
   } else {
-    // Pitcher card scores: higher = more outs generated vs hits allowed
     if (cardScore >= 50) return 'A+';
     if (cardScore >= 35) return 'A';
     if (cardScore >= 25) return 'B+';

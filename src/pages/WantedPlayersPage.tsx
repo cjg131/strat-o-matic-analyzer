@@ -11,50 +11,50 @@ import type { HitterWithStats, PitcherWithStats, HitterScoringWeights, PitcherSc
 const HITTER_PRESETS: Record<string, { name: string; weights: HitterScoringWeights }> = {
   balanced: {
     name: 'Balanced',
-    weights: { single: 2, double: 3, triple: 5, homeRun: 6, walk: 1, hitByPitch: 1, stolenBase: 2, caughtStealing: -1, stlRating: 3, runRating: 1.5, outPenalty: -0.3, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 0, fieldingErrorPenalty: 0, cardScoreWeight: 0.5, clutchWeight: 1, powerRatingWeight: 2, buntingWeight: 0.5, hitAndRunWeight: 0.5 }
+    weights: { single: 2, double: 3, triple: 5, homeRun: 6, walk: 1, hitByPitch: 1, stolenBase: 2, caughtStealing: -1, stlRating: 3, runRating: 1.5, outPenalty: -0.3, balanceVsRHP: 2, balanceVsLHP: 1.5, fieldingRangeBonus: 1, fieldingErrorPenalty: -0.5, cardScoreWeight: 0.5, clutchWeight: 1, powerRatingWeight: 2, buntingWeight: 0.5, hitAndRunWeight: 0.5, vsLSplitWeight: 0.3, vsRSplitWeight: 0.3, injuryPenalty: -0.5 }
   },
   power: {
     name: 'Power Hitting',
-    weights: { single: 1, double: 4, triple: 7, homeRun: 10, walk: 0.5, hitByPitch: 0.5, stolenBase: 0.5, caughtStealing: -0.5, stlRating: 1, runRating: 0.5, outPenalty: -0.2, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 0, fieldingErrorPenalty: 0, cardScoreWeight: 0.5, clutchWeight: 1, powerRatingWeight: 2, buntingWeight: 0.5, hitAndRunWeight: 0.5 }
+    weights: { single: 1, double: 4, triple: 7, homeRun: 10, walk: 0.5, hitByPitch: 0.5, stolenBase: 0.5, caughtStealing: -0.5, stlRating: 1, runRating: 0.5, outPenalty: -0.2, balanceVsRHP: 2.5, balanceVsLHP: 2, fieldingRangeBonus: 0, fieldingErrorPenalty: 0, cardScoreWeight: 0.8, clutchWeight: 1.5, powerRatingWeight: 4, buntingWeight: 0, hitAndRunWeight: 0, vsLSplitWeight: 0.3, vsRSplitWeight: 0.3, injuryPenalty: -0.3 }
   },
   speed: {
     name: 'Speed & Base Running',
-    weights: { single: 3, double: 4, triple: 6, homeRun: 5, walk: 1.5, hitByPitch: 1.5, stolenBase: 4, caughtStealing: -3, stlRating: 6, runRating: 3, outPenalty: -0.3, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 0, fieldingErrorPenalty: 0, cardScoreWeight: 0.5, clutchWeight: 1, powerRatingWeight: 2, buntingWeight: 0.5, hitAndRunWeight: 0.5 }
+    weights: { single: 3, double: 4, triple: 6, homeRun: 5, walk: 1.5, hitByPitch: 1.5, stolenBase: 4, caughtStealing: -3, stlRating: 6, runRating: 3, outPenalty: -0.3, balanceVsRHP: 1.5, balanceVsLHP: 1, fieldingRangeBonus: 0, fieldingErrorPenalty: 0, cardScoreWeight: 0.3, clutchWeight: 0.5, powerRatingWeight: 1, buntingWeight: 1.5, hitAndRunWeight: 1.5, vsLSplitWeight: 0.2, vsRSplitWeight: 0.2, injuryPenalty: -0.5 }
   },
   obp: {
     name: 'On-Base (OBP)',
-    weights: { single: 3, double: 4, triple: 6, homeRun: 7, walk: 2.5, hitByPitch: 2.5, stolenBase: 1, caughtStealing: -1, stlRating: 2, runRating: 1, outPenalty: -0.5, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 0, fieldingErrorPenalty: 0, cardScoreWeight: 0.5, clutchWeight: 1, powerRatingWeight: 2, buntingWeight: 0.5, hitAndRunWeight: 0.5 }
+    weights: { single: 3, double: 4, triple: 6, homeRun: 7, walk: 2.5, hitByPitch: 2.5, stolenBase: 1, caughtStealing: -1, stlRating: 2, runRating: 1, outPenalty: -0.5, balanceVsRHP: 2, balanceVsLHP: 1.5, fieldingRangeBonus: 0, fieldingErrorPenalty: 0, cardScoreWeight: 0.6, clutchWeight: 1, powerRatingWeight: 2, buntingWeight: 0.5, hitAndRunWeight: 0.5, vsLSplitWeight: 0.4, vsRSplitWeight: 0.4, injuryPenalty: -0.5 }
   },
   contact: {
     name: 'Contact Hitting',
-    weights: { single: 3, double: 4, triple: 5, homeRun: 6, walk: 1.5, hitByPitch: 1.5, stolenBase: 1.5, caughtStealing: -1, stlRating: 2, runRating: 1, outPenalty: -0.6, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 0, fieldingErrorPenalty: 0, cardScoreWeight: 0.5, clutchWeight: 1, powerRatingWeight: 2, buntingWeight: 0.5, hitAndRunWeight: 0.5 }
+    weights: { single: 3, double: 4, triple: 5, homeRun: 6, walk: 1.5, hitByPitch: 1.5, stolenBase: 1.5, caughtStealing: -1, stlRating: 2, runRating: 1, outPenalty: -0.6, balanceVsRHP: 2, balanceVsLHP: 1.5, fieldingRangeBonus: 0, fieldingErrorPenalty: 0, cardScoreWeight: 0.5, clutchWeight: 1, powerRatingWeight: 1, buntingWeight: 1, hitAndRunWeight: 1, vsLSplitWeight: 0.3, vsRSplitWeight: 0.3, injuryPenalty: -0.5 }
   },
   defense: {
     name: 'Defense First',
-    weights: { single: 2, double: 3, triple: 5, homeRun: 6, walk: 1, hitByPitch: 1, stolenBase: 2, caughtStealing: -1, stlRating: 3, runRating: 1.5, outPenalty: -0.3, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 3, fieldingErrorPenalty: -1, cardScoreWeight: 0.5, clutchWeight: 1, powerRatingWeight: 2, buntingWeight: 0.5, hitAndRunWeight: 0.5 }
+    weights: { single: 2, double: 3, triple: 5, homeRun: 6, walk: 1, hitByPitch: 1, stolenBase: 2, caughtStealing: -1, stlRating: 3, runRating: 1.5, outPenalty: -0.3, balanceVsRHP: 1.5, balanceVsLHP: 1, fieldingRangeBonus: 3, fieldingErrorPenalty: -1, cardScoreWeight: 0.5, clutchWeight: 1, powerRatingWeight: 2, buntingWeight: 0.5, hitAndRunWeight: 0.5, vsLSplitWeight: 0.3, vsRSplitWeight: 0.3, injuryPenalty: -0.5 }
   },
   defenseSpeed: {
     name: 'Defense & Speed',
-    weights: { single: 2.5, double: 3.5, triple: 5, homeRun: 5, walk: 1.5, hitByPitch: 1.5, stolenBase: 3, caughtStealing: -2, stlRating: 5, runRating: 2.5, outPenalty: -0.4, balanceVsRHP: 0, balanceVsLHP: 0, fieldingRangeBonus: 2, fieldingErrorPenalty: -0.75, cardScoreWeight: 0.5, clutchWeight: 1, powerRatingWeight: 2, buntingWeight: 0.5, hitAndRunWeight: 0.5 }
+    weights: { single: 2.5, double: 3.5, triple: 5, homeRun: 5, walk: 1.5, hitByPitch: 1.5, stolenBase: 3, caughtStealing: -2, stlRating: 5, runRating: 2.5, outPenalty: -0.4, balanceVsRHP: 1.5, balanceVsLHP: 1, fieldingRangeBonus: 2, fieldingErrorPenalty: -0.75, cardScoreWeight: 0.4, clutchWeight: 0.5, powerRatingWeight: 1.5, buntingWeight: 1, hitAndRunWeight: 1, vsLSplitWeight: 0.2, vsRSplitWeight: 0.2, injuryPenalty: -0.5 }
   }
 };
 
 const PITCHER_PRESETS: Record<string, { name: string; weights: PitcherScoringWeights }> = {
   balanced: {
     name: 'Balanced',
-    weights: { strikeout: 1, walkAllowed: -1, hitAllowed: -1, homeRunAllowed: -3, earnedRun: -2, enduranceWeight: 0.5, cardScoreWeight: 0.5, pitcherRatingWeight: 3, gbRateWeight: 1, kRateWeight: 2 }
+    weights: { strikeout: 1, walkAllowed: -1, hitAllowed: -1, homeRunAllowed: -3, earnedRun: -2, enduranceWeight: 0.5, cardScoreWeight: 0.5, pitcherRatingWeight: 3, gbRateWeight: 1, kRateWeight: 2, vsLSplitWeight: 0.3, vsRSplitWeight: 0.3 }
   },
   strikeout: {
     name: 'Strikeout Pitcher',
-    weights: { strikeout: 2, walkAllowed: -0.5, hitAllowed: -0.8, homeRunAllowed: -2, earnedRun: -1.5, enduranceWeight: 0.5, cardScoreWeight: 0.5, pitcherRatingWeight: 3, gbRateWeight: 1, kRateWeight: 2 }
+    weights: { strikeout: 2, walkAllowed: -0.5, hitAllowed: -0.8, homeRunAllowed: -2, earnedRun: -1.5, enduranceWeight: 0.5, cardScoreWeight: 0.5, pitcherRatingWeight: 3, gbRateWeight: 1, kRateWeight: 2, vsLSplitWeight: 0.3, vsRSplitWeight: 0.3 }
   },
   control: {
     name: 'Control & Command',
-    weights: { strikeout: 0.5, walkAllowed: -2, hitAllowed: -1.5, homeRunAllowed: -3, earnedRun: -2.5, enduranceWeight: 0.5, cardScoreWeight: 0.5, pitcherRatingWeight: 3, gbRateWeight: 1, kRateWeight: 2 }
+    weights: { strikeout: 0.5, walkAllowed: -2, hitAllowed: -1.5, homeRunAllowed: -3, earnedRun: -2.5, enduranceWeight: 0.5, cardScoreWeight: 0.5, pitcherRatingWeight: 3, gbRateWeight: 1, kRateWeight: 2, vsLSplitWeight: 0.3, vsRSplitWeight: 0.3 }
   },
   groundball: {
     name: 'Ground Ball Pitcher',
-    weights: { strikeout: 0.5, walkAllowed: -1, hitAllowed: -0.8, homeRunAllowed: -4, earnedRun: -2, enduranceWeight: 0.5, cardScoreWeight: 0.5, pitcherRatingWeight: 3, gbRateWeight: 1, kRateWeight: 2 }
+    weights: { strikeout: 0.5, walkAllowed: -1, hitAllowed: -0.8, homeRunAllowed: -4, earnedRun: -2, enduranceWeight: 0.5, cardScoreWeight: 0.5, pitcherRatingWeight: 3, gbRateWeight: 1, kRateWeight: 2, vsLSplitWeight: 0.3, vsRSplitWeight: 0.3 }
   }
 };
 
