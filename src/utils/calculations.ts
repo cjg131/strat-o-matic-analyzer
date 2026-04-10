@@ -163,6 +163,37 @@ export function calculateHitterStats(
     }
   }
 
+  // Card-based scoring bonus
+  let cardBonus = 0;
+  if (hitter.cardData) {
+    // Card quality score (higher = better outcomes on dice rolls)
+    if (hitter.cardData.cardScore !== undefined) {
+      cardBonus += hitter.cardData.cardScore * (weights.cardScoreWeight || 0);
+    }
+    // Clutch hitting: # and $ symbols mean better with runners on
+    const clutchCount = (hitter.cardData.clutchHits || 0) + (hitter.cardData.clutchPlus || 0) * 2;
+    cardBonus += clutchCount * (weights.clutchWeight || 0);
+    // Power rating: W (wide) means HRs can leave the park in favorable ballpark columns
+    if (hitter.cardData.powerVsR === 'W' || hitter.cardData.powerVsL === 'W') {
+      const powerCount = (hitter.cardData.powerVsL === 'W' ? 1 : 0) + (hitter.cardData.powerVsR === 'W' ? 1 : 0);
+      cardBonus += powerCount * (weights.powerRatingWeight || 0);
+    }
+    // Bunting rating: A=4, B=3, C=2, D=1
+    if (hitter.cardData.bunting) {
+      const buntMap: Record<string, number> = { 'A': 4, 'B': 3, 'C': 2, 'D': 1 };
+      cardBonus += (buntMap[hitter.cardData.bunting] || 0) * (weights.buntingWeight || 0);
+    }
+    // Hit & Run rating
+    if (hitter.cardData.hitAndRun) {
+      const hrMap: Record<string, number> = { 'A': 4, 'B': 3, 'C': 2, 'D': 1 };
+      cardBonus += (hrMap[hitter.cardData.hitAndRun] || 0) * (weights.hitAndRunWeight || 0);
+    }
+  }
+  // Ensure cardBonus is a valid number
+  if (isNaN(cardBonus) || !isFinite(cardBonus)) {
+    cardBonus = 0;
+  }
+
   const fantasyPoints =
     singles * weights.single +
     hitter.doubles * weights.double +
@@ -175,7 +206,8 @@ export function calculateHitterStats(
     outs * weights.outPenalty +
     balanceBonus +
     defensivePoints +
-    speedRatingBonus;
+    speedRatingBonus +
+    cardBonus;
 
   // Calculate ballpark-adjusted points if a ballpark is provided
   let ballparkAdjustedPoints: number | undefined;
@@ -222,7 +254,32 @@ export function calculatePitcherStats(
   const enduranceScore = getEnduranceScore(pitcher.endurance);
   const endurancePoints = enduranceScore * (weights.enduranceWeight || 0);
 
-  const fantasyPoints = basePoints + endurancePoints;
+  // Card-based scoring for pitchers
+  let pitcherCardBonus = 0;
+  if (pitcher.cardData) {
+    // Card quality score (higher = more outs vs hits)
+    if (pitcher.cardData.cardScore !== undefined) {
+      pitcherCardBonus += pitcher.cardData.cardScore * (weights.cardScoreWeight || 0);
+    }
+    // Pitcher rating: 1 (best) to 8 (worst) - invert so lower = more bonus
+    if (pitcher.cardData.pitcherRating !== undefined) {
+      const ratingBonus = (9 - pitcher.cardData.pitcherRating); // 8 for rating 1, 1 for rating 8
+      pitcherCardBonus += ratingBonus * (weights.pitcherRatingWeight || 0);
+    }
+    // Ground ball rate (higher = better for defense)
+    if (pitcher.cardData.gbRate !== undefined) {
+      pitcherCardBonus += pitcher.cardData.gbRate * 10 * (weights.gbRateWeight || 0);
+    }
+    // Strikeout rate on card
+    if (pitcher.cardData.kRate !== undefined) {
+      pitcherCardBonus += pitcher.cardData.kRate * 10 * (weights.kRateWeight || 0);
+    }
+  }
+  if (isNaN(pitcherCardBonus) || !isFinite(pitcherCardBonus)) {
+    pitcherCardBonus = 0;
+  }
+
+  const fantasyPoints = basePoints + endurancePoints + pitcherCardBonus;
 
   // Ballpark adjustment for pitchers
   let ballparkAdjustedPoints: number | undefined;

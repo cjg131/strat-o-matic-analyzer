@@ -36,6 +36,29 @@ export interface Hitter {
   slg?: number; // Slugging Percentage
   notes?: string; // User notes about the player
   cardGrade?: string; // Manual card quality grade: A, B, C, D, F
+
+  // === Card Data (scraped from Strat-O-Matic 365) ===
+  cardData?: {
+    powerVsL?: string; // N (normal) or W (wide) - affects ballpark HR columns
+    powerVsR?: string;
+    pctVsL?: number; // Percentage of plate appearances vs lefty pitchers
+    pctVsR?: number;
+    bunting?: string; // A, B, C, D
+    hitAndRun?: string; // A, B, C, D
+    stealDetails?: string; // e.g., "*7/- (17-6)"
+    defenseRaw?: string; // Raw defense string e.g., "rf-1(-4)e6"
+    columns?: string[][]; // 6 arrays: vsL col1-3, vsR col1-3 (dice outcomes)
+    cardScore?: number; // Computed card quality score
+    onBaseCard?: number; // Card-based OBP (from dice outcomes)
+    sluggingCard?: number; // Card-based SLG (from dice outcomes)
+    clutchHits?: number; // Count of # (clutch) results
+    clutchPlus?: number; // Count of $ (super clutch) results
+    homeRunResults?: number; // Total HR outcomes across all columns
+    walkResults?: number; // Total WALK outcomes
+    strikeoutResults?: number; // Total strikeout outcomes
+    hitResults?: number; // Total hit outcomes (SI, DO, TR, HR)
+    outResults?: number; // Total out outcomes (fly, gb, strikeout, etc.)
+  };
 }
 
 export interface HitterWithStats extends Hitter {
@@ -73,6 +96,22 @@ export interface Pitcher {
   bunting: string;
   notes?: string; // User notes about the player
   cardGrade?: string; // Manual card quality grade: A, B, C, D, F
+
+  // === Card Data (scraped from Strat-O-Matic 365) ===
+  cardData?: {
+    pitcherRating?: number; // 1-8 (1 best, 8 worst) - affects pitcher's dice column
+    pctVsL?: number; // Percentage vs lefty batters
+    pctVsR?: number;
+    columns?: string[][]; // 6 arrays: vsL col4-6, vsR col4-6 (dice outcomes)
+    cardScore?: number; // Computed card quality score
+    gbRate?: number; // Ground ball rate from card outcomes
+    kRate?: number; // Strikeout rate from card outcomes
+    hitResults?: number; // Total hit outcomes allowed
+    outResults?: number; // Total out outcomes generated
+    homeRunResults?: number; // HR outcomes allowed
+    walkResults?: number; // Walk outcomes
+    strikeoutResults?: number; // K outcomes
+  };
 }
 
 export interface PitcherWithStats extends Pitcher {
@@ -114,6 +153,12 @@ export interface HitterScoringWeights {
   balanceVsLHP: number;
   fieldingRangeBonus: number;
   fieldingErrorPenalty: number;
+  // Card-based weights
+  cardScoreWeight: number; // Weight for overall card quality score
+  clutchWeight: number; // Weight for clutch hitting (#/$) results
+  powerRatingWeight: number; // Weight for W (wide) power rating
+  buntingWeight: number; // Weight for bunting rating (A=4, B=3, C=2, D=1)
+  hitAndRunWeight: number; // Weight for hit & run rating
 }
 
 export interface PitcherScoringWeights {
@@ -123,6 +168,11 @@ export interface PitcherScoringWeights {
   homeRunAllowed: number;
   earnedRun: number;
   enduranceWeight: number;
+  // Card-based weights
+  cardScoreWeight: number; // Weight for overall card quality score
+  pitcherRatingWeight: number; // Weight for pitcher rating (1=best, 8=worst)
+  gbRateWeight: number; // Weight for ground ball rate
+  kRateWeight: number; // Weight for strikeout rate on card
 }
 
 export interface ScoringWeights {
@@ -146,6 +196,11 @@ export const DEFAULT_HITTER_WEIGHTS: HitterScoringWeights = {
   balanceVsLHP: 0,
   fieldingRangeBonus: 0,
   fieldingErrorPenalty: 0,
+  cardScoreWeight: 0.5,
+  clutchWeight: 1,
+  powerRatingWeight: 2,
+  buntingWeight: 0.5,
+  hitAndRunWeight: 0.5,
 };
 
 export const DEFAULT_SCORING_WEIGHTS: ScoringWeights = {
@@ -165,6 +220,11 @@ export const DEFAULT_SCORING_WEIGHTS: ScoringWeights = {
     balanceVsLHP: 0,
     fieldingRangeBonus: 0,
     fieldingErrorPenalty: 0,
+    cardScoreWeight: 0.5,
+    clutchWeight: 1,
+    powerRatingWeight: 2,
+    buntingWeight: 0.5,
+    hitAndRunWeight: 0.5,
   },
   pitcher: {
     strikeout: 1,
@@ -173,6 +233,10 @@ export const DEFAULT_SCORING_WEIGHTS: ScoringWeights = {
     homeRunAllowed: -3,
     earnedRun: -2,
     enduranceWeight: 0.5,
+    cardScoreWeight: 0.5,
+    pitcherRatingWeight: 3,
+    gbRateWeight: 1,
+    kRateWeight: 2,
   },
 };
 
