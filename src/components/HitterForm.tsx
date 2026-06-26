@@ -318,6 +318,24 @@ export function HitterForm({ hitter, onSubmit, onCancel }: HitterFormProps) {
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-green-700 dark:text-green-300 mb-1">
+            Card Grade
+          </label>
+          <select
+            value={formData.cardGrade || ''}
+            onChange={(e) => handleChange('cardGrade', e.target.value)}
+            className="w-full px-3 py-2 border border-green-300 dark:border-green-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+            <option value="">Not Graded</option>
+            <option value="A">A - Elite Card</option>
+            <option value="B">B - Good Card</option>
+            <option value="C">C - Average Card</option>
+            <option value="D">D - Below Average</option>
+            <option value="F">F - Bad Card</option>
+          </select>
+        </div>
       </div>
 
       <div className="flex gap-3 justify-end pt-4">

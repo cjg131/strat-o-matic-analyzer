@@ -26,6 +26,7 @@ import { RosterManagementPage } from './pages/RosterManagementPage';
 import { LeagueTeamsPage } from './pages/LeagueTeamsPage';
 import { LeagueTeamAnalysisPage } from './pages/LeagueTeamAnalysisPage';
 import { LeagueTeamOverviewPage } from './pages/LeagueTeamOverviewPage';
+import CardDataImportPage from './pages/CardDataImportPage';
 import { PreDraftLayout } from './layouts/PreDraftLayout';
 import { SeasonLayout } from './layouts/SeasonLayout';
 import { Login } from './components/Login';
@@ -132,6 +133,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+              <Route path="/card-data-import" element={<ProtectedRoute><CardDataImportPage /></ProtectedRoute>} />
               
               {/* Pre-Draft Section */}
               <Route path="/pre-draft" element={<ProtectedRoute><PreDraftLayout /></ProtectedRoute>}>

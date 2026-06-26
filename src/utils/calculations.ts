@@ -5,11 +5,108 @@ import type {
   PitcherWithStats,
   HitterScoringWeights,
   PitcherScoringWeights,
+  Ballpark,
 } from '../types';
+
+// Endurance value mapping - higher = more valuable in the sim
+// Starters: S9 (can pitch 9 innings) is far more valuable than S3
+// Closers: C4 is elite, C1 is marginal
+// Relievers: R3 can go multiple innings, R1 is a one-inning guy
+const ENDURANCE_VALUES: Record<string, number> = {
+  'S9': 100, 'S8': 90, 'S7': 80, 'S6': 70, 'S5': 60,
+  'S4': 50, 'S3': 40, 'S2': 30, 'S1': 20,
+  'S9+': 105, 'S8+': 95, 'S7+': 85, 'S6+': 75, 'S5+': 65,
+  'S4+': 55, 'S3+': 45, 'S2+': 35, 'S1+': 25,
+  'C4': 50, 'C3': 40, 'C2': 30, 'C1': 20,
+  'C4+': 55, 'C3+': 45, 'C2+': 35, 'C1+': 25,
+  'R3': 35, 'R2': 25, 'R1': 15,
+  'R3+': 40, 'R2+': 30, 'R1+': 20,
+};
+
+/**
+ * Calculate ballpark adjustment for a hitter
+ * Compares park factors to neutral (8/8/8/8) and adjusts based on hitter profile
+ */
+export function calculateBallparkEffect(
+  hitter: Hitter,
+  ballpark: Ballpark,
+  weights: HitterScoringWeights
+): number {
+  const NEUTRAL = 8;
+  
+  // How much this park boosts/suppresses singles and HRs
+  // Weight by approximate L/R pitcher facing rates
+  const lhpFacing = 0.30;
+  const rhpFacing = 0.70;
+  
+  const singlesModifier = 
+    (ballpark.singlesLeft - NEUTRAL) * lhpFacing + 
+    (ballpark.singlesRight - NEUTRAL) * rhpFacing;
+    
+  const hrModifier = 
+    (ballpark.homeRunsLeft - NEUTRAL) * lhpFacing + 
+    (ballpark.homeRunsRight - NEUTRAL) * rhpFacing;
+  
+  // Scale by hitter's profile
+  const ab = Math.max(hitter.ab, 1);
+  const powerRatio = hitter.homeRuns / ab;
+  const contactRatio = (hitter.h - hitter.homeRuns) / ab;
+  
+  // Park effect: power hitters benefit from HR-friendly parks
+  // Contact hitters benefit from singles-friendly parks
+  const hrAdjustment = hrModifier * powerRatio * weights.homeRun * 8;
+  const singlesAdjustment = singlesModifier * contactRatio * weights.single * 8;
+  
+  return hrAdjustment + singlesAdjustment;
+}
+
+/**
+ * Calculate ballpark adjustment for a pitcher (inverted from hitter)
+ * Pitcher-friendly parks suppress offense, which helps pitcher value
+ */
+export function calculatePitcherBallparkEffect(
+  pitcher: Pitcher,
+  ballpark: Ballpark,
+  weights: PitcherScoringWeights
+): number {
+  const NEUTRAL = 8;
+  
+  const lhpFacing = 0.30;
+  const rhpFacing = 0.70;
+  
+  // For pitchers, LOWER park factors are BETTER (suppresses offense)
+  const singlesModifier = 
+    (NEUTRAL - ballpark.singlesLeft) * lhpFacing + 
+    (NEUTRAL - ballpark.singlesRight) * rhpFacing;
+    
+  const hrModifier = 
+    (NEUTRAL - ballpark.homeRunsLeft) * lhpFacing + 
+    (NEUTRAL - ballpark.homeRunsRight) * rhpFacing;
+  
+  // Scale by pitcher's vulnerability
+  const ip = Math.max(pitcher.inningsPitched, 1);
+  const hrRate = pitcher.homeRunsAllowed / ip;
+  const hitRate = pitcher.hitsAllowed / ip;
+  
+  const hrAdjustment = hrModifier * hrRate * Math.abs(weights.homeRunAllowed) * 5;
+  const hitsAdjustment = singlesModifier * hitRate * Math.abs(weights.hitAllowed) * 5;
+  
+  return hrAdjustment + hitsAdjustment;
+}
+
+/**
+ * Get the endurance score for a pitcher
+ */
+export function getEnduranceScore(endurance: string): number {
+  if (!endurance) return 0;
+  const key = endurance.toUpperCase().trim();
+  return ENDURANCE_VALUES[key] || 0;
+}
 
 export function calculateHitterStats(
   hitter: Hitter,
-  weights: HitterScoringWeights
+  weights: HitterScoringWeights,
+  ballpark?: Ballpark
 ): HitterWithStats {
   const singles = hitter.h - hitter.doubles - hitter.triples - hitter.homeRuns;
   const outs = hitter.ab - hitter.h;
@@ -66,6 +163,45 @@ export function calculateHitterStats(
     }
   }
 
+  // Card-based scoring bonus
+  let cardBonus = 0;
+  if (hitter.cardData) {
+    // Card quality score (higher = better outcomes on dice rolls)
+    if (hitter.cardData.cardScore !== undefined) {
+      cardBonus += hitter.cardData.cardScore * (weights.cardScoreWeight || 0);
+    }
+    // Clutch hitting: # and $ symbols mean better with runners on
+    const clutchCount = (hitter.cardData.clutchHits || 0) + (hitter.cardData.clutchPlus || 0) * 2;
+    cardBonus += clutchCount * (weights.clutchWeight || 0);
+    // Power rating: W (wide) means HRs can leave the park in favorable ballpark columns
+    if (hitter.cardData.powerVsR === 'W' || hitter.cardData.powerVsL === 'W') {
+      const powerCount = (hitter.cardData.powerVsL === 'W' ? 1 : 0) + (hitter.cardData.powerVsR === 'W' ? 1 : 0);
+      cardBonus += powerCount * (weights.powerRatingWeight || 0);
+    }
+    // Bunting rating: A=4, B=3, C=2, D=1
+    if (hitter.cardData.bunting) {
+      const buntMap: Record<string, number> = { 'A': 4, 'B': 3, 'C': 2, 'D': 1 };
+      cardBonus += (buntMap[hitter.cardData.bunting] || 0) * (weights.buntingWeight || 0);
+    }
+    // Hit & Run rating
+    if (hitter.cardData.hitAndRun) {
+      const hrMap: Record<string, number> = { 'A': 4, 'B': 3, 'C': 2, 'D': 1 };
+      cardBonus += (hrMap[hitter.cardData.hitAndRun] || 0) * (weights.hitAndRunWeight || 0);
+    }
+    // vsL/vsR split scores: reward hitters who are strong vs both sides
+    // vsLScore and vsRScore come from card analysis (higher = better outcomes)
+    if (hitter.cardData.vsLScore !== undefined) {
+      cardBonus += hitter.cardData.vsLScore * (weights.vsLSplitWeight || 0) / 10;
+    }
+    if (hitter.cardData.vsRScore !== undefined) {
+      cardBonus += hitter.cardData.vsRScore * (weights.vsRSplitWeight || 0) / 10;
+    }
+  }
+  // Ensure cardBonus is a valid number
+  if (isNaN(cardBonus) || !isFinite(cardBonus)) {
+    cardBonus = 0;
+  }
+
   const fantasyPoints =
     singles * weights.single +
     hitter.doubles * weights.double +
@@ -78,7 +214,15 @@ export function calculateHitterStats(
     outs * weights.outPenalty +
     balanceBonus +
     defensivePoints +
-    speedRatingBonus;
+    speedRatingBonus +
+    cardBonus;
+
+  // Calculate ballpark-adjusted points if a ballpark is provided
+  let ballparkAdjustedPoints: number | undefined;
+  if (ballpark) {
+    const parkEffect = calculateBallparkEffect(hitter, ballpark, weights);
+    ballparkAdjustedPoints = fantasyPoints + parkEffect;
+  }
 
   const pointsPer600PA =
     hitter.plateAppearances > 0
@@ -96,19 +240,68 @@ export function calculateHitterStats(
     pointsPer600PA,
     pointsPerGame,
     pointsPerDollar,
+    ballparkAdjustedPoints,
   };
 }
 
 export function calculatePitcherStats(
   pitcher: Pitcher,
-  weights: PitcherScoringWeights
+  weights: PitcherScoringWeights,
+  ballpark?: Ballpark
 ): PitcherWithStats {
-  const fantasyPoints =
+  // Base stats calculation
+  const basePoints =
     pitcher.strikeouts * weights.strikeout +
     pitcher.walks * weights.walkAllowed +
     pitcher.hitsAllowed * weights.hitAllowed +
     pitcher.homeRunsAllowed * weights.homeRunAllowed +
     pitcher.earnedRuns * weights.earnedRun;
+
+  // Endurance scoring - this is a major Strat-O-Matic factor
+  // S9 pitcher who can go 9 innings per start is worth far more than S3
+  const enduranceScore = getEnduranceScore(pitcher.endurance);
+  const endurancePoints = enduranceScore * (weights.enduranceWeight || 0);
+
+  // Card-based scoring for pitchers
+  let pitcherCardBonus = 0;
+  if (pitcher.cardData) {
+    // Card quality score (higher = more outs vs hits)
+    if (pitcher.cardData.cardScore !== undefined) {
+      pitcherCardBonus += pitcher.cardData.cardScore * (weights.cardScoreWeight || 0);
+    }
+    // Pitcher rating: 1 (best) to 8 (worst) - invert so lower = more bonus
+    if (pitcher.cardData.pitcherRating !== undefined) {
+      const ratingBonus = (9 - pitcher.cardData.pitcherRating); // 8 for rating 1, 1 for rating 8
+      pitcherCardBonus += ratingBonus * (weights.pitcherRatingWeight || 0);
+    }
+    // Ground ball rate (higher = better for defense)
+    if (pitcher.cardData.gbRate !== undefined) {
+      pitcherCardBonus += pitcher.cardData.gbRate * 10 * (weights.gbRateWeight || 0);
+    }
+    // Strikeout rate on card
+    if (pitcher.cardData.kRate !== undefined) {
+      pitcherCardBonus += pitcher.cardData.kRate * 10 * (weights.kRateWeight || 0);
+    }
+    // vsL/vsR split scores: reward pitchers who shut down both sides
+    if (pitcher.cardData.vsLScore !== undefined) {
+      pitcherCardBonus += pitcher.cardData.vsLScore * (weights.vsLSplitWeight || 0) / 10;
+    }
+    if (pitcher.cardData.vsRScore !== undefined) {
+      pitcherCardBonus += pitcher.cardData.vsRScore * (weights.vsRSplitWeight || 0) / 10;
+    }
+  }
+  if (isNaN(pitcherCardBonus) || !isFinite(pitcherCardBonus)) {
+    pitcherCardBonus = 0;
+  }
+
+  const fantasyPoints = basePoints + endurancePoints + pitcherCardBonus;
+
+  // Ballpark adjustment for pitchers
+  let ballparkAdjustedPoints: number | undefined;
+  if (ballpark) {
+    const parkEffect = calculatePitcherBallparkEffect(pitcher, ballpark, weights);
+    ballparkAdjustedPoints = fantasyPoints + parkEffect;
+  }
 
   const pointsPerIP =
     pitcher.inningsPitched > 0 ? fantasyPoints / pitcher.inningsPitched : 0;
@@ -128,6 +321,8 @@ export function calculatePitcherStats(
     pointsPerStart,
     pointsPerDollar,
     singles,
+    enduranceScore,
+    ballparkAdjustedPoints,
   };
 }
 
